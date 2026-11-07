@@ -64,6 +64,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:minWidth="0dp"
+            android:paddingLeft="2dp"
+            android:paddingRight="2dp"
+            android:textSize="13sp"
             android:text="@string/btn_add_manual" />
 
         <Button
@@ -71,13 +75,32 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:minWidth="0dp"
+            android:paddingLeft="2dp"
+            android:paddingRight="2dp"
+            android:textSize="13sp"
             android:text="@string/btn_import_shot" />
+
+        <Button
+            android:id="@+id/btnReconcile"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minWidth="0dp"
+            android:paddingLeft="2dp"
+            android:paddingRight="2dp"
+            android:textSize="13sp"
+            android:text="@string/btn_reconcile" />
 
         <Button
             android:id="@+id/btnSettings"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:minWidth="0dp"
+            android:paddingLeft="2dp"
+            android:paddingRight="2dp"
+            android:textSize="13sp"
             android:text="@string/btn_settings" />
     </LinearLayout>
 </LinearLayout>

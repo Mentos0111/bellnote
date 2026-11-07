@@ -12,6 +12,8 @@ import com.bellnote.App
 import com.bellnote.R
 import com.bellnote.data.CalendarRepository
 import com.bellnote.data.Prefs
+import com.bellnote.data.SOURCE_NTFY
+import com.bellnote.data.TodoStore
 import com.bellnote.parser.TodoParser
 import com.bellnote.ui.MainActivity
 import com.bellnote.util.Permissions
@@ -67,6 +69,7 @@ class NtfyNotificationListener : NotificationListenerService() {
         Thread {
             try {
                 val repository = CalendarRepository(appContext)
+                val store = TodoStore(appContext)
                 val now = System.currentTimeMillis()
 
                 // 先看是不是「删除」指令
@@ -93,6 +96,8 @@ class NtfyNotificationListener : NotificationListenerService() {
                         TAG,
                         "写入 ${result.spec.title} -> eventId=$eventId fallback=${result.fallback}"
                     )
+                    // 写成功记 eventId；写失败也记一笔（eventId=-1），对账时才能报「缺」
+                    store.record(result.spec, eventId, SOURCE_NTFY)
                     if (eventId > 0) {
                         succeeded++
                         val base = "· ${result.spec.title}　${TimeFormat.full(result.spec.startMillis)}"
@@ -121,6 +126,7 @@ class NtfyNotificationListener : NotificationListenerService() {
 
     /** 处理「发 ntfy 删日历待办」指令：只删本 App 写入的事件，标题严格匹配，可按日期再收窄。 */
     private fun handleCommand(repository: CalendarRepository, command: TodoParser.Command) {
+        val store = TodoStore(this)
         if (command.title.isNullOrBlank() && command.timeMillis == null) {
             notifyResult("删除指令缺内容", "至少给标题，例如：删除：数学作业")
             return
@@ -128,6 +134,10 @@ class NtfyNotificationListener : NotificationListenerService() {
         val matches = repository.findOwnEvents(command.title, command.timeMillis)
         Log.i(TAG, "删除指令 title=${command.title} time=${command.timeMillis} 匹配 ${matches.size} 条")
         if (matches.isEmpty()) {
+            // 日历里本来就没有（可能早就手动删了），本地账也要跟着清，不然对账会一直报「多」
+            if (!command.title.isNullOrBlank()) {
+                store.markDeletedByTitle(command.title, command.timeMillis)
+            }
             val what = buildString {
                 if (!command.title.isNullOrBlank()) append(command.title)
                 if (command.timeMillis != null) {
@@ -140,11 +150,15 @@ class NtfyNotificationListener : NotificationListenerService() {
         }
 
         val deleted = mutableListOf<String>()
+        val deletedIds = mutableListOf<Long>()
         for (item in matches) {
             if (repository.deleteEvent(item.id)) {
                 deleted.add("· ${item.title}　${TimeFormat.full(item.startMillis)}")
+                deletedIds.add(item.id)
             }
         }
+        if (deletedIds.isNotEmpty()) store.markDeletedByEventIds(deletedIds)
+        if (!command.title.isNullOrBlank()) store.markDeletedByTitle(command.title, command.timeMillis)
         if (deleted.isEmpty()) {
             notifyResult("删除失败", "系统日历拒绝了删除：${matches.size} 条都没删掉")
         } else {

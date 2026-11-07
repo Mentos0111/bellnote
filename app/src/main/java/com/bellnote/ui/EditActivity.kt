@@ -19,8 +19,10 @@ import androidx.appcompat.app.AppCompatActivity
 import com.bellnote.R
 import com.bellnote.data.CalendarRepository
 import com.bellnote.data.RepeatRule
+import com.bellnote.data.SOURCE_MANUAL
 import com.bellnote.data.TodoItem
 import com.bellnote.data.TodoSpec
+import com.bellnote.data.TodoStore
 import com.bellnote.util.Permissions
 import com.bellnote.util.TimeFormat
 import java.util.Calendar
@@ -195,10 +197,15 @@ class EditActivity : AppCompatActivity() {
         }
 
         Thread {
-            val ok = if (eventId > 0) {
-                repository.updateEvent(eventId, spec, targetCalendar)
+            val store = TodoStore(this)
+            val ok: Boolean
+            if (eventId > 0) {
+                ok = repository.updateEvent(eventId, spec, targetCalendar)
+                if (ok) store.updateByEventId(eventId, spec)
             } else {
-                repository.insertEvent(spec, targetCalendar) > 0
+                val newId = repository.insertEvent(spec, targetCalendar)
+                if (newId > 0) store.record(spec, newId, SOURCE_MANUAL)
+                ok = newId > 0
             }
             runOnUiThread {
                 if (ok) {
@@ -220,6 +227,7 @@ class EditActivity : AppCompatActivity() {
                 if (id <= 0) return@setPositiveButton
                 Thread {
                     val ok = repository.deleteEvent(id)
+                    if (ok) TodoStore(this).markDeletedByEventIds(listOf(id))
                     runOnUiThread {
                         toast(if (ok) "已删除" else "删除失败")
                         if (ok) finish()

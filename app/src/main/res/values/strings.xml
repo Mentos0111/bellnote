@@ -44,4 +44,15 @@
     <string name="btn_pick_image">选择截图</string>
     <string name="btn_recognize">调用 DeepSeek 识别</string>
     <string name="import_hint">从相册选择 QQ / 微信的作业截图，识别后可在编辑页确认再保存。</string>
+
+    <string name="title_reconcile">日历对账</string>
+    <string name="btn_reconcile">对账</string>
+    <string name="btn_reconcile_refresh">重新对账</string>
+    <string name="btn_reconcile_fill">补齐缺失</string>
+    <string name="btn_reconcile_clean">清理多余</string>
+    <string name="btn_reconcile_fix">修正不一致</string>
+    <string name="label_reconcile_enabled">定时对账（本地清单 vs 手机日历）</string>
+    <string name="label_reconcile_interval">对账间隔（分钟，最少 15）</string>
+    <string name="label_reconcile_notify">有差异时发通知</string>
+    <string name="btn_reconcile_now">立即对账一次</string>
 </resources>

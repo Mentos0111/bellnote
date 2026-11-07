@@ -77,6 +77,40 @@
             android:layout_marginTop="16dp"
             android:text="@string/label_auto_import" />
 
+        <TextView
+            style="@style/FormLabel"
+            android:layout_marginTop="20dp"
+            android:text="@string/title_reconcile" />
+
+        <CheckBox
+            android:id="@+id/cbReconcile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/label_reconcile_enabled" />
+
+        <TextView
+            style="@style/FormLabel"
+            android:text="@string/label_reconcile_interval" />
+
+        <EditText
+            android:id="@+id/etReconcileInterval"
+            style="@style/FormInput"
+            android:hint="30"
+            android:inputType="number" />
+
+        <CheckBox
+            android:id="@+id/cbReconcileNotify"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/label_reconcile_notify" />
+
+        <Button
+            android:id="@+id/btnReconcileNow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/btn_reconcile_now" />
+
         <Button
             android:id="@+id/btnSaveSettings"
             android:layout_width="match_parent"

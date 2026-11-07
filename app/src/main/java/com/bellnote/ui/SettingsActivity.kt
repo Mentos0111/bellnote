@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.bellnote.R
 import com.bellnote.data.CalendarRepository
 import com.bellnote.data.Prefs
+import com.bellnote.service.ReconcileScheduler
 import com.bellnote.util.Permissions
 import com.bellnote.util.SystemPages
 
@@ -29,6 +30,9 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var etApiKey: EditText
     private lateinit var etModel: EditText
     private lateinit var cbAutoImport: CheckBox
+    private lateinit var cbReconcile: CheckBox
+    private lateinit var cbReconcileNotify: CheckBox
+    private lateinit var etReconcileInterval: EditText
 
     private val requestCalendar = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -45,12 +49,22 @@ class SettingsActivity : AppCompatActivity() {
         etApiKey = findViewById(R.id.etApiKey)
         etModel = findViewById(R.id.etModel)
         cbAutoImport = findViewById(R.id.cbAutoImport)
+        cbReconcile = findViewById(R.id.cbReconcile)
+        cbReconcileNotify = findViewById(R.id.cbReconcileNotify)
+        etReconcileInterval = findViewById(R.id.etReconcileInterval)
 
         etRemind.setText(Prefs.remindMinutes(this).ifEmpty { listOf(1440, 60) }.joinToString(","))
         etApiKey.setText(Prefs.apiKey(this))
         etModel.setText(Prefs.model(this))
         cbAutoImport.isChecked = Prefs.autoImport(this)
+        cbReconcile.isChecked = Prefs.reconcileEnabled(this)
+        cbReconcileNotify.isChecked = Prefs.reconcileNotify(this)
+        etReconcileInterval.setText(Prefs.reconcileInterval(this).toString())
         findViewById<TextView>(R.id.tvVersion).text = versionLabel()
+
+        findViewById<Button>(R.id.btnReconcileNow).setOnClickListener {
+            startActivity(Intent(this, ReconcileActivity::class.java))
+        }
 
         findViewById<Button>(R.id.btnSaveSettings).setOnClickListener { saveSettings() }
         findViewById<Button>(R.id.btnCreateCalendar).setOnClickListener { createLocalCalendar() }
@@ -158,11 +172,23 @@ class SettingsActivity : AppCompatActivity() {
         Prefs.setModel(this, etModel.text.toString())
         Prefs.setAutoImport(this, cbAutoImport.isChecked)
 
+        val interval = etReconcileInterval.text.toString().trim().toIntOrNull()
+            ?: Prefs.DEFAULT_RECONCILE_INTERVAL
+        Prefs.setReconcileEnabled(this, cbReconcile.isChecked)
+        Prefs.setReconcileNotify(this, cbReconcileNotify.isChecked)
+        Prefs.setReconcileInterval(this, interval)
+        ReconcileScheduler.sync(this)
+
         val index = spCalendar.selectedItemPosition
         if (index in calendars.indices) {
             Prefs.setCalendarId(this, calendars[index].id)
         }
-        toast("设置已保存（提醒：${effective.joinToString(" / ")} 分钟前）")
+        val reconcileText = if (cbReconcile.isChecked) {
+            "每 ${Prefs.reconcileInterval(this)} 分钟对账"
+        } else {
+            "定时对账已关"
+        }
+        toast("设置已保存（提醒：${effective.joinToString(" / ")} 分钟前；$reconcileText）")
         finish()
     }
 

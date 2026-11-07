@@ -20,6 +20,16 @@ object Prefs {
     private const val KEY_LAST_SIG = "last_notif_sig"
     private const val KEY_LAST_AT = "last_notif_at"
 
+    private const val KEY_RECONCILE_ENABLED = "reconcile_enabled"
+    private const val KEY_RECONCILE_INTERVAL = "reconcile_interval"
+    private const val KEY_RECONCILE_NOTIFY = "reconcile_notify"
+    private const val KEY_RECONCILE_LAST_AT = "reconcile_last_at"
+    private const val KEY_RECONCILE_LAST_SUMMARY = "reconcile_last_summary"
+    private const val KEY_BASELINE_DONE = "reconcile_baseline_done"
+
+    const val DEFAULT_RECONCILE_INTERVAL = 30
+    const val MIN_RECONCILE_INTERVAL = 15
+
     const val DEFAULT_MODEL = "deepseek-flash"
 
     /** 早期版本写死的模型名，平台并不支持，读到时当成没配过。 */
@@ -86,6 +96,53 @@ object Prefs {
         if (last == signature && now - lastAt < 60_000L) return false
         p.edit().putString(KEY_LAST_SIG, signature).putLong(KEY_LAST_AT, now).apply()
         return true
+    }
+
+    // ---------------- 定时对账 ----------------
+
+    fun reconcileEnabled(context: Context): Boolean =
+        sp(context).getBoolean(KEY_RECONCILE_ENABLED, true)
+
+    fun setReconcileEnabled(context: Context, on: Boolean) {
+        sp(context).edit().putBoolean(KEY_RECONCILE_ENABLED, on).apply()
+    }
+
+    /** 对账间隔（分钟），最小 15，默认 30。 */
+    fun reconcileInterval(context: Context): Int =
+        sp(context).getInt(KEY_RECONCILE_INTERVAL, DEFAULT_RECONCILE_INTERVAL)
+            .coerceAtLeast(MIN_RECONCILE_INTERVAL)
+
+    fun setReconcileInterval(context: Context, minutes: Int) {
+        sp(context).edit()
+            .putInt(KEY_RECONCILE_INTERVAL, minutes.coerceAtLeast(MIN_RECONCILE_INTERVAL))
+            .apply()
+    }
+
+    fun reconcileNotify(context: Context): Boolean =
+        sp(context).getBoolean(KEY_RECONCILE_NOTIFY, true)
+
+    fun setReconcileNotify(context: Context, on: Boolean) {
+        sp(context).edit().putBoolean(KEY_RECONCILE_NOTIFY, on).apply()
+    }
+
+    fun lastReconcileAt(context: Context): Long = sp(context).getLong(KEY_RECONCILE_LAST_AT, 0L)
+
+    fun setLastReconcileAt(context: Context, at: Long) {
+        sp(context).edit().putLong(KEY_RECONCILE_LAST_AT, at).apply()
+    }
+
+    fun lastReconcileSummary(context: Context): String =
+        sp(context).getString(KEY_RECONCILE_LAST_SUMMARY, "").orEmpty()
+
+    fun setLastReconcileSummary(context: Context, summary: String) {
+        sp(context).edit().putString(KEY_RECONCILE_LAST_SUMMARY, summary).apply()
+    }
+
+    /** 2.2 首次对账要把日历里已有的待办收进本地账当基线，只做一次。 */
+    fun baselineDone(context: Context): Boolean = sp(context).getBoolean(KEY_BASELINE_DONE, false)
+
+    fun setBaselineDone(context: Context, done: Boolean) {
+        sp(context).edit().putBoolean(KEY_BASELINE_DONE, done).apply()
     }
 
     fun hasCalendarPermission(context: Context): Boolean =
