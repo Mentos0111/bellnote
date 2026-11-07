@@ -20,4 +20,13 @@ data class TodoItem(
     val note: String?,
     val repeat: RepeatRule,
     val calendarId: Long
-)
+) {
+    /** 转回可写入的形状，对账「补齐 / 修正」时用。 */
+    fun toSpec(): TodoSpec = TodoSpec(
+        title = title,
+        startMillis = startMillis,
+        durationMinutes = durationMinutes,
+        note = note,
+        repeat = repeat
+    )
+}

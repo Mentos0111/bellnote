@@ -9,9 +9,9 @@ import them from a screenshot with a vision model.
 
 [中文说明](#中文说明) · [LICENSE: MIT](LICENSE)
 
-| Todos | Settings |
-| --- | --- |
-| ![main](docs/screenshots/main.png) | ![settings](docs/screenshots/settings.png) |
+| Todos | Reconcile | Settings |
+| --- | --- | --- |
+| ![main](docs/screenshots/main.png) | ![reconcile](docs/screenshots/reconcile.png) | ![settings](docs/screenshots/settings.png) |
 
 ## Why
 
@@ -30,6 +30,9 @@ works on ROMs without Google Play Services (tested on realme UI 6).
 - **Local calendar creation**: if the device has no writable calendar (common on GMS-less ROMs),
   one tap creates a local calendar via `ACCOUNT_TYPE_LOCAL`.
 - **Manual add / edit / delete** with date, time, duration, repeat rule, note.
+- **Scheduled reconcile**: every 30 minutes (configurable) the app compares its local todo ledger
+  against the calendar and reports what is **missing**, **extra**, or **changed**. You fix it with one
+  tap — nothing is auto-deleted or auto-rewritten. Also runs on app launch and after boot.
 
 ## Message protocol
 
@@ -69,6 +72,9 @@ todo at *now + 1 hour* so nothing is silently lost.
 | `parser/TodoParser` | JSON + key-value parsing, `parseAll` for multiple todos, `parseCommand` for delete |
 | `parser/MiniJson` | ~200-line JSON reader (so parsing is unit-testable on the JVM) |
 | `data/CalendarRepository` | insert / update / delete events and reminders, marker-based query |
+| `data/TodoStore` | local SQLite ledger of every todo ntfy asked for — the source of truth for reconcile |
+| `data/Reconciler` | diff engine: local ledger vs calendar → missing / extra / changed (pure function, unit-tested) |
+| `service/ReconcileScheduler` | `AlarmManager` self-rescheduling timer — no WorkManager dependency |
 | `ai/VisionExtractor` | screenshot → JSON via a vision model (optional) |
 
 Events are tagged with `ORGANIZER = bellnote@local` and `[bellnote]` in the description, so the app
@@ -97,6 +103,7 @@ APK output: `app/build/outputs/apk/debug/app-debug.apk` (debug-signed; sideload 
    only bind the service when the app process is alive.
 4. Pick a target calendar in Settings (create a local one with the button if the list is empty).
 5. Optional: set an API key for screenshot import.
+6. Optional: tune scheduled reconcile (on by default, every 30 minutes) in Settings.
 
 ### realme / ColorOS notes
 
@@ -114,6 +121,8 @@ APK output: `app/build/outputs/apk/debug/app-debug.apk` (debug-signed; sideload 
 
 - Recurring events are edited/deleted as a whole series (no “this occurrence only” yet).
 - Deleting from a push is not undoable.
+- If you delete a Bellnote event by hand in the system calendar, reconcile reports it as **missing**;
+  “Fill missing” would write it back. Remove it from the ledger instead if that was intentional.
 - Some vendor calendars reject `ORGANIZER`; the description marker is used as a fallback.
 
 ## License
@@ -132,6 +141,8 @@ MIT — see [LICENSE](LICENSE).
 - 截图识别（可选）：截图 → 压缩 → 视觉模型 → 编辑页确认后入日历，需要自己的 API Key
 - 设备没有可写日历时，一键创建 `ACCOUNT_TYPE_LOCAL` 本地日历
 - 手动添加 / 编辑 / 删除，支持重复规则
+- 定时对账（默认 30 分钟，可改）：本地清单 vs 日历，报「缺 / 多 / 不一致」，你点一下才修复，
+  从不自动删或自动改写；升级到 2.2 首次运行会把日历里现有待办收进本地清单当基线
 
 构建：`gradlew.bat assembleDebug`（JDK 17 + SDK 34），Windows 上可直接跑 `build.cmd`。
 协议、安装步骤、realme 适配见上方英文小节，中文细节在 `docs/` 里。

@@ -15,7 +15,10 @@ import com.bellnote.R
 import com.bellnote.data.CalendarRepository
 import com.bellnote.data.Prefs
 import com.bellnote.data.TodoItem
+import com.bellnote.data.TodoStore
+import com.bellnote.service.ReconcileRunner
 import com.bellnote.util.Permissions
+import com.bellnote.util.TimeFormat
 
 class MainActivity : AppCompatActivity() {
 
@@ -59,6 +62,9 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.btnSettings).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
+        findViewById<View>(R.id.btnReconcile).setOnClickListener {
+            startActivity(Intent(this, ReconcileActivity::class.java))
+        }
         findViewById<View>(R.id.statusCard).setOnClickListener {
             startActivity(Intent(this, PermissionGuideActivity::class.java))
         }
@@ -73,6 +79,23 @@ class MainActivity : AppCompatActivity() {
             requestNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
         refresh()
+        runReconcileIfDue()
+    }
+
+    /** 闹钟可能被 realme 的后台限制掐掉，打开 App 时补跑一次。 */
+    private fun runReconcileIfDue() {
+        if (!Prefs.reconcileEnabled(this)) return
+        if (!Permissions.hasCalendar(this)) return
+        val interval = Prefs.reconcileInterval(this) * 60_000L
+        if (System.currentTimeMillis() - Prefs.lastReconcileAt(this) < interval) return
+        Thread {
+            try {
+                ReconcileRunner.check(this, notify = false)
+            } catch (e: Exception) {
+                android.util.Log.w("MainActivity", "补跑对账失败", e)
+            }
+            runOnUiThread { updateStatus() }
+        }.start()
     }
 
     private fun refresh() {
@@ -103,7 +126,15 @@ class MainActivity : AppCompatActivity() {
 
         if (problems.isEmpty()) {
             statusTitle.text = getString(R.string.main_status_ok)
-            statusDetail.text = "收到 ntfy 通知会自动写进日历，双提醒已生效；点这里可查看权限说明"
+            val lastAt = Prefs.lastReconcileAt(this)
+            val summary = Prefs.lastReconcileSummary(this)
+            val reconcileLine = if (lastAt > 0) {
+                "对账：$summary（${TimeFormat.full(lastAt)}）"
+            } else {
+                "还没跑过对账，点下方「对账」看清单和日历差在哪"
+            }
+            statusDetail.text =
+                "收到 ntfy 通知会自动写进日历，双提醒已生效\n$reconcileLine\n点这里可查看权限说明"
         } else {
             statusTitle.text = getString(R.string.main_status_need)
             statusDetail.text = problems.joinToString("\n") + "\n点这里逐项去开"
@@ -117,6 +148,7 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton("删除") { _, _ ->
                 Thread {
                     val ok = repository.deleteEvent(item.id)
+                    if (ok) TodoStore(this).markDeletedByEventIds(listOf(item.id))
                     runOnUiThread {
                         android.widget.Toast.makeText(
                             this,
