@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            style="@style/FormLabel"
+            android:layout_marginTop="0dp"
+            android:text="@string/label_title" />
+
+        <EditText
+            android:id="@+id/etTitle"
+            style="@style/FormInput"
+            android:hint="数学作业"
+            android:inputType="text" />
+
+        <TextView
+            style="@style/FormLabel"
+            android:text="@string/label_time" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnDate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/btn_pick_date" />
+
+            <Button
+                android:id="@+id/btnTime"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/btn_pick_time" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvWhen"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textColor="@color/primary" />
+
+        <TextView
+            style="@style/FormLabel"
+            android:text="@string/label_duration" />
+
+        <EditText
+            android:id="@+id/etDuration"
+            style="@style/FormInput"
+            android:inputType="number"
+            android:text="60" />
+
+        <TextView
+            style="@style/FormLabel"
+            android:text="@string/label_repeat" />
+
+        <Spinner
+            android:id="@+id/spRepeat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            style="@style/FormLabel"
+            android:text="@string/label_note" />
+
+        <EditText
+            android:id="@+id/etNote"
+            style="@style/FormInput"
+            android:gravity="top"
+            android:hint="第三章习题"
+            android:inputType="textMultiLine"
+            android:minLines="3" />
+
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/btn_save" />
+
+        <Button
+            android:id="@+id/btnDelete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/btn_delete"
+            android:visibility="gone" />
+    </LinearLayout>
+</ScrollView>
