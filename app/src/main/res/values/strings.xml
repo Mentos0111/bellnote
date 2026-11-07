@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Bellnote</string>
+
+    <string name="main_status_ok">一切就绪</string>
+    <string name="main_status_need">还差一点配置</string>
+    <string name="main_empty">暂无待办\n收到 ntfy 通知或手动添加后会出现在这里</string>
+    <string name="btn_add_manual">手动添加</string>
+    <string name="btn_import_shot">截图识别</string>
+    <string name="btn_settings">设置</string>
+
+    <string name="title_edit_new">新建待办</string>
+    <string name="title_edit_old">编辑待办</string>
+    <string name="title_settings">设置</string>
+    <string name="title_import">截图识别待办</string>
+    <string name="title_permission">权限与后台设置</string>
+
+    <string name="label_title">标题</string>
+    <string name="label_time">时间</string>
+    <string name="label_duration">时长（分钟）</string>
+    <string name="label_repeat">重复</string>
+    <string name="label_note">备注</string>
+    <string name="btn_pick_date">选日期</string>
+    <string name="btn_pick_time">选时间</string>
+    <string name="btn_save">保存到日历</string>
+    <string name="btn_delete">删除这条待办</string>
+
+    <string name="label_calendar">目标日历</string>
+    <string name="btn_create_calendar">创建本地日历（列表为空时点这里）</string>
+    <string name="label_remind">提醒（分钟，逗号分隔，最多 3 条）</string>
+    <string name="label_api_key">DeepSeek API Key</string>
+    <string name="label_model">视觉模型</string>
+    <string name="model_hint">平台目前支持：deepseek-flash / deepseek-v4-pro。填错时识别会提示可用名称。</string>
+    <string name="label_auto_import">自动把 ntfy 通知写入日历</string>
+    <string name="btn_save_settings">保存设置</string>
+
+    <string name="perm_notification">通知使用权（读取 ntfy 通知）</string>
+    <string name="perm_calendar">日历读写权限</string>
+    <string name="perm_autostart">自启动管理（realme）</string>
+    <string name="perm_battery">电池 / 后台耗电白名单</string>
+    <string name="perm_app_detail">应用详情页</string>
+    <string name="perm_open">去设置</string>
+
+    <string name="btn_pick_image">选择截图</string>
+    <string name="btn_recognize">调用 DeepSeek 识别</string>
+    <string name="import_hint">从相册选择 QQ / 微信的作业截图，识别后可在编辑页确认再保存。</string>
+</resources>
