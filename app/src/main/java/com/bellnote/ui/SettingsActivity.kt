@@ -32,7 +32,8 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var cbAutoImport: CheckBox
     private lateinit var cbReconcile: CheckBox
     private lateinit var cbReconcileNotify: CheckBox
-    private lateinit var etReconcileInterval: EditText
+    private lateinit var spReconcileInterval: Spinner
+    private var intervalValues: List<Int> = emptyList()
 
     private val requestCalendar = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -51,7 +52,7 @@ class SettingsActivity : AppCompatActivity() {
         cbAutoImport = findViewById(R.id.cbAutoImport)
         cbReconcile = findViewById(R.id.cbReconcile)
         cbReconcileNotify = findViewById(R.id.cbReconcileNotify)
-        etReconcileInterval = findViewById(R.id.etReconcileInterval)
+        spReconcileInterval = findViewById(R.id.spReconcileInterval)
 
         etRemind.setText(Prefs.remindMinutes(this).ifEmpty { listOf(1440, 60) }.joinToString(","))
         etApiKey.setText(Prefs.apiKey(this))
@@ -59,7 +60,7 @@ class SettingsActivity : AppCompatActivity() {
         cbAutoImport.isChecked = Prefs.autoImport(this)
         cbReconcile.isChecked = Prefs.reconcileEnabled(this)
         cbReconcileNotify.isChecked = Prefs.reconcileNotify(this)
-        etReconcileInterval.setText(Prefs.reconcileInterval(this).toString())
+        setupIntervalSpinner()
         findViewById<TextView>(R.id.tvVersion).text = versionLabel()
 
         findViewById<Button>(R.id.btnReconcileNow).setOnClickListener {
@@ -90,6 +91,25 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         loadCalendars()
+    }
+
+    /** 间隔做成选项，避免手输数字；当前值不在列表里时补进去，不动用户已有设置。 */
+    private fun setupIntervalSpinner() {
+        val presets = listOf(15, 30, 45, 60, 90, 120, 180, 1440)
+        val current = Prefs.reconcileInterval(this)
+        intervalValues = (presets + current).distinct().sorted()
+        spReconcileInterval.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            intervalValues.map { intervalLabel(it) }
+        ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+        spReconcileInterval.setSelection(intervalValues.indexOf(current).coerceAtLeast(0))
+    }
+
+    private fun intervalLabel(minutes: Int): String = when {
+        minutes >= 1440 && minutes % 1440 == 0 -> "每天一次（${minutes / 1440} 天）"
+        minutes >= 60 && minutes % 60 == 0 -> "${minutes / 60} 小时"
+        else -> "$minutes 分钟"
     }
 
     private fun loadCalendars() {
@@ -172,7 +192,7 @@ class SettingsActivity : AppCompatActivity() {
         Prefs.setModel(this, etModel.text.toString())
         Prefs.setAutoImport(this, cbAutoImport.isChecked)
 
-        val interval = etReconcileInterval.text.toString().trim().toIntOrNull()
+        val interval = intervalValues.getOrNull(spReconcileInterval.selectedItemPosition)
             ?: Prefs.DEFAULT_RECONCILE_INTERVAL
         Prefs.setReconcileEnabled(this, cbReconcile.isChecked)
         Prefs.setReconcileNotify(this, cbReconcileNotify.isChecked)
@@ -184,7 +204,7 @@ class SettingsActivity : AppCompatActivity() {
             Prefs.setCalendarId(this, calendars[index].id)
         }
         val reconcileText = if (cbReconcile.isChecked) {
-            "每 ${Prefs.reconcileInterval(this)} 分钟对账"
+            "${intervalLabel(Prefs.reconcileInterval(this))}对账一次"
         } else {
             "定时对账已关"
         }

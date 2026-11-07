@@ -114,6 +114,13 @@ class CalendarRepository(private val context: Context) {
     }
 
     fun insertEvent(spec: TodoSpec, calendarId: Long): Long {
+        // 同标题+同开始时间已经存在就不重复写：ntfy 重发、用户连点保存都不该多出一条
+        val duplicate = findOwnEvents(spec.title, spec.startMillis)
+            .firstOrNull { it.startMillis == spec.startMillis }
+        if (duplicate != null) {
+            Log.i(TAG, "同类待办已存在 eventId=${duplicate.id}，跳过重复写入")
+            return duplicate.id
+        }
         val id = insertWithFallback(spec, calendarId)
         if (id > 0) addReminders(id, Prefs.remindMinutes(context))
         return id
@@ -203,7 +210,7 @@ class CalendarRepository(private val context: Context) {
         if (title.isNullOrBlank() && timeMillis == null) return emptyList()
         val wanted = title?.trim().orEmpty()
         return all.filter { item ->
-            val titleOk = wanted.isEmpty() || item.title.trim().equals(wanted, ignoreCase = true)
+            val titleOk = wanted.isEmpty() || TitleKey.same(item.title, wanted)
             val timeOk = timeMillis == null || sameDay(item.startMillis, timeMillis)
             titleOk && timeOk
         }

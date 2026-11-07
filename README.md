@@ -31,8 +31,14 @@ works on ROMs without Google Play Services (tested on realme UI 6).
   one tap creates a local calendar via `ACCOUNT_TYPE_LOCAL`.
 - **Manual add / edit / delete** with date, time, duration, repeat rule, note.
 - **Scheduled reconcile**: every 30 minutes (configurable) the app compares its local todo ledger
-  against the calendar and reports what is **missing**, **extra**, or **changed**. You fix it with one
-  tap — nothing is auto-deleted or auto-rewritten. Also runs on app launch and after boot.
+  against the calendar and reports what is **missing**, **removed**, **extra**, or **changed**. You
+  fix it with one tap — nothing is auto-deleted or auto-rewritten. Also runs on app launch and after boot.
+- **Manual deletions are respected**: if you delete a Bellnote event in the system calendar yourself,
+  reconcile lists it under *removed* (grey) instead of *missing*, and one tap drops it from the ledger
+  for good — the app will not try to put it back.
+- **No duplicate events**: the same title + start time is never written twice, so ntfy retries or
+  reconnects cannot pile up copies.
+- **Grouped list**: the home screen groups todos by 今天 / 明天 / 后天 / 已过期 / date.
 
 ## Message protocol
 
@@ -142,8 +148,8 @@ attaches it to the GitHub Release for that tag.
 
 - Recurring events are edited/deleted as a whole series (no “this occurrence only” yet).
 - Deleting from a push is not undoable.
-- If you delete a Bellnote event by hand in the system calendar, reconcile reports it as **missing**;
-  “Fill missing” would write it back. Remove it from the ledger instead if that was intentional.
+- “Removed” only covers events the app remembers writing. If the ledger was reset, a hand-deleted
+  event cannot be told apart from one that never made it into the calendar.
 - Some vendor calendars reject `ORGANIZER`; the description marker is used as a fallback.
 
 ## License
@@ -162,8 +168,12 @@ MIT — see [LICENSE](LICENSE).
 - 截图识别（可选）：截图 → 压缩 → 视觉模型 → 编辑页确认后入日历，需要自己的 API Key
 - 设备没有可写日历时，一键创建 `ACCOUNT_TYPE_LOCAL` 本地日历
 - 手动添加 / 编辑 / 删除，支持重复规则
-- 定时对账（默认 30 分钟，可改）：本地清单 vs 日历，报「缺 / 多 / 不一致」，你点一下才修复，
+- 定时对账（默认 30 分钟，可改）：本地清单 vs 日历，报「缺 / 已删 / 多 / 不一致」，你点一下才修复，
   从不自动删或自动改写；升级到 2.2 首次运行会把日历里现有待办收进本地清单当基线
+- 你在系统日历里**手动删掉**的 Bellnote 待办会被认成「已删」（灰色），点一下就清出清单，
+  不会被当成「缺失」反复提醒你补回去
+- 同标题同时间不会重复写入，ntfy 重发 / 重连也不会多出一条
+- 主页按「今天 / 明天 / 后天 / 已过期 / 具体日期」分组显示
 
 构建：`gradlew.bat assembleDebug`（JDK 17 + SDK 34），Windows 上可直接跑 `build.cmd`。
 协议、安装步骤、realme 适配见上方英文小节，中文细节在 `docs/` 里。

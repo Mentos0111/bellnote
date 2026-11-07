@@ -11,6 +11,7 @@ import com.bellnote.R
 import com.bellnote.data.Prefs
 import com.bellnote.data.ReconcileReport
 import com.bellnote.data.Reconciler
+import com.bellnote.data.TodoStore
 import com.bellnote.ui.ReconcileActivity
 import com.bellnote.util.Permissions
 
@@ -20,11 +21,16 @@ object ReconcileRunner {
     private const val TAG = "ReconcileRunner"
     private const val NOTIFY_ID = 1002
 
+    /** 标记删除超过 90 天的账本行物理清掉。 */
+    private const val PRUNE_AFTER_MS = 90L * 24 * 60 * 60 * 1000
+
     fun check(context: Context, notify: Boolean = false): ReconcileReport {
         val app = context.applicationContext
         val report = Reconciler.run(app)
         Prefs.setLastReconcileAt(app, report.checkedAt)
         Prefs.setLastReconcileSummary(app, report.summary())
+        // 顺手清掉三个月前标记删除的账本行
+        TodoStore(app).pruneDeleted(PRUNE_AFTER_MS)
         if (!report.consistent && notify) notifyDiff(app, report)
         return report
     }

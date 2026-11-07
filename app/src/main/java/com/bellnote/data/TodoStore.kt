@@ -149,6 +149,37 @@ class TodoStore(context: Context) {
         }
     }
 
+    /** 物理删掉很久以前标记为删除的记录，避免账本无限变长。 */
+    @Synchronized
+    fun pruneDeleted(olderThanMillis: Long): Int = try {
+        val cutoff = System.currentTimeMillis() - olderThanMillis
+        helper.writableDatabase.delete(
+            TABLE,
+            "$COL_STATUS = ? AND $COL_UPDATED < ?",
+            arrayOf(STATUS_DELETED, cutoff.toString())
+        )
+    } catch (e: Exception) {
+        Log.w(TAG, "清理旧账失败", e)
+        0
+    }
+
+    @Synchronized
+    fun markDeletedByIds(localIds: Collection<Long>) {
+        val ids = localIds.filter { it > 0 }
+        if (ids.isEmpty()) return
+        try {
+            val args = ids.map { it.toString() }.toTypedArray()
+            val placeholders = args.joinToString(",") { "?" }
+            val values = ContentValues().apply {
+                put(COL_STATUS, STATUS_DELETED)
+                put(COL_UPDATED, System.currentTimeMillis())
+            }
+            helper.writableDatabase.update(TABLE, values, "$COL_ID IN ($placeholders)", args)
+        } catch (e: Exception) {
+            Log.w(TAG, "按 id 标记删除失败", e)
+        }
+    }
+
     @Synchronized
     fun markDeletedByEventIds(eventIds: Collection<Long>) {
         val ids = eventIds.filter { it > 0 }
