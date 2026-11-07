@@ -94,6 +94,27 @@ On Windows, `build.cmd` wraps the Gradle call and prints the APK path
 
 APK output: `app/build/outputs/apk/debug/app-debug.apk` (debug-signed; sideload it).
 
+### Signing
+
+`keystore/bellnote-debug.keystore` is the standard Android **debug** key, committed on purpose so
+that every build — locally or on GitHub Actions — carries the same signature and existing users can
+upgrade in place. It is not a secret and has no value outside this app. If you fork this and ship to
+other people, generate your own release key instead.
+
+### Automated release
+
+`.github/workflows/release.yml` builds and publishes on every `v*` tag push (and can be run manually
+from the Actions tab for an existing tag):
+
+```bash
+git tag -a v2.3 -m "Bellnote v2.3"
+git push origin main
+git push origin v2.3
+```
+
+The workflow runs the unit tests, builds the release APK, renames it `bellnote-<version>.apk`, and
+attaches it to the GitHub Release for that tag.
+
 ## Install
 
 1. Install the APK (allow “install unknown apps”).
@@ -146,6 +167,13 @@ MIT — see [LICENSE](LICENSE).
 
 构建：`gradlew.bat assembleDebug`（JDK 17 + SDK 34），Windows 上可直接跑 `build.cmd`。
 协议、安装步骤、realme 适配见上方英文小节，中文细节在 `docs/` 里。
+
+签名：仓库里 `keystore/bellnote-debug.keystore` 是标准 Android debug key，**故意提交**的，
+这样本地构建和 GitHub Actions 产出的 APK 签名一致，已安装用户可以直接覆盖升级。它不是密钥，
+对外没有价值；如果你要 fork 后分发给别人，请换成自己的正式签名密钥。
+
+自动发版：推 `v*` tag 就会触发 `.github/workflows/release.yml`，跑单测 → 构建 → 把
+`bellnote-<版本>.apk` 挂到对应 Release 上。
 
 隐私：不收集任何数据；唯一联网是可选截图识别。
 
