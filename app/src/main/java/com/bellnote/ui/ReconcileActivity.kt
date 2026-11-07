@@ -30,6 +30,7 @@ class ReconcileActivity : AppCompatActivity() {
     private lateinit var btnFill: Button
     private lateinit var btnClean: Button
     private lateinit var btnFix: Button
+    private lateinit var btnPurge: Button
 
     private var report: ReconcileReport? = null
     private var busy = false
@@ -46,6 +47,7 @@ class ReconcileActivity : AppCompatActivity() {
         btnFill = findViewById(R.id.btnFill)
         btnClean = findViewById(R.id.btnClean)
         btnFix = findViewById(R.id.btnFix)
+        btnPurge = findViewById(R.id.btnPurge)
 
         adapter = DiffAdapter()
         val recycler: RecyclerView = findViewById(R.id.recycler)
@@ -56,6 +58,7 @@ class ReconcileActivity : AppCompatActivity() {
         btnFill.setOnClickListener { repair("已补齐", { Reconciler.applyMissing(this, it) }, report?.missing.orEmpty()) }
         btnClean.setOnClickListener { repair("已清理", { Reconciler.applyExtra(this, it) }, report?.extra.orEmpty()) }
         btnFix.setOnClickListener { repair("已修正", { Reconciler.applyChanged(this, it) }, report?.changed.orEmpty()) }
+        btnPurge.setOnClickListener { repair("已从清单移除", { Reconciler.applyRemoved(this, it) }, report?.removed.orEmpty()) }
     }
 
     override fun onResume() {
@@ -72,7 +75,7 @@ class ReconcileActivity : AppCompatActivity() {
             tvEmpty.visibility = View.VISIBLE
             adapter.items = emptyList()
             adapter.notifyDataSetChanged()
-            setButtonsEnabled(false, false, false)
+            setButtonsEnabled(false, false, false, false)
             return
         }
         busy = true
@@ -120,14 +123,16 @@ class ReconcileActivity : AppCompatActivity() {
         setButtonsEnabled(
             result.missing.isNotEmpty(),
             result.extra.isNotEmpty(),
-            result.changed.isNotEmpty()
+            result.changed.isNotEmpty(),
+            result.removed.isNotEmpty()
         )
     }
 
-    private fun setButtonsEnabled(fill: Boolean, clean: Boolean, fix: Boolean) {
+    private fun setButtonsEnabled(fill: Boolean, clean: Boolean, fix: Boolean, purge: Boolean) {
         btnFill.isEnabled = fill && !busy
         btnClean.isEnabled = clean && !busy
         btnFix.isEnabled = fix && !busy
+        btnPurge.isEnabled = purge && !busy
     }
 
     private fun repair(
@@ -141,7 +146,7 @@ class ReconcileActivity : AppCompatActivity() {
             return
         }
         busy = true
-        setButtonsEnabled(false, false, false)
+        setButtonsEnabled(false, false, false, false)
         btnRefresh.isEnabled = false
         tvDetail.text = "正在处理 ${targets.size} 条…"
         Thread {

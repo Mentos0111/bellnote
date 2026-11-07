@@ -6,11 +6,19 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-/** 差异类型：日历缺了、日历多了、两边不一致。 */
+/** 差异类型。 */
 enum class DiffKind(val badge: String) {
+    /** 清单里有、日历里从来没有过（写失败 / 没权限 / 被拒绝） */
     MISSING("缺"),
+
+    /** 清单里有、日历里有，但内容对不上 */
+    CHANGED("改"),
+
+    /** 日历里有、清单里没有 */
     EXTRA("多"),
-    CHANGED("改")
+
+    /** 曾经写进过日历，现在日历里没有了 —— 多半是用户自己在系统日历里删的 */
+    REMOVED("删")
 }
 
 data class DiffItem(
@@ -32,12 +40,14 @@ data class ReconcileReport(
     val missing: List<DiffItem> get() = diffs.filter { it.kind == DiffKind.MISSING }
     val extra: List<DiffItem> get() = diffs.filter { it.kind == DiffKind.EXTRA }
     val changed: List<DiffItem> get() = diffs.filter { it.kind == DiffKind.CHANGED }
+    val removed: List<DiffItem> get() = diffs.filter { it.kind == DiffKind.REMOVED }
     val consistent: Boolean get() = diffs.isEmpty()
 
     fun summary(): String {
         if (consistent) return "一致"
         val parts = mutableListOf<String>()
         if (missing.isNotEmpty()) parts.add("缺 ${missing.size}")
+        if (removed.isNotEmpty()) parts.add("已删 ${removed.size}")
         if (extra.isNotEmpty()) parts.add("多 ${extra.size}")
         if (changed.isNotEmpty()) parts.add("不一致 ${changed.size}")
         return parts.joinToString(" · ")
@@ -113,9 +123,20 @@ object Reconciler {
         }
 
         for (item in stillMissing) {
-            diffs.add(
-                DiffItem(DiffKind.MISSING, item.title, item.startMillis, item, null, "日历里没有这条")
-            )
+            if (item.eventId > 0) {
+                // 曾写进日历、现在没了：多半是用户在系统日历里手动删掉的，
+                // 报「缺」再让用户补齐会显得 App 在跟他较劲，单列一类。
+                diffs.add(
+                    DiffItem(
+                        DiffKind.REMOVED, item.title, item.startMillis, item, null,
+                        "之前写进过日历，现在日历里没有了"
+                    )
+                )
+            } else {
+                diffs.add(
+                    DiffItem(DiffKind.MISSING, item.title, item.startMillis, item, null, "日历里没有这条")
+                )
+            }
         }
         for (cal in calLeft) {
             if (cal.id in usedLeft) continue
@@ -175,8 +196,7 @@ object Reconciler {
         return done
     }
 
-    /** 修正不一致：以本地清单为准，把日历改回来。 */
-    fun applyChanged(context: Context, diffs: List<DiffItem>): Int {
+    /** 修正不一致：以本地清单为准，把日历改回来。 */    fun applyChanged(context: Context, diffs: List<DiffItem>): Int {
         val store = TodoStore(context)
         val repository = CalendarRepository(context)
         var done = 0
@@ -192,6 +212,19 @@ object Reconciler {
         }
         Log.i(TAG, "修正不一致 $done 条")
         return done
+    }
+
+    /**
+     * 清掉「之前写过、现在日历里已经被删」的条目：从本地清单移除。
+     * 不清的话每次对账都会再报一遍，用户还得反复忽略。
+     */
+    fun applyRemoved(context: Context, diffs: List<DiffItem>): Int {
+        val store = TodoStore(context)
+        val ids = diffs.mapNotNull { it.local?.id }.filter { it > 0 }
+        if (ids.isEmpty()) return 0
+        store.markDeletedByIds(ids)
+        Log.i(TAG, "从清单移除 ${ids.size} 条（日历里已被删）")
+        return ids.size
     }
 
     // ---------------- 内部实现 ----------------
@@ -233,10 +266,7 @@ object Reconciler {
         return if (parts.isEmpty()) null else parts.joinToString("，")
     }
 
-    private fun sameTitle(first: String, second: String): Boolean {
-        fun norm(raw: String) = raw.trim().replace(Regex("\\s+"), " ")
-        return norm(first).equals(norm(second), ignoreCase = true)
-    }
+    private fun sameTitle(first: String, second: String): Boolean = TitleKey.same(first, second)
 
     private fun format(millis: Long): String =
         Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).format(TIME_FORMAT)

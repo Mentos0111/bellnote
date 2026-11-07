@@ -48,5 +48,6 @@ class DiffAdapter : RecyclerView.Adapter<DiffAdapter.Holder>() {
         DiffKind.MISSING -> Color.parseColor("#D93025")
         DiffKind.EXTRA -> Color.parseColor("#EF8F32")
         DiffKind.CHANGED -> Color.parseColor("#156B5A")
+        DiffKind.REMOVED -> Color.parseColor("#8A8A8A")
     }
 }

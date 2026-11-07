@@ -52,9 +52,18 @@ class ReconcilerTest {
 
     @Test
     fun `清单有日历没有算缺失`() {
-        val diffs = Reconciler.compare(listOf(local()), emptyList())
+        // eventId=-1 表示从来没写成功过（权限没了 / 被日历拒绝）
+        val diffs = Reconciler.compare(listOf(local(eventId = -1L)), emptyList())
         assertEquals(1, diffs.size)
         assertEquals(DiffKind.MISSING, diffs[0].kind)
+    }
+
+    @Test
+    fun `写进过日历、现在没了算已删`() {
+        val diffs = Reconciler.compare(listOf(local(eventId = 100L)), emptyList())
+        assertEquals(1, diffs.size)
+        assertEquals(DiffKind.REMOVED, diffs[0].kind)
+        assertTrue(diffs[0].detail.contains("之前写进过"))
     }
 
     @Test

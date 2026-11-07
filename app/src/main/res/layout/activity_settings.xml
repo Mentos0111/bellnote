@@ -92,11 +92,10 @@
             style="@style/FormLabel"
             android:text="@string/label_reconcile_interval" />
 
-        <EditText
-            android:id="@+id/etReconcileInterval"
-            style="@style/FormInput"
-            android:hint="30"
-            android:inputType="number" />
+        <Spinner
+            android:id="@+id/spReconcileInterval"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
         <CheckBox
             android:id="@+id/cbReconcileNotify"
