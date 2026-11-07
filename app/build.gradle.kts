@@ -15,6 +15,20 @@ android {
         versionName = "2.2"
     }
 
+    signingConfigs {
+        // 固定用仓库里这份 keystore（就是标准 Android debug key），保证本地构建与
+        // GitHub Actions 产出的 APK 签名一致，已安装的用户可以直接覆盖升级。
+        getByName("debug") {
+            val keyStoreFile = rootProject.file("keystore/bellnote-debug.keystore")
+            if (keyStoreFile.exists()) {
+                storeFile = keyStoreFile
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false

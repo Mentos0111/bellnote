@@ -7,6 +7,7 @@ local.properties
 *.log
 *.apk
 *.keystore
+!keystore/bellnote-debug.keystore
 *.jks
 .DS_Store
 captures/
