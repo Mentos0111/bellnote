@@ -26,7 +26,10 @@ works on ROMs without Google Play Services (tested on realme UI 6).
 - **One notification, many todos**: JSON array, `{"todos":[…]}` wrapper, or blank-line separated blocks.
 - **Remote delete**: send `{"action":"delete","title":"…"}` and the matching event is removed.
 - **Screenshot import** (optional): pick an image, compress it, send to a vision model, review in the
-  edit screen, then save. Needs your own API key.
+  edit screen, then save. Needs your own API key. The prompt is tuned so the model returns a *short*
+  title (≤16 chars, verb + object), infers the duration from the chat (「2 小时」→120, 14:30-16:00 →90),
+  and puts everything else — dates, places, requirements, deadlines — into the note. The current date
+  is injected into the prompt so relative words like “明天” resolve to a real date instead of a guess.
 - **Local calendar creation**: if the device has no writable calendar (common on GMS-less ROMs),
   one tap creates a local calendar via `ACCOUNT_TYPE_LOCAL`.
 - **Manual add / edit / delete** with date, time, duration, repeat rule, note.
@@ -173,6 +176,10 @@ MIT — see [LICENSE](LICENSE).
 - 一条通知可以写多条待办（JSON 数组 / `{"todos":[…]}` / 空行分段）
 - 发 `{"action":"delete","title":"…"}` 或「删除：标题」即可远程删待办（只删本 App 写的）
 - 截图识别（可选）：截图 → 压缩 → 视觉模型 → 编辑页确认后入日历，需要自己的 API Key
+  - 标题只取**简略的一件事**（≤16 字，动词＋对象），不会把整段聊天塞进去
+  - 时长从截图推断（「2 小时」→120 分钟，`14:30-16:00` →90 分钟，没线索才用 60）
+  - 其余信息（具体日期、地点、要带的东西、截止时间）全部进备注
+  - prompt 里注入了「现在是几点」，所以「明天 / 周五」会算成真实日期，不会瞎编年份
 - 设备没有可写日历时，一键创建 `ACCOUNT_TYPE_LOCAL` 本地日历
 - 手动添加 / 编辑 / 删除，支持重复规则
 - 定时对账（默认 30 分钟，可改）：本地清单 vs 日历，报「缺 / 已删 / 多 / 不一致」，你点一下才修复，
