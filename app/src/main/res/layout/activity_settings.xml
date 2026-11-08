@@ -77,6 +77,21 @@
             android:layout_marginTop="16dp"
             android:text="@string/label_auto_import" />
 
+        <CheckBox
+            android:id="@+id/cbStrictParse"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/label_strict_parse" />
+
+        <TextView
+            android:id="@+id/tvStrictHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:text="@string/hint_strict_parse" />
+
         <TextView
             style="@style/FormLabel"
             android:layout_marginTop="20dp"

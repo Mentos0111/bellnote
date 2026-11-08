@@ -176,4 +176,37 @@ class TodoParserTest {
         assertEquals(null, TodoParser.parseCommand("""{"title":"数学作业","time":"2026-11-08 19:00"}""", now))
         assertEquals(null, TodoParser.parseCommand("明天交作业", now))
     }
+
+    // ---------------- 严格模式依赖的 timeParsed 标记 ----------------
+
+    @Test
+    fun `带时间的 JSON 标记为时间已解析`() {
+        val result = TodoParser.parse(null, """{"title":"数学作业","time":"2026-11-08 19:00"}""", now)
+        assertTrue(result.timeParsed)
+    }
+
+    @Test
+    fun `带时间的键值文本标记为时间已解析`() {
+        val result = TodoParser.parse(null, "标题：数学作业\n时间：2026-11-08 19:00", now)
+        assertTrue(result.timeParsed)
+    }
+
+    @Test
+    fun `不认识的纯文本不算时间已解析`() {
+        val result = TodoParser.parse("随便一条通知", "今天下午三点开个会", now)
+        assertFalse(result.timeParsed)
+        assertTrue(result.fallback)
+    }
+
+    @Test
+    fun `JSON 缺时间字段不算时间已解析`() {
+        val result = TodoParser.parse(null, """{"title":"数学作业"}""", now)
+        assertFalse(result.timeParsed)
+    }
+
+    @Test
+    fun `时间字段认不出来也不算时间已解析`() {
+        val result = TodoParser.parse(null, """{"title":"数学作业","time":"下周找个时间"}""", now)
+        assertFalse(result.timeParsed)
+    }
 }
