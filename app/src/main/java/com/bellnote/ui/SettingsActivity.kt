@@ -30,6 +30,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var etApiKey: EditText
     private lateinit var etModel: EditText
     private lateinit var cbAutoImport: CheckBox
+    private lateinit var cbStrictParse: CheckBox
     private lateinit var cbReconcile: CheckBox
     private lateinit var cbReconcileNotify: CheckBox
     private lateinit var spReconcileInterval: Spinner
@@ -50,6 +51,7 @@ class SettingsActivity : AppCompatActivity() {
         etApiKey = findViewById(R.id.etApiKey)
         etModel = findViewById(R.id.etModel)
         cbAutoImport = findViewById(R.id.cbAutoImport)
+        cbStrictParse = findViewById(R.id.cbStrictParse)
         cbReconcile = findViewById(R.id.cbReconcile)
         cbReconcileNotify = findViewById(R.id.cbReconcileNotify)
         spReconcileInterval = findViewById(R.id.spReconcileInterval)
@@ -58,6 +60,7 @@ class SettingsActivity : AppCompatActivity() {
         etApiKey.setText(Prefs.apiKey(this))
         etModel.setText(Prefs.model(this))
         cbAutoImport.isChecked = Prefs.autoImport(this)
+        cbStrictParse.isChecked = Prefs.strictParse(this)
         cbReconcile.isChecked = Prefs.reconcileEnabled(this)
         cbReconcileNotify.isChecked = Prefs.reconcileNotify(this)
         setupIntervalSpinner()
@@ -191,6 +194,7 @@ class SettingsActivity : AppCompatActivity() {
         Prefs.setApiKey(this, etApiKey.text.toString())
         Prefs.setModel(this, etModel.text.toString())
         Prefs.setAutoImport(this, cbAutoImport.isChecked)
+        Prefs.setStrictParse(this, cbStrictParse.isChecked)
 
         val interval = intervalValues.getOrNull(spReconcileInterval.selectedItemPosition)
             ?: Prefs.DEFAULT_RECONCILE_INTERVAL

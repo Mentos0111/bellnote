@@ -17,6 +17,7 @@ object Prefs {
     private const val KEY_API_KEY = "deepseek_api_key"
     private const val KEY_MODEL = "deepseek_vlm_model"
     private const val KEY_AUTO_IMPORT = "auto_import"
+    private const val KEY_STRICT_PARSE = "strict_parse"
     private const val KEY_LAST_SIG = "last_notif_sig"
     private const val KEY_LAST_AT = "last_notif_at"
 
@@ -87,6 +88,18 @@ object Prefs {
     fun setAutoImport(context: Context, on: Boolean) {
         sp(context).edit().putBoolean(KEY_AUTO_IMPORT, on).apply()
     }
+
+    /**
+     * 严格模式（默认开）：只有时间真从消息里解析出来的才写进日历。
+     * 关掉后，认不出格式的通知也会按「当前时间 +1 小时」塞进日历 —— 容易堆垃圾，只在明确需要时关。
+     */
+    fun strictParse(context: Context): Boolean = sp(context).getBoolean(KEY_STRICT_PARSE, true)
+
+    fun setStrictParse(context: Context, on: Boolean) {
+        sp(context).edit().putBoolean(KEY_STRICT_PARSE, on).apply()
+    }
+
+    // ---------------- 定时对账 ----------------
 
     /** 同一条通知可能在短时间内重复到达，60 秒内同内容只处理一次。 */
     fun shouldHandle(context: Context, signature: String, now: Long = System.currentTimeMillis()): Boolean {

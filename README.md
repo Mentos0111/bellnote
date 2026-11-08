@@ -39,6 +39,8 @@ works on ROMs without Google Play Services (tested on realme UI 6).
 - **No duplicate events**: the same title + start time is never written twice, so ntfy retries or
   reconnects cannot pile up copies.
 - **Grouped list**: the home screen groups todos by 今天 / 明天 / 后天 / 已过期 / date.
+- **Strict by default**: only messages with a parseable time become events. Random ntfy traffic is
+  ignored rather than stuffed into the calendar at *now + 1 hour* (switchable in Settings).
 
 ## Message protocol
 
@@ -67,8 +69,13 @@ Send from any ntfy client or `curl` (`POST https://ntfy.sh/<topic>` with the bod
 Plain text form also works: `删除：Math homework`. Only events written by Bellnote can be deleted;
 title must match exactly; without `time`, every same-titled event is deleted.
 
-Key-value text (`标题：…` / `时间：…`) is accepted as a fallback, and unparseable messages become a
-todo at *now + 1 hour* so nothing is silently lost.
+Key-value text (`标题：…` / `时间：…`) is accepted as a fallback.
+
+**Strict by default.** Only messages whose *time* can actually be parsed become calendar events.
+Anything that does not look like a todo — a plain chat message, a build notification, a script's
+status text — is ignored instead of being dumped an hour from now. Turn this off in Settings
+(“只收带时间的待办”) if you want the old behaviour, where every unparseable message became a todo at
+*now + 1 hour*.
 
 ## How it works
 
@@ -174,6 +181,8 @@ MIT — see [LICENSE](LICENSE).
   不会被当成「缺失」反复提醒你补回去
 - 同标题同时间不会重复写入，ntfy 重发 / 重连也不会多出一条
 - 主页按「今天 / 明天 / 后天 / 已过期 / 具体日期」分组显示
+- **默认严格**：只有能解析出时间的消息才写进日历，认不出格式的通知直接忽略，
+  不会再按「当前时间 +1 小时」塞进去（设置里「只收带时间的待办」可以关掉，恢复旧行为）
 
 构建：`gradlew.bat assembleDebug`（JDK 17 + SDK 34），Windows 上可直接跑 `build.cmd`。
 协议、安装步骤、realme 适配见上方英文小节，中文细节在 `docs/` 里。

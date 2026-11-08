@@ -19,7 +19,12 @@ object TodoParser {
     data class Result(
         val spec: TodoSpec,
         val fallback: Boolean,
-        val reason: String? = null
+        val reason: String? = null,
+        /**
+         * 时间是不是真的从消息里解析出来的。
+         * false 表示用了「当前时间 +1 小时」的兜底 —— 严格模式下这类结果不会写进日历。
+         */
+        val timeParsed: Boolean = false
     )
 
     private const val DEFAULT_DURATION = 60
@@ -257,7 +262,8 @@ object TodoParser {
         return Result(
             spec = TodoSpec(finalTitle, start, duration, note, repeat),
             fallback = reason != null,
-            reason = reason
+            reason = reason,
+            timeParsed = parsedTime != null
         )
     }
 

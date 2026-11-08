@@ -79,8 +79,17 @@ class NtfyNotificationListener : NotificationListenerService() {
                     return@Thread
                 }
 
-                val results = TodoParser.parseAll(title, text, now)
-                Log.i(TAG, "解析出 ${results.size} 条待办")
+                val parsed = TodoParser.parseAll(title, text, now)
+                val strict = Prefs.strictParse(appContext)
+                val results = if (strict) parsed.filter { it.timeParsed } else parsed
+                val dropped = parsed.size - results.size
+                Log.i(TAG, "解析出 ${parsed.size} 条；严格模式=$strict，采纳 ${results.size} 条，丢弃 $dropped 条")
+                if (results.isEmpty()) {
+                    if (dropped > 0) {
+                        Log.i(TAG, "这条通知里没有带明确时间的待办，按设置不写日历")
+                    }
+                    return@Thread
+                }
                 val calendarId = repository.defaultCalendarId()
                 Log.i(TAG, "目标日历 id=$calendarId")
                 if (calendarId <= 0) {
