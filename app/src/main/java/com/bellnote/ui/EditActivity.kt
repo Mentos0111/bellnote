@@ -18,6 +18,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.bellnote.R
 import com.bellnote.data.CalendarRepository
+import com.bellnote.data.DEFAULT_DURATION_MINUTES
 import com.bellnote.data.RepeatRule
 import com.bellnote.data.SOURCE_MANUAL
 import com.bellnote.data.TodoItem
@@ -78,14 +79,14 @@ class EditActivity : AppCompatActivity() {
             btnDelete.visibility = View.VISIBLE
             etTitle.setText(intent.getStringExtra(EXTRA_TITLE).orEmpty())
             etNote.setText(intent.getStringExtra(EXTRA_NOTE).orEmpty())
-            etDuration.setText(intent.getIntExtra(EXTRA_DURATION, 60).toString())
+            etDuration.setText(intent.getIntExtra(EXTRA_DURATION, DEFAULT_DURATION_MINUTES).toString())
             spRepeat.setSelection(RepeatRule.fromRaw(intent.getStringExtra(EXTRA_REPEAT)).ordinal)
             loadEvent(eventId)
         } else {
             title = getString(R.string.title_edit_new)
             etTitle.setText(intent.getStringExtra(EXTRA_TITLE).orEmpty())
             etNote.setText(intent.getStringExtra(EXTRA_NOTE).orEmpty())
-            etDuration.setText(intent.getIntExtra(EXTRA_DURATION, 60).toString())
+            etDuration.setText(intent.getIntExtra(EXTRA_DURATION, DEFAULT_DURATION_MINUTES).toString())
             spRepeat.setSelection(RepeatRule.fromRaw(intent.getStringExtra(EXTRA_REPEAT)).ordinal)
         }
         updateWhenLabel()
@@ -174,7 +175,7 @@ class EditActivity : AppCompatActivity() {
         val spec = TodoSpec(
             title = titleText,
             startMillis = startMillis,
-            durationMinutes = duration.coerceIn(5, 24 * 60),
+            durationMinutes = duration.coerceIn(DEFAULT_DURATION_MINUTES, 24 * 60),
             note = etNote.text.toString().trim().ifBlank { null },
             repeat = RepeatRule.fromIndex(spRepeat.selectedItemPosition)
         )

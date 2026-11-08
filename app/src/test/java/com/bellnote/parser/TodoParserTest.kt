@@ -48,7 +48,7 @@ class TodoParserTest {
         assertTrue(result.fallback)
         assertEquals("化学作业", result.spec.title)
         assertEquals(now + 60 * 60_000L, result.spec.startMillis)
-        assertEquals(60, result.spec.durationMinutes)
+        assertEquals(5, result.spec.durationMinutes)
     }
 
     @Test

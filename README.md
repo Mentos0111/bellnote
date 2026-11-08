@@ -35,7 +35,7 @@ works on ROMs without Google Play Services (tested on realme UI 6).
   goes straight to the edit screen; several are listed in a confirm dialog and written in one go.
 - **Local calendar creation**: if the device has no writable calendar (common on GMS-less ROMs),
   one tap creates a local calendar via `ACCOUNT_TYPE_LOCAL`.
-- **Manual add / edit / delete** with date, time, duration, repeat rule, note.
+- **Manual add / edit / delete** with date, time, duration, repeat rule, note. Duration defaults to the shortest the calendar accepts (5 min) whenever a source does not specify one.
 - **Scheduled reconcile**: every 30 minutes (configurable) the app compares its local todo ledger
   against the calendar and reports what is **missing**, **removed**, **extra**, or **changed**. You
   fix it with one tap — nothing is auto-deleted or auto-rewritten. Also runs on app launch and after boot.
@@ -60,7 +60,7 @@ Send from any ntfy client or `curl` (`POST https://ntfy.sh/<topic>` with the bod
 
 - `title` — required, ≤ 30 chars
 - `time` — `yyyy-MM-dd HH:mm`, local time, must be in the future
-- `duration` — integer minutes (5–1440), default 60
+- `duration` — integer minutes (5–1440). **Omitted means 5 minutes** (the shortest the calendar accepts), not an hour
 - `note` — optional
 - `repeat` — `none` / `daily` / `weekly` / `monthly` / `yearly`
 
@@ -180,13 +180,14 @@ MIT — see [LICENSE](LICENSE).
 - 发 `{"action":"delete","title":"…"}` 或「删除：标题」即可远程删待办（只删本 App 写的）
 - 截图识别（可选）：截图 → 压缩 → 视觉模型 → 编辑页确认后入日历，需要自己的 API Key
   - 标题只取**简略的一件事**（≤16 字，动词＋对象），不会把整段聊天塞进去
-  - 时长从截图推断（「2 小时」→120 分钟，`14:30-16:00` →90 分钟，没线索才用 60）
+  - 时长从截图推断（「2 小时」→120 分钟，`14:30-16:00` →90 分钟）；**完全没线索就按最短的 5 分钟**
   - 其余信息（具体日期、地点、要带的东西、截止时间）全部进备注
   - prompt 里注入了「现在是几点」，所以「明天 / 周五」会算成真实日期，不会瞎编年份
   - **一张截图可以出多条**：模型返回 JSON 数组，聊天里既有「明天的课」又有「周五前交作业」就出两条；
     一条直接进编辑页，多条先弹确认框，点「全部写入」一起进日历
 - 设备没有可写日历时，一键创建 `ACCOUNT_TYPE_LOCAL` 本地日历
 - 手动添加 / 编辑 / 删除，支持重复规则
+- **没说时长的待办一律按 5 分钟**（日历能接受的最短长度）进日历：ntfy 推送、截图识别、手动新建都走同一个默认值
 - 定时对账（默认 30 分钟，可改）：本地清单 vs 日历，报「缺 / 已删 / 多 / 不一致」，你点一下才修复，
   从不自动删或自动改写；升级到 2.2 首次运行会把日历里现有待办收进本地清单当基线
 - 你在系统日历里**手动删掉**的 Bellnote 待办会被认成「已删」（灰色），点一下就清出清单，

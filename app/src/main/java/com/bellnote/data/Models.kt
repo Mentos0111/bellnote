@@ -1,10 +1,16 @@
 package com.bellnote.data
 
+/**
+ * 没说时长时用这个：日历能接受的最小长度（5 分钟）。
+ * ntfy 推送、截图识别、手动新建都走这一个默认值，避免同一个 App 出现两套默认。
+ */
+const val DEFAULT_DURATION_MINUTES = 5
+
 /** 待写入日历的一条待办。 */
 data class TodoSpec(
     val title: String,
     val startMillis: Long,
-    val durationMinutes: Int = 60,
+    val durationMinutes: Int = DEFAULT_DURATION_MINUTES,
     val note: String? = null,
     val repeat: RepeatRule = RepeatRule.NONE
 ) {

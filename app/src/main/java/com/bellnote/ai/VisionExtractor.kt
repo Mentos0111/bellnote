@@ -1,5 +1,6 @@
 package com.bellnote.ai
 
+import com.bellnote.data.DEFAULT_DURATION_MINUTES
 import com.bellnote.data.TodoSpec
 import com.bellnote.parser.MiniJson
 import com.bellnote.parser.TodoParser
@@ -178,7 +179,7 @@ object VisionExtractor {
         }
         if (title.isBlank()) title = "截图待办"
 
-        val duration = spec.durationMinutes.takeIf { it in 5..1440 } ?: 60
+        val duration = spec.durationMinutes.takeIf { it in DEFAULT_DURATION_MINUTES..1440 } ?: DEFAULT_DURATION_MINUTES
         return spec.copy(
             title = title,
             durationMinutes = duration,
