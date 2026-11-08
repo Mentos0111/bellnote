@@ -185,7 +185,7 @@ class CalendarRepository(private val context: Context) {
                 val duration = when {
                     rruleCol >= 0 && !cursor.isNull(rruleCol) -> durationMinutes(durationCol.let { if (it >= 0) cursor.getString(it) else null })
                     end > start -> ((end - start) / 60_000L).toInt()
-                    else -> 60
+                    else -> DEFAULT_DURATION_MINUTES
                 }
                 val rrule = if (rruleCol >= 0) cursor.getString(rruleCol) else null
                 TodoItem(
@@ -286,7 +286,7 @@ class CalendarRepository(private val context: Context) {
             val duration = when {
                 !rrule.isNullOrBlank() -> durationMinutes(if (durationIdx >= 0) cursor.getString(durationIdx) else null)
                 end > start -> ((end - start) / 60_000L).toInt()
-                else -> 60
+                else -> DEFAULT_DURATION_MINUTES
             }
             items.add(
                 TodoItem(
@@ -407,12 +407,12 @@ class CalendarRepository(private val context: Context) {
 
     /** 解析 "PT90M" / "PT1H30M" / "P1D" 这类时长。 */
     private fun durationMinutes(rfc: String?): Int {
-        if (rfc.isNullOrBlank()) return 60
+        if (rfc.isNullOrBlank()) return DEFAULT_DURATION_MINUTES
         val days = Regex("(\\d+)D").find(rfc)?.groupValues?.get(1)?.toIntOrNull() ?: 0
         val hours = Regex("(\\d+)H").find(rfc)?.groupValues?.get(1)?.toIntOrNull() ?: 0
         val mins = Regex("(\\d+)M").find(rfc)?.groupValues?.get(1)?.toIntOrNull() ?: 0
         val total = days * 24 * 60 + hours * 60 + mins
-        return if (total <= 0) 60 else total
+        return if (total <= 0) DEFAULT_DURATION_MINUTES else total
     }
 
     companion object {

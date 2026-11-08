@@ -100,10 +100,26 @@ class VisionExtractorTest {
     }
 
     @Test
-    fun `离谱时长回落到 60 分钟`() {
-        assertTrue(VisionExtractor.tidy(spec("A", duration = 0)).durationMinutes == 60)
-        assertTrue(VisionExtractor.tidy(spec("A", duration = 5000)).durationMinutes == 60)
+    fun `离谱时长回落到最小 5 分钟`() {
+        assertTrue(VisionExtractor.tidy(spec("A", duration = 0)).durationMinutes == 5)
+        assertTrue(VisionExtractor.tidy(spec("A", duration = 5000)).durationMinutes == 5)
         assertTrue(VisionExtractor.tidy(spec("A", duration = 120)).durationMinutes == 120)
+    }
+
+    @Test
+    fun `没说时长时默认 5 分钟`() {
+        val spec = com.bellnote.data.TodoSpec(
+            title = "随手记",
+            startMillis = 1_800_000_000_000L
+        )
+        assertTrue(spec.durationMinutes == 5)
+        // 模型返回的 note 里没写时长也一样
+        val result = com.bellnote.parser.TodoParser.parse(
+            null,
+            """{"title":"随手记","time":"2026-11-09 10:00"}""",
+            1_800_000_000_000L
+        )
+        assertTrue("没给 duration 应取 5，实际 ${result.spec.durationMinutes}", result.spec.durationMinutes == 5)
     }
 
     @Test
