@@ -220,4 +220,34 @@ class TodoParserTest {
         assertEquals(90, result.spec.durationMinutes)
         assertTrue(result.timeParsed)
     }
+
+    // ---------------- 与推送脚本的实际输出对接 ----------------
+
+    @Test
+    fun `推送脚本发的键值正文能被完整解析`() {
+        val body = "标题：化学课\n时间：2026-11-09 14:30\n时长：90\n备注：基础补漏 · 限时动笔"
+        val result = TodoParser.parse("化学课", body, now)
+        assertEquals("化学课", result.spec.title)
+        assertEquals(90, result.spec.durationMinutes)
+        assertEquals("基础补漏 · 限时动笔", result.spec.note)
+        assertTrue("键值格式必须能解析出时间", result.timeParsed)
+        assertFalse("不该走兜底", result.fallback)
+    }
+
+    @Test
+    fun `推送脚本发的带重复的正文能被解析`() {
+        val body = "标题：追学生：本周末问清期中考试范围\n时间：2026-11-09 20:00\n重复：weekly"
+        val result = TodoParser.parse(null, body, now)
+        assertEquals("追学生：本周末问清期中考试范围", result.spec.title)
+        assertEquals(com.bellnote.data.RepeatRule.WEEKLY, result.spec.repeat)
+        assertTrue(result.timeParsed)
+    }
+
+    @Test
+    fun `推送脚本发的删除正文能被识别`() {
+        assertEquals("数学作业", TodoParser.parseCommand("删除：数学作业", now)?.title)
+        val withTime = TodoParser.parseCommand("删除：数学作业 2026-11-08 19:00", now)
+        assertEquals("数学作业", withTime?.title)
+        assertEquals("2026-11-08 19:00", TimeFormat.full(withTime!!.timeMillis!!))
+    }
 }
