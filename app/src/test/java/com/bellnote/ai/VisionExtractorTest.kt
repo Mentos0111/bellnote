@@ -23,4 +23,64 @@ class VisionExtractorTest {
         val raw = "```json\n{\"title\":\"数学作业\"}\n```"
         assertTrue(VisionExtractor.stripFences(raw) == "{\"title\":\"数学作业\"}")
     }
+
+    // ---------------- 模型输出兜底 ----------------
+
+    private fun spec(
+        title: String,
+        duration: Int = 60,
+        note: String? = null
+    ) = com.bellnote.data.TodoSpec(
+        title = title,
+        startMillis = 1_800_000_000_000L,
+        durationMinutes = duration,
+        note = note
+    )
+
+    @Test
+    fun `短标题原样保留`() {
+        val out = VisionExtractor.tidy(spec("检查学生笔记"))
+        assertTrue(out.title == "检查学生笔记")
+        assertTrue(out.note == null)
+    }
+
+    @Test
+    fun `超长标题截断并把多出来的挪进备注`() {
+        val long = "收学生的课堂笔记照片，看两色标记和错题有没有做"
+        val out = VisionExtractor.tidy(spec(long))
+        assertTrue("标题应被截断，实际：${out.title}", out.title.length <= 20)
+        assertTrue(out.title.endsWith("…"))
+        assertTrue("溢出的内容应进备注，实际：${out.note}", !out.note.isNullOrBlank())
+        assertTrue("备注应是原标题的后半段，实际：${out.note}", out.note!!.endsWith("有没有做"))
+    }
+
+    @Test
+    fun `长标题溢出内容排在原有备注前面`() {
+        val long = "收学生的课堂笔记照片，看两色标记和错题有没有做"
+        val out = VisionExtractor.tidy(spec(long, note = "截止 20:00"))
+        assertTrue(out.note!!.endsWith("截止 20:00"))
+    }
+
+    @Test
+    fun `离谱时长回落到 60 分钟`() {
+        assertTrue(VisionExtractor.tidy(spec("A", duration = 0)).durationMinutes == 60)
+        assertTrue(VisionExtractor.tidy(spec("A", duration = 5000)).durationMinutes == 60)
+        assertTrue(VisionExtractor.tidy(spec("A", duration = 120)).durationMinutes == 120)
+    }
+
+    @Test
+    fun `空白标题给个兜底名`() {
+        assertTrue(VisionExtractor.tidy(spec("   ")).title == "截图待办")
+    }
+
+    @Test
+    fun `系统提示里必须带上当前日期`() {
+        val now = 1_800_000_000_000L
+        val prompt = VisionExtractor.systemPrompt(now)
+        val expected = java.time.Instant.ofEpochMilli(now)
+            .atZone(java.time.ZoneId.systemDefault())
+            .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+        assertTrue("提示里应出现「现在是 $expected」，实际：${prompt.take(80)}", prompt.contains(expected))
+        assertTrue("应禁止写过去的时间", prompt.contains("必须晚于"))
+    }
 }
