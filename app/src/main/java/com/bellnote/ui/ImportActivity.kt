@@ -8,12 +8,18 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.IntentCompat
 import com.bellnote.R
 import com.bellnote.ai.VisionExtractor
+import com.bellnote.data.CalendarRepository
 import com.bellnote.data.Prefs
+import com.bellnote.data.SOURCE_SHOT
+import com.bellnote.data.TodoSpec
+import com.bellnote.data.TodoStore
 import com.bellnote.util.ImageUtils
+import com.bellnote.util.Permissions
 import com.bellnote.util.TimeFormat
 
 /** 选一张聊天截图 → 压缩 → DeepSeek VLM 识别 → 带结果跳到编辑页确认。 */
@@ -112,15 +118,67 @@ class ImportActivity : AppCompatActivity() {
             val outcome = VisionExtractor.extract(apiKey, model, base64)
             runOnUiThread {
                 btnRecognize.isEnabled = true
-                val spec = outcome.spec
-                if (spec == null) {
-                    tvStatus.text = "识别失败：${outcome.error}"
-                } else {
-                    val extra = if (outcome.error.isNullOrBlank()) "" else "\n${outcome.error}"
-                    tvStatus.text =
-                        "识别完成：${spec.title} / ${TimeFormat.full(spec.startMillis)}\n请在编辑页确认后再保存$extra"
-                    startActivity(EditActivity.intentForSpec(this, spec))
+                val specs = outcome.specs
+                when {
+                    specs.isEmpty() -> tvStatus.text = "识别失败：${outcome.error}"
+                    specs.size == 1 -> {
+                        val spec = specs.first()
+                        val extra = if (outcome.error.isNullOrBlank()) "" else "\n${outcome.error}"
+                        tvStatus.text =
+                            "识别完成：${spec.title} / ${TimeFormat.full(spec.startMillis)}\n请在编辑页确认后再保存$extra"
+                        startActivity(EditActivity.intentForSpec(this, spec))
+                    }
+                    else -> {
+                        tvStatus.text = "识别完成：${specs.size} 条待办，确认后一起写入"
+                        confirmBatch(specs)
+                    }
                 }
+            }
+        }.start()
+    }
+
+    /** 一张截图识别出多条时，先让用户确认，再批量写入。 */
+    private fun confirmBatch(specs: List<TodoSpec>) {
+        val body = specs.joinToString("\n") {
+            "· ${it.title}　${TimeFormat.monthDay(it.startMillis)} · ${it.durationMinutes} 分钟"
+        }
+        AlertDialog.Builder(this)
+            .setTitle("识别到 ${specs.size} 条待办")
+            .setMessage("$body\n\n全部写进日历？写进去之后还能在主页点开修改或长按删除。")
+            .setPositiveButton("全部写入") { _, _ -> saveAll(specs) }
+            .setNegativeButton("只看第一条") { _, _ ->
+                startActivity(EditActivity.intentForSpec(this, specs.first()))
+            }
+            .setNeutralButton("取消", null)
+            .show()
+    }
+
+    private fun saveAll(specs: List<TodoSpec>) {
+        if (!Permissions.hasCalendar(this)) {
+            toast("先给日历权限才能写入")
+            return
+        }
+        Thread {
+            val repository = CalendarRepository(this)
+            val store = TodoStore(this)
+            val calendarId = repository.defaultCalendarId()
+            if (calendarId <= 0) {
+                runOnUiThread { toast("没有可写入的日历，先去设置里选一个") }
+                return@Thread
+            }
+            var done = 0
+            for (spec in specs) {
+                val eventId = repository.insertEvent(spec, calendarId)
+                if (eventId > 0) {
+                    store.record(spec, eventId, SOURCE_SHOT)
+                    done++
+                }
+            }
+            val saved = done
+            runOnUiThread {
+                toast("已写入 $saved / ${specs.size} 条")
+                tvStatus.text = "已写入 $saved 条，可在主页查看、点开修改或长按删除"
+                btnRecognize.isEnabled = true
             }
         }.start()
     }

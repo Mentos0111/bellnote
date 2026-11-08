@@ -30,6 +30,9 @@ works on ROMs without Google Play Services (tested on realme UI 6).
   title (≤16 chars, verb + object), infers the duration from the chat (「2 小时」→120, 14:30-16:00 →90),
   and puts everything else — dates, places, requirements, deadlines — into the note. The current date
   is injected into the prompt so relative words like “明天” resolve to a real date instead of a guess.
+- **One screenshot, several todos**: the model returns a JSON array, so a chat that mentions both
+  “tomorrow's class” and “hand in the workbook before Friday” yields two separate events. One item
+  goes straight to the edit screen; several are listed in a confirm dialog and written in one go.
 - **Local calendar creation**: if the device has no writable calendar (common on GMS-less ROMs),
   one tap creates a local calendar via `ACCOUNT_TYPE_LOCAL`.
 - **Manual add / edit / delete** with date, time, duration, repeat rule, note.
@@ -180,6 +183,8 @@ MIT — see [LICENSE](LICENSE).
   - 时长从截图推断（「2 小时」→120 分钟，`14:30-16:00` →90 分钟，没线索才用 60）
   - 其余信息（具体日期、地点、要带的东西、截止时间）全部进备注
   - prompt 里注入了「现在是几点」，所以「明天 / 周五」会算成真实日期，不会瞎编年份
+  - **一张截图可以出多条**：模型返回 JSON 数组，聊天里既有「明天的课」又有「周五前交作业」就出两条；
+    一条直接进编辑页，多条先弹确认框，点「全部写入」一起进日历
 - 设备没有可写日历时，一键创建 `ACCOUNT_TYPE_LOCAL` 本地日历
 - 手动添加 / 编辑 / 删除，支持重复规则
 - 定时对账（默认 30 分钟，可改）：本地清单 vs 日历，报「缺 / 已删 / 多 / 不一致」，你点一下才修复，

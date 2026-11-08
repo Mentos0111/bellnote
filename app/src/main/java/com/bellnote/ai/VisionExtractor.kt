@@ -12,9 +12,12 @@ import java.net.URL
 object VisionExtractor {
 
     data class Outcome(
+        /** 第一条（保持旧调用方兼容） */
         val spec: TodoSpec?,
         val error: String? = null,
-        val raw: String = ""
+        val raw: String = "",
+        /** 截图里识别出的全部待办，可能不止一条 */
+        val specs: List<TodoSpec> = emptyList()
     )
 
     private data class Response(val code: Int, val body: String)
@@ -36,29 +39,38 @@ object VisionExtractor {
             5 -> "周五"; 6 -> "周六"; else -> "周日"
         }
         return """
-            你负责把聊天 / 通知 / 课表截图整理成一条日历待办。只输出一个 JSON 对象，不要解释，不要 markdown 代码块。
+            你负责把聊天 / 通知 / 课表截图整理成日历待办。只输出一个 **JSON 数组**，不要解释，不要 markdown 代码块。
 
             现在是 $stamp（$weekday）。所有相对说法（今天 / 明天 / 后天 / 周五 / 下周）都以此为准算成具体日期。
 
-            各字段怎么填：
+            怎么拆条：
+            · 截图里**每件不同的事**各算一条，即使只有一件事也要用数组包起来：[{...}]
+            · 同一件事的不同要求（例如「上课」和「带错题本」）不要拆开，放进同一条的 note
+            · 只有一件明确要做的事时，数组里就只有一个对象
+
+            每个对象怎么填：
             · title：**简略的待办标题**，不超过 16 个汉字，写成「动词 + 对象」。
               只保留最核心的那件事，去掉时间、地点、人名、客套话、语气词、标点。
               例：
                 「收学生的课堂笔记照片，看两色标记和错题有没有做」→「检查学生笔记」
                 「明天下午两点半到四点上化学课，讲勒夏特列原理」→「化学课：勒夏特列」
                 「记得周五之前把物理卷子的错题本补完，要拍照发我」→「补物理错题本」
-            · time："yyyy-MM-dd HH:mm"，待办的开始时间，**必须晚于上面的「现在」**。
+            · time："yyyy-MM-dd HH:mm"，这条待办的开始时间，**必须晚于上面的「现在」**。
               截图里没写日期时，选今天或明天里最合理的一个；完全看不出时间才用 24 小时之后。
             · duration：整数分钟，尽量从截图推断：
               「2 小时 / 两小时」→120，「半小时」→30，「90 分钟」→90，「一节课」→45；
               如果给的是时间段（如 14:30-16:00），算两端差值；
               完全没有任何时长线索时才用 60。
             · repeat：none / daily / weekly / monthly / yearly，看不出来用 none。
-            · note：**标题以外的所有有用信息**，短句、每行一条、最多 5 行。包括具体日期时间、
-              地点、要带的东西、截止时间、对方强调的约束。不要重复 title，也不要写「明天」这种相对说法。
+            · note：**这条标题以外、属于同一件事的有用信息**，短句、每行一条、最多 5 行。
+              包括具体日期时间、地点、要带的东西、截止时间、对方强调的约束。
+              不要重复 title，不要写「明天」这种相对说法，也不要写别的条目已经单独成条的内容。
 
-            示例输出：
-            {"title":"检查学生笔记","time":"2026-11-08 20:00","duration":45,"repeat":"none","note":"看两色标记\n错题有没有做\n截止 11-08 20:00"}
+            示例输出（两件事）：
+            [
+              {"title":"化学课：勒夏特列","time":"2026-11-09 14:30","duration":90,"repeat":"none","note":"11-09 14:30-16:00 上课\\n带上次的错题本\\n提前把错题拍照发家长"},
+              {"title":"补物理错题本","time":"2026-11-13 20:00","duration":60,"repeat":"none","note":"周五前完成\\n完成后拍照发家长"}
+            ]
         """.trimIndent()
     }
 
@@ -112,15 +124,42 @@ object VisionExtractor {
         val content = (message?.fields?.get("content") as? MiniJson.Text)?.text.orEmpty()
 
         val clean = stripFences(content)
+        android.util.Log.i("VisionExtractor", "模型返回：${content.take(600)}")
         if (!clean.contains("\"title\"") && !clean.contains("标题")) {
             return Outcome(null, "模型没有返回 JSON：${content.take(200)}", content)
         }
-        val parsed = TodoParser.parse(null, clean, now)
+        val specs = parseSpecs(clean, now)
+        if (specs.isEmpty()) {
+            return Outcome(null, "模型返回的 JSON 里没有能用的待办：${content.take(200)}", content, emptyList())
+        }
         return Outcome(
-            tidy(parsed.spec),
-            if (note.isBlank()) null else note.trim(),
-            content
+            spec = specs.first(),
+            error = if (note.isBlank()) null else note.trim(),
+            raw = content,
+            specs = specs
         )
+    }
+
+    private val TITLE_KEYS = setOf("title", "标题", "主题", "题目", "事件", "待办", "事项", "name", "subject")
+    private val TIME_KEYS =
+        setOf("time", "时间", "开始", "开始时间", "日期", "date", "start", "when", "datetime")
+
+    /** 模型可能给 `[{...},{...}]` 数组（我们要求的），也可能退回单个对象，两种都认。 */
+    internal fun parseSpecs(clean: String, now: Long): List<TodoSpec> {
+        val node = MiniJson.parse(clean)
+        return when (node) {
+            is MiniJson.Items -> node.items.mapNotNull { specFrom(it, now) }
+            is MiniJson.Fields -> listOfNotNull(specFrom(node, now))
+            else -> emptyList()
+        }
+    }
+
+    private fun specFrom(value: MiniJson.Value, now: Long): TodoSpec? {
+        val fields = MiniJson.flatScalars(value)
+            .mapKeys { it.key.trim().lowercase(java.util.Locale.CHINA) }
+        if (fields.isEmpty()) return null
+        if (!fields.keys.any { it in TITLE_KEYS || it in TIME_KEYS }) return null
+        return tidy(TodoParser.fromFields(fields, now).spec)
     }
 
     /**
@@ -130,12 +169,12 @@ object VisionExtractor {
     fun tidy(spec: TodoSpec): TodoSpec {
         val rawTitle = spec.title.trim().replace(Regex("\\s+"), " ")
         var title = rawTitle
-        var note = spec.note?.trim().orEmpty()
+        var note = normalizeNote(spec.note)
 
         if (title.length > MAX_TITLE_LENGTH) {
             val overflow = title.substring(MAX_TITLE_LENGTH).trim()
             title = title.take(MAX_TITLE_LENGTH - 1).trimEnd() + "…"
-            note = if (note.isBlank()) overflow else "$overflow\n$note"
+            note = if (note.isNullOrBlank()) overflow else "$overflow\n$note"
         }
         if (title.isBlank()) title = "截图待办"
 
@@ -143,8 +182,19 @@ object VisionExtractor {
         return spec.copy(
             title = title,
             durationMinutes = duration,
-            note = note.ifBlank { null }
+            note = note
         )
+    }
+
+    /** 模型有时把换行写成字面 `\n`（反斜杠 + n），统一还原成真正的换行。 */
+    private fun normalizeNote(raw: String?): String? {
+        if (raw.isNullOrBlank()) return null
+        return raw
+            .replace("\\r\\n", "\n")
+            .replace("\\n", "\n")
+            .replace("\r\n", "\n")
+            .trim()
+            .ifBlank { null }
     }
 
     private fun post(apiKey: String, payload: String): Response {
@@ -225,11 +275,23 @@ object VisionExtractor {
         }.toString()
     }
 
-    /** 去掉 ```json ... ``` 这类包装，只留花括号里的内容。 */
+    /**
+     * 去掉 ```json ... ``` 这类包装，只留 JSON 本体。
+     * 注意要区分数组和对象：模型返回 `[{...},{...}]` 时必须保留外层方括号，
+     * 否则会被切成 `{...},{...}` 这种非法 JSON，只解析出第一条。
+     */
     fun stripFences(text: String): String {
-        val start = text.indexOf('{')
-        val end = text.lastIndexOf('}')
-        if (start >= 0 && end > start) return text.substring(start, end + 1)
+        val arrayStart = text.indexOf('[')
+        val objectStart = text.indexOf('{')
+        val useArray = arrayStart >= 0 && (objectStart < 0 || arrayStart < objectStart)
+        if (useArray) {
+            val arrayEnd = text.lastIndexOf(']')
+            if (arrayEnd > arrayStart) return text.substring(arrayStart, arrayEnd + 1)
+        }
+        if (objectStart >= 0) {
+            val objectEnd = text.lastIndexOf('}')
+            if (objectEnd > objectStart) return text.substring(objectStart, objectEnd + 1)
+        }
         return text.trim()
     }
 }

@@ -24,6 +24,44 @@ class VisionExtractorTest {
         assertTrue(VisionExtractor.stripFences(raw) == "{\"title\":\"数学作业\"}")
     }
 
+    @Test
+    fun `stripFences 保留数组的方括号`() {
+        val raw = "```json\n[{\"title\":\"A\"},{\"title\":\"B\"}]\n```"
+        val out = VisionExtractor.stripFences(raw)
+        assertTrue("应保留数组，实际：$out", out.startsWith("[") && out.endsWith("]"))
+    }
+
+    @Test
+    fun `数组里的两条待办都能解析出来`() {
+        val now = 1_800_000_000_000L
+        val raw = "```json\n[{\"title\":\"化学课\",\"time\":\"2026-11-09 14:30\",\"duration\":90}," +
+            "{\"title\":\"补物理错题本\",\"time\":\"2026-11-12 20:00\"}]\n```"
+        val specs = VisionExtractor.parseSpecs(VisionExtractor.stripFences(raw), now)
+        assertTrue("应解析出 2 条，实际 ${specs.size}", specs.size == 2)
+        assertTrue(specs[1].title == "补物理错题本")
+    }
+
+    @Test
+    fun `单个对象也能解析出来`() {
+        val now = 1_800_000_000_000L
+        val raw = """{"title":"数学作业","time":"2026-11-09 19:00"}"""
+        val specs = VisionExtractor.parseSpecs(VisionExtractor.stripFences(raw), now)
+        assertTrue(specs.size == 1)
+    }
+
+    @Test
+    fun `字面反斜杠 n 会被还原成换行`() {
+        val out = VisionExtractor.tidy(
+            com.bellnote.data.TodoSpec(
+                title = "化学课",
+                startMillis = 1_800_000_000_000L,
+                durationMinutes = 90,
+                note = "第一行\\n第二行"
+            )
+        )
+        assertTrue("应还原成真换行，实际：${out.note}", out.note!!.contains("\n"))
+    }
+
     // ---------------- 模型输出兜底 ----------------
 
     private fun spec(

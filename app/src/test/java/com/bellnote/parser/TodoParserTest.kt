@@ -209,4 +209,15 @@ class TodoParserTest {
         val result = TodoParser.parse(null, """{"title":"数学作业","time":"下周找个时间"}""", now)
         assertFalse(result.timeParsed)
     }
+
+    @Test
+    fun `fromFields 能从拆好的字段表构造一条待办`() {
+        val result = TodoParser.fromFields(
+            mapOf("title" to "数学作业", "time" to "2026-11-08 19:00", "duration" to "90"),
+            now
+        )
+        assertEquals("数学作业", result.spec.title)
+        assertEquals(90, result.spec.durationMinutes)
+        assertTrue(result.timeParsed)
+    }
 }

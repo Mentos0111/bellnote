@@ -102,6 +102,22 @@ object TodoParser {
     }
 
     /**
+     * 从一个已拆好的字段表构造一条待办。
+     * 给「一张截图多条待办」用：模型返回 JSON 数组时逐条走这里。
+     */
+    fun fromFields(
+        fields: Map<String, String>,
+        now: Long = System.currentTimeMillis(),
+        kind: String = "JSON"
+    ): Result = build(
+        fields.mapKeys { it.key.trim().lowercase(Locale.CHINA) },
+        "",
+        "",
+        now,
+        kind
+    )
+
+    /**
      * 识别「删除指令」。支持：
      * 1) JSON  {"action":"delete","title":"数学作业","time":"2026-11-08 19:00"}
      * 2) 文本  删除：数学作业 [2026-11-08 19:00] / delete: xxx
