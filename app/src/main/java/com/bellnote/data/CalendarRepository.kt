@@ -267,6 +267,83 @@ class CalendarRepository(private val context: Context) {
         return items
     }
 
+    // ---------------- 全部日程（不只本 App 写的） ----------------
+
+    data class EventInfo(
+        val id: Long,
+        val title: String,
+        val startMillis: Long,
+        val endMillis: Long,
+        val calendarId: Long,
+        val calendarName: String,
+        /** 是不是 Bellnote 写过的事件 */
+        val isOwn: Boolean,
+        val allDay: Boolean,
+        val note: String?
+    )
+
+    /**
+     * 读出手机日历里这段时间的全部事件（含别的 App / 手动在日历里建的），
+     * 供「全部日程」页浏览和管理。只覆盖可写日历（订阅类只读日历不进来）。
+     */
+    fun listAllEvents(fromMillis: Long, toMillis: Long): List<EventInfo> {
+        val calendars = listCalendars().associateBy { it.id }
+        if (calendars.isEmpty()) return emptyList()
+        val projection = arrayOf(
+            Events._ID, Events.TITLE, Events.DTSTART, Events.DTEND, Events.DURATION,
+            Events.DESCRIPTION, Events.ORGANIZER, Events.CALENDAR_ID, Events.ALL_DAY
+        )
+        val items = mutableListOf<EventInfo>()
+        try {
+            val selection = "${Events.DTSTART} >= ? AND ${Events.DTSTART} <= ? AND ${Events.DELETED} = 0"
+            context.contentResolver.query(
+                Events.CONTENT_URI, projection, selection,
+                arrayOf(fromMillis.toString(), toMillis.toString()),
+                "${Events.DTSTART} ASC"
+            )?.use { cursor ->
+                val idIdx = cursor.getColumnIndex(Events._ID)
+                val titleIdx = cursor.getColumnIndex(Events.TITLE)
+                val startIdx = cursor.getColumnIndex(Events.DTSTART)
+                val endIdx = cursor.getColumnIndex(Events.DTEND)
+                val descIdx = cursor.getColumnIndex(Events.DESCRIPTION)
+                val organizerIdx = cursor.getColumnIndex(Events.ORGANIZER)
+                val calIdx = cursor.getColumnIndex(Events.CALENDAR_ID)
+                val allDayIdx = cursor.getColumnIndex(Events.ALL_DAY)
+                while (cursor.moveToNext()) {
+                    if (idIdx < 0 || startIdx < 0) continue
+                    val calendarId = if (calIdx >= 0) cursor.getLong(calIdx) else -1L
+                    val calendar = calendars[calendarId] ?: continue
+                    val start = cursor.getLong(startIdx)
+                    val end = if (endIdx >= 0 && !cursor.isNull(endIdx)) cursor.getLong(endIdx) else start
+                    val description = if (descIdx >= 0) cursor.getString(descIdx) else null
+                    val organizer = if (organizerIdx >= 0) cursor.getString(organizerIdx) else null
+                    items.add(
+                        EventInfo(
+                            id = cursor.getLong(idIdx),
+                            title = if (titleIdx >= 0) cursor.getString(titleIdx).orEmpty() else "",
+                            startMillis = start,
+                            endMillis = if (end > start) end else start,
+                            calendarId = calendarId,
+                            calendarName = calendar.displayName,
+                            isOwn = isOwnMarker(description, organizer),
+                            allDay = allDayIdx >= 0 && cursor.getInt(allDayIdx) == 1,
+                            note = stripDescription(description)
+                        )
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "读取全部日程失败", e)
+        }
+        return items
+    }
+
+    private fun isOwnMarker(description: String?, organizer: String?): Boolean {
+        if (organizer == ORGANIZER || organizer == LEGACY_ORGANIZER) return true
+        val d = description ?: return false
+        return d.contains(MARKER) || d.contains(LEGACY_MARKER)
+    }
+
     // ---------------- 内部实现 ----------------
 
     private fun collect(cursor: android.database.Cursor, items: MutableList<TodoItem>) {

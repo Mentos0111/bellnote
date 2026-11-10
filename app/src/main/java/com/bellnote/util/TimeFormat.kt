@@ -17,4 +17,22 @@ object TimeFormat {
     fun monthDay(millis: Long): String = LocalDateTime
         .ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault())
         .format(MONTH_DAY)
+
+    /** 分组用的日期键：yyyy-MM-dd（按本地时区），跨天判断靠它。 */
+    fun dayKey(millis: Long, zone: ZoneId = ZoneId.systemDefault()): String =
+        Instant.ofEpochMilli(millis).atZone(zone).toLocalDate().toString()
+
+    /** 列表里的日期标题：今天 / 明天 / 后天 / 11 月 15 日 周六。 */
+    fun dayLabel(millis: Long): String {
+        val date = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+        val today = java.time.LocalDate.now()
+        return when (date) {
+            today -> "今天"
+            today.plusDays(1) -> "明天"
+            today.plusDays(2) -> "后天"
+            else -> date.format(DAY)
+        }
+    }
+
+    private val DAY = DateTimeFormatter.ofPattern("M 月 d 日 E", java.util.Locale.CHINA)
 }

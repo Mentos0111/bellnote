@@ -25,6 +25,15 @@ works on ROMs without Google Play Services (tested on realme UI 6).
   `CalendarContract.Events` row plus reminders (default: 1 day and 1 hour before).
 - **One notification, many todos**: JSON array, `{"todos":[…]}` wrapper, or blank-line separated blocks.
 - **Remote delete**: send `{"action":"delete","title":"…"}` and the matching event is removed.
+- **Screenshot-first**: the home screen leads with one big “截图建待办” button — pick a chat screenshot,
+  let the vision model turn it into one or several calendar todos. ntfy is just one more input source,
+  not the point of the app.
+- **Quick capture from other apps**: share an image to Bellnote from WeChat / Photos, long-press the
+  launcher icon for shortcuts (screenshot / new todo / all events), or let Bellnote watch for new
+  screenshots and offer to turn them into todos with one tap.
+- **All events, not just ours**: the 全部日程 page lists everything in the phone’s writable calendars —
+  including events created by other apps or by hand — grouped by day. Tap an event to edit, delete, or
+  “adopt” it into Bellnote’s ledger so reconcile manages it from then on.
 - **Screenshot import** (optional): pick an image, compress it to a 2000-px long edge, send to a vision
   model, review in the edit screen, then save. Needs your own API key. Transient network failures are
   retried once instead of making you wait again. The prompt is tuned so the model returns a *short*
@@ -181,6 +190,13 @@ MIT — see [LICENSE](LICENSE).
 
 **Bellnote** 把 ntfy 推送变成系统日历里的待办，全程在本机完成，不需要 Google 服务。
 
+> 2.9 起定位改成「**截图建待办为主**」：首页第一个大按钮就是截图识别，ntfy 只是其中一种输入源。
+
+- **首页以截图为主入口**：大按钮「截图建待办」，下面才是手动添加 / 全部日程 / 对账 / 设置
+- **其它 App 截图也能快速建待办**：分享图片到 Bellnote、长按桌面图标用快捷方式、
+  或者截完图自动弹「识别这张截图？」（需要一次相册读取权限）
+- **全部日程**：列出手机所有可写日历里的事件（别的 App 建的、手建的都算），按天分组；
+  点开可编辑 / 删除 / 「纳入 Bellnote 管理」，纳入后就进入对账范围
 - 监听 `io.heckel.ntfy` 的通知，解析正文后写入 `CalendarContract`，自动加两条提醒（默认提前 1 天 + 1 小时）
 - 一条通知可以写多条待办（JSON 数组 / `{"todos":[…]}` / 空行分段）
 - 发 `{"action":"delete","title":"…"}` 或「删除：标题」即可远程删待办（只删本 App 写的）

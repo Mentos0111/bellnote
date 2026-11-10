@@ -16,6 +16,7 @@ import com.bellnote.data.CalendarRepository
 import com.bellnote.data.Prefs
 import com.bellnote.data.TodoItem
 import com.bellnote.data.TodoStore
+import com.bellnote.service.ScreenshotWatcher
 import com.bellnote.service.ReconcileRunner
 import com.bellnote.util.Permissions
 import com.bellnote.util.TimeFormat
@@ -56,8 +57,11 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.btnAdd).setOnClickListener {
             startActivity(Intent(this, EditActivity::class.java))
         }
-        findViewById<View>(R.id.btnShot).setOnClickListener {
+        findViewById<View>(R.id.btnShotBig).setOnClickListener {
             startActivity(Intent(this, ImportActivity::class.java))
+        }
+        findViewById<View>(R.id.btnAllEvents).setOnClickListener {
+            startActivity(Intent(this, AllEventsActivity::class.java))
         }
         findViewById<View>(R.id.btnSettings).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
@@ -78,6 +82,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // 相册权限给过了就顺手挂上截图监听（没权限时内部直接返回）
+        ScreenshotWatcher.ensureStarted(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             !Permissions.hasPostNotifications(this) && !askedNotifications
         ) {
