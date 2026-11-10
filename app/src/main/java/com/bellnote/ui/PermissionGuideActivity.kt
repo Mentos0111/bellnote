@@ -2,12 +2,15 @@ package com.bellnote.ui
 
 import android.Manifest
 import android.os.Bundle
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.bellnote.R
 import com.bellnote.util.Permissions
+import com.bellnote.util.enableHomeUp
+import com.bellnote.util.handleHomeUp
 import com.bellnote.util.SystemPages
 
 /** realme UI 6.0 四项权限的一键跳转引导。 */
@@ -22,6 +25,7 @@ class PermissionGuideActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_permission)
+        enableHomeUp()
         title = getString(R.string.title_permission)
 
         findViewById<Button>(R.id.btnNotifAccess).setOnClickListener {
@@ -48,6 +52,11 @@ class PermissionGuideActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnAppDetail).setOnClickListener {
             SystemPages.openAppDetails(this)
         }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (handleHomeUp(item)) return true
+        return super.onOptionsItemSelected(item)
     }
 
     private fun toast(message: String) {

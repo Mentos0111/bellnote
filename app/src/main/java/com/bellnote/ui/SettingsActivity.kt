@@ -3,6 +3,7 @@ package com.bellnote.ui
 import android.Manifest
 import android.content.Intent
 import android.os.Bundle
+import android.view.MenuItem
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
@@ -17,6 +18,8 @@ import com.bellnote.data.CalendarRepository
 import com.bellnote.data.Prefs
 import com.bellnote.service.ReconcileScheduler
 import com.bellnote.util.Permissions
+import com.bellnote.util.enableHomeUp
+import com.bellnote.util.handleHomeUp
 import com.bellnote.util.SystemPages
 
 class SettingsActivity : AppCompatActivity() {
@@ -43,6 +46,7 @@ class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
+        enableHomeUp()
         title = getString(R.string.title_settings)
 
         spCalendar = findViewById(R.id.spCalendar)
@@ -214,6 +218,11 @@ class SettingsActivity : AppCompatActivity() {
         }
         toast("设置已保存（提醒：${effective.joinToString(" / ")} 分钟前；$reconcileText）")
         finish()
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (handleHomeUp(item)) return true
+        return super.onOptionsItemSelected(item)
     }
 
     private fun toast(message: String) {

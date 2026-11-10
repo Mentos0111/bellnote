@@ -21,6 +21,11 @@ object Prefs {
     private const val KEY_LAST_SIG = "last_notif_sig"
     private const val KEY_LAST_AT = "last_notif_at"
 
+    /** 截图识别现场：进程被杀 / 用户切走再回来，能拿回上一次的识别结果，不用重选图重花钱。 */
+    private const val KEY_IMPORT_URI = "import_pending_uri"
+    private const val KEY_IMPORT_RAW = "import_pending_raw"
+    private const val KEY_IMPORT_AT = "import_pending_at"
+
     private const val KEY_RECONCILE_ENABLED = "reconcile_enabled"
     private const val KEY_RECONCILE_INTERVAL = "reconcile_interval"
     private const val KEY_RECONCILE_NOTIFY = "reconcile_notify"
@@ -81,6 +86,38 @@ object Prefs {
 
     fun setModel(context: Context, model: String) {
         sp(context).edit().putString(KEY_MODEL, model.trim().ifBlank { DEFAULT_MODEL }).apply()
+    }
+
+    // ---------------- 截图识别现场 ----------------
+
+    data class PendingImport(val uri: String, val raw: String, val at: Long)
+
+    fun pendingImport(context: Context): PendingImport? {
+        val p = sp(context)
+        val raw = p.getString(KEY_IMPORT_RAW, "").orEmpty()
+        if (raw.isBlank()) return null
+        return PendingImport(
+            uri = p.getString(KEY_IMPORT_URI, "").orEmpty(),
+            raw = raw,
+            at = p.getLong(KEY_IMPORT_AT, 0L)
+        )
+    }
+
+    fun savePendingImport(context: Context, uri: String, raw: String) {
+        if (raw.isBlank()) return
+        sp(context).edit()
+            .putString(KEY_IMPORT_URI, uri)
+            .putString(KEY_IMPORT_RAW, raw)
+            .putLong(KEY_IMPORT_AT, System.currentTimeMillis())
+            .apply()
+    }
+
+    fun clearPendingImport(context: Context) {
+        sp(context).edit()
+            .remove(KEY_IMPORT_URI)
+            .remove(KEY_IMPORT_RAW)
+            .remove(KEY_IMPORT_AT)
+            .apply()
     }
 
     fun autoImport(context: Context): Boolean = sp(context).getBoolean(KEY_AUTO_IMPORT, true)

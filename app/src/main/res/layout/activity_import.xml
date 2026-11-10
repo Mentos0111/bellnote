@@ -37,6 +37,22 @@
             android:layout_height="wrap_content"
             android:text="@string/btn_recognize" />
 
+        <ProgressBar
+            android:id="@+id/progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:indeterminate="true"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btnRestore"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_restore_last"
+            android:visibility="gone" />
+
         <TextView
             android:id="@+id/tvStatus"
             android:layout_width="match_parent"

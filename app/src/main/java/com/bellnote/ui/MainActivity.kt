@@ -70,6 +70,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** 子页面用 CLEAR_TOP 回到这里时会走 onNewIntent，顺手刷新一下列表。 */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        refresh()
+    }
+
     override fun onResume() {
         super.onResume()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
