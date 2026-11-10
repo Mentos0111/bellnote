@@ -12,3 +12,6 @@ local.properties
 .DS_Store
 captures/
 tools/
+
+# 本地交接单，不放进开源仓库
+HANDOFF.md
