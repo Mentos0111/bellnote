@@ -137,4 +137,28 @@ class VisionExtractorTest {
         assertTrue("提示里应出现「现在是 $expected」，实际：${prompt.take(80)}", prompt.contains(expected))
         assertTrue("应禁止写过去的时间", prompt.contains("必须晚于"))
     }
+
+    // ---------------- v2.8：识别链路加固 ----------------
+
+    @Test
+    fun `提示词不再把没说时长的默认成 60 分钟`() {
+        val prompt = VisionExtractor.systemPrompt(1_800_000_000_000L)
+        assertTrue("应明确「没有线索时用 5 分钟」，实际：$prompt", prompt.contains("才用 5"))
+        assertTrue("不能再把 60 当默认兜底", !prompt.contains("才用 60"))
+    }
+
+    @Test
+    fun `输出上限放宽到 2000，避免多条被截断`() {
+        // 单测跑在 JVM 上，org.json 只有空壳，不能直接调 buildPayload；
+        // 这里守住常量本身，请求体是否用上它由真机识别验证。
+        assertTrue("MAX_TOKENS 太小会把多条 JSON 截断，实际：${VisionExtractor.MAX_TOKENS}",
+            VisionExtractor.MAX_TOKENS >= 2000)
+    }
+
+    @Test
+    fun `用户提示要求可能有多条，不能只要一条`() {
+        val prompt = VisionExtractor.USER_PROMPT
+        assertTrue("应说明每件不同的事各一条", prompt.contains("每件不同的事"))
+        assertTrue("不应再要求只整理最该做的那一条", !prompt.contains("最该做的那件事"))
+    }
 }

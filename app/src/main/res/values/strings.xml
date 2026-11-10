@@ -45,6 +45,7 @@
 
     <string name="btn_pick_image">选择截图</string>
     <string name="btn_recognize">调用 DeepSeek 识别</string>
+    <string name="btn_restore_last">用上次的识别结果</string>
     <string name="import_hint">从相册选择 QQ / 微信的作业截图，识别后可在编辑页确认再保存。</string>
 
     <string name="title_reconcile">日历对账</string>

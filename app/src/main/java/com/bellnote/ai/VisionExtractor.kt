@@ -56,12 +56,17 @@ object VisionExtractor {
                 「收学生的课堂笔记照片，看两色标记和错题有没有做」→「检查学生笔记」
                 「明天下午两点半到四点上化学课，讲勒夏特列原理」→「化学课：勒夏特列」
                 「记得周五之前把物理卷子的错题本补完，要拍照发我」→「补物理错题本」
-            · time："yyyy-MM-dd HH:mm"，这条待办的开始时间，**必须晚于上面的「现在」**。
-              截图里没写日期时，选今天或明天里最合理的一个；完全看不出时间才用 24 小时之后。
+            · time："yyyy-MM-dd HH:mm"，这条待办该做的时间，**必须晚于上面的「现在」**。
+              · 有明确截止时间（「截止 11-29 22:00」「周五之前交」）→ time 直接用这个截止时间，
+                给了具体时刻就用那个时刻，不要自己往前挪。
+              · 给的是周期 / 区间（「11-16 至 11-29」）→ 用开始那天的 09:00，结束日期写进 note。
+              · 只写到「11 月中旬 / 月底」这种粗粒度 → 用该旬第一天 09:00。
+              · 完全看不出日期 → 用 24 小时之后。
             · duration：整数分钟，尽量从截图推断：
               「2 小时 / 两小时」→120，「半小时」→30，「90 分钟」→90，「一节课」→45；
               如果给的是时间段（如 14:30-16:00），算两端差值；
-              完全没有任何时长线索时才用 60。
+              完全没有任何时长线索时才用 5（日历能接受的最短长度），不要默认成 60。
+              只有「这件事要持续一阵」的明确线索（如培训周期、报名到截止）才把 duration 写大。
             · repeat：none / daily / weekly / monthly / yearly，看不出来用 none。
             · note：**这条标题以外、属于同一件事的有用信息**，短句、每行一条、最多 5 行。
               包括具体日期时间、地点、要带的东西、截止时间、对方强调的约束。
@@ -75,11 +80,22 @@ object VisionExtractor {
         """.trimIndent()
     }
 
-    private const val USER_PROMPT =
-        "这是聊天 / 通知 / 课表截图。把里面最该做的那件事整理成一条日历待办，严格按系统提示的字段规则输出 JSON。"
+    internal const val USER_PROMPT =
+        "这是聊天 / 通知 / 课表截图。把截图里**每件不同的事**各整理成一条日历待办" +
+            "（可能只有一件，也可能有好几件，比如「某天上课」和「某天前交作业」）；" +
+            "每一条都要能直接从截图里找到依据，不要自己编。严格按系统提示的字段规则输出 JSON 数组。"
 
     /** 标题上限：超过就截断，多出来的挪进备注，避免日历标题撑满一行。 */
     private const val MAX_TITLE_LENGTH = 20
+
+    /**
+     * 输出上限。800 tokens 时「一张截图多条待办 + 每条带备注」很容易被截断，
+     * 截断后 JSON 不完整、整次识别直接失败，所以调到 2000。
+     */
+    internal const val MAX_TOKENS = 2000
+
+    /** 网络抖动 / 5xx 重试一次，避免用户白等两分钟。 */
+    private const val MAX_ATTEMPTS = 2
 
     fun extract(
         apiKey: String,
@@ -90,7 +106,7 @@ object VisionExtractor {
         if (apiKey.isBlank()) return Outcome(null, "还没配置 DeepSeek API Key")
 
         var usedModel = model
-        var response = post(apiKey, buildPayload(model, jpegBase64, now))
+        var response = postWithRetry(apiKey, buildPayload(model, jpegBase64, now))
         var note = ""
 
         // 模型名被平台拒绝时（400 + supported API model names），自动换一个平台支持的模型重试一次
@@ -99,7 +115,7 @@ object VisionExtractor {
             val alternative = pickAlternative(supported, model)
             if (alternative != null) {
                 usedModel = alternative
-                val retry = post(apiKey, buildPayload(alternative, jpegBase64, now))
+                val retry = postWithRetry(apiKey, buildPayload(alternative, jpegBase64, now))
                 response = retry
                 note = "（模型名 $model 不被支持，已自动改用 $alternative）"
             }
@@ -221,6 +237,18 @@ object VisionExtractor {
         }
     }
 
+    /** 网络断 / 超时 / 5xx 自动重试一次；4xx（Key 错、参数错）不重试，重试也没用。 */
+    private fun postWithRetry(apiKey: String, payload: String): Response {
+        var response = post(apiKey, payload)
+        var attempt = 1
+        while (attempt < MAX_ATTEMPTS && (response.code == -1 || response.code >= 500)) {
+            Thread.sleep(1_000L * attempt)
+            response = post(apiKey, payload)
+            attempt++
+        }
+        return response
+    }
+
     /** 从 400 报错里抠出平台支持的模型名。 */
     fun supportedModels(errorBody: String): List<String> =
         Regex("[A-Za-z0-9][A-Za-z0-9._-]*").findAll(errorBody)
@@ -235,7 +263,7 @@ object VisionExtractor {
             ?: candidates.firstOrNull()
     }
 
-    private fun buildPayload(model: String, jpegBase64: String, now: Long): String {
+    internal fun buildPayload(model: String, jpegBase64: String, now: Long): String {
         val message = JSONObject().apply {
             put("role", "user")
             put(
@@ -271,7 +299,7 @@ object VisionExtractor {
         return JSONObject().apply {
             put("model", model)
             put("temperature", 0)
-            put("max_tokens", 800)
+            put("max_tokens", MAX_TOKENS)
             put("messages", messages)
         }.toString()
     }

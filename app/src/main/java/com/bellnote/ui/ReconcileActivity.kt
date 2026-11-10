@@ -1,6 +1,7 @@
 package com.bellnote.ui
 
 import android.os.Bundle
+import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
@@ -14,6 +15,8 @@ import com.bellnote.data.ReconcileReport
 import com.bellnote.data.Reconciler
 import com.bellnote.service.ReconcileRunner
 import com.bellnote.util.Permissions
+import com.bellnote.util.enableHomeUp
+import com.bellnote.util.handleHomeUp
 import com.bellnote.util.TimeFormat
 
 /**
@@ -38,6 +41,7 @@ class ReconcileActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reconcile)
+        enableHomeUp()
         title = getString(R.string.title_reconcile)
 
         tvSummary = findViewById(R.id.tvSummary)
@@ -163,6 +167,11 @@ class ReconcileActivity : AppCompatActivity() {
                 refresh()
             }
         }.start()
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (handleHomeUp(item)) return true
+        return super.onOptionsItemSelected(item)
     }
 
     private fun toast(message: String) {

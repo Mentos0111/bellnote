@@ -6,6 +6,7 @@ import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.MenuItem
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -25,6 +26,8 @@ import com.bellnote.data.TodoItem
 import com.bellnote.data.TodoSpec
 import com.bellnote.data.TodoStore
 import com.bellnote.util.Permissions
+import com.bellnote.util.enableHomeUp
+import com.bellnote.util.handleHomeUp
 import com.bellnote.util.TimeFormat
 import java.util.Calendar
 
@@ -53,6 +56,7 @@ class EditActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_edit)
+        enableHomeUp()
 
         etTitle = findViewById(R.id.etTitle)
         etDuration = findViewById(R.id.etDuration)
@@ -241,6 +245,11 @@ class EditActivity : AppCompatActivity() {
 
     private fun toast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (handleHomeUp(item)) return true
+        return super.onOptionsItemSelected(item)
     }
 
     companion object {

@@ -29,15 +29,21 @@
         <activity
             android:name=".ui.EditActivity"
             android:exported="false"
+            android:launchMode="singleTop"
+            android:parentActivityName=".ui.MainActivity"
             android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".ui.SettingsActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:parentActivityName=".ui.MainActivity" />
 
         <activity
             android:name=".ui.ImportActivity"
             android:exported="true"
+            android:launchMode="singleTop"
+            android:parentActivityName=".ui.MainActivity"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
@@ -53,11 +59,15 @@
 
         <activity
             android:name=".ui.PermissionGuideActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:parentActivityName=".ui.MainActivity" />
 
         <activity
             android:name=".ui.ReconcileActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:parentActivityName=".ui.MainActivity" />
 
         <receiver
             android:name=".service.ReconcileReceiver"

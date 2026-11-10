@@ -25,14 +25,18 @@ works on ROMs without Google Play Services (tested on realme UI 6).
   `CalendarContract.Events` row plus reminders (default: 1 day and 1 hour before).
 - **One notification, many todos**: JSON array, `{"todos":[…]}` wrapper, or blank-line separated blocks.
 - **Remote delete**: send `{"action":"delete","title":"…"}` and the matching event is removed.
-- **Screenshot import** (optional): pick an image, compress it, send to a vision model, review in the
-  edit screen, then save. Needs your own API key. The prompt is tuned so the model returns a *short*
+- **Screenshot import** (optional): pick an image, compress it to a 2000-px long edge, send to a vision
+  model, review in the edit screen, then save. Needs your own API key. Transient network failures are
+  retried once instead of making you wait again. The prompt is tuned so the model returns a *short*
   title (≤16 chars, verb + object), infers the duration from the chat (「2 小时」→120, 14:30-16:00 →90),
   and puts everything else — dates, places, requirements, deadlines — into the note. The current date
-  is injected into the prompt so relative words like “明天” resolve to a real date instead of a guess.
+  is injected into the prompt so relative words like “明天” resolve to a real date instead of a guess;
+  an explicit deadline (「截止 11-29 22:00」) becomes the event time instead of an invented hour.
 - **One screenshot, several todos**: the model returns a JSON array, so a chat that mentions both
   “tomorrow's class” and “hand in the workbook before Friday” yields two separate events. One item
-  goes straight to the edit screen; several are listed in a confirm dialog and written in one go.
+  goes straight to the edit screen; several are shown in a **checkable** dialog so you write only the
+  ones you want. The last batch is kept for 3 days, so if the app is killed mid-flow you can pick up
+  where you left off without paying for another request.
 - **Local calendar creation**: if the device has no writable calendar (common on GMS-less ROMs),
   one tap creates a local calendar via `ACCOUNT_TYPE_LOCAL`.
 - **Manual add / edit / delete** with date, time, duration, repeat rule, note. Duration defaults to the shortest the calendar accepts (5 min) whenever a source does not specify one.
@@ -45,6 +49,8 @@ works on ROMs without Google Play Services (tested on realme UI 6).
 - **No duplicate events**: the same title + start time is never written twice, so ntfy retries or
   reconnects cannot pile up copies.
 - **Grouped list**: the home screen groups todos by 今天 / 明天 / 后天 / 已过期 / date.
+- **One tap home**: every child screen is `singleTop` and has an up arrow in the app bar that clears
+  straight back to the list, so you never dig through a pile of stacked activities.
 - **Strict by default**: only messages with a parseable time become events. Random ntfy traffic is
   ignored rather than stuffed into the calendar at *now + 1 hour* (switchable in Settings).
 
@@ -181,10 +187,13 @@ MIT — see [LICENSE](LICENSE).
 - 截图识别（可选）：截图 → 压缩 → 视觉模型 → 编辑页确认后入日历，需要自己的 API Key
   - 标题只取**简略的一件事**（≤16 字，动词＋对象），不会把整段聊天塞进去
   - 时长从截图推断（「2 小时」→120 分钟，`14:30-16:00` →90 分钟）；**完全没线索就按最短的 5 分钟**
+  - 图片按 2000 像素长边压缩后上传（聊天截图字小，压太小会糊）；网络抖一下会自动重试一次
   - 其余信息（具体日期、地点、要带的东西、截止时间）全部进备注
-  - prompt 里注入了「现在是几点」，所以「明天 / 周五」会算成真实日期，不会瞎编年份
+  - prompt 里注入了「现在是几点」，所以「明天 / 周五」会算成真实日期，不会瞎编年份；
+    截图写了明确截止时间（「截止 11-29 22:00」）时，事件时间直接用那个截止时间
   - **一张截图可以出多条**：模型返回 JSON 数组，聊天里既有「明天的课」又有「周五前交作业」就出两条；
-    一条直接进编辑页，多条先弹确认框，点「全部写入」一起进日历
+    一条直接进编辑页，多条弹出**可勾选**的确认框，想写哪几条就勾哪几条
+  - 多条识别的结果会在本机留 3 天，中途被电话打断 / App 被杀，回来能直接恢复，不用重新花钱识别
 - 设备没有可写日历时，一键创建 `ACCOUNT_TYPE_LOCAL` 本地日历
 - 手动添加 / 编辑 / 删除，支持重复规则
 - **没说时长的待办一律按 5 分钟**（日历能接受的最短长度）进日历：ntfy 推送、截图识别、手动新建都走同一个默认值
@@ -194,6 +203,8 @@ MIT — see [LICENSE](LICENSE).
   不会被当成「缺失」反复提醒你补回去
 - 同标题同时间不会重复写入，ntfy 重发 / 重连也不会多出一条
 - 主页按「今天 / 明天 / 后天 / 已过期 / 具体日期」分组显示
+- 子页面（编辑 / 截图识别 / 设置 / 对账）都是 `singleTop`，标题栏左上角箭头点一下直接回主页，
+  不会一层层压栈、按很多次返回
 - **默认严格**：只有能解析出时间的消息才写进日历，认不出格式的通知直接忽略，
   不会再按「当前时间 +1 小时」塞进去（设置里「只收带时间的待办」可以关掉，恢复旧行为）
 
