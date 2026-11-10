@@ -48,7 +48,9 @@ class ImportActivity : AppCompatActivity() {
     /** 上一次识别的模型原始输出（用来在进程被杀后恢复现场）。 */
     private var lastRaw = ""
 
-    private companion object {
+    companion object {
+        const val EXTRA_AUTO_RECOGNIZE = "auto_recognize"
+
         /** 聊天截图字小，1280 长边会把字压糊；2000 是识别质量与上传体积的折中。 */
         const val RECOGNIZE_MAX_SIDE = 2000
         const val RECOGNIZE_QUALITY = 85
@@ -58,6 +60,19 @@ class ImportActivity : AppCompatActivity() {
 
         const val STATE_URI = "state_uri"
         const val STATE_RAW = "state_raw"
+
+        /** 从「截图建待办」通知点进来：带图 + 自动开始识别。 */
+        fun intentForScreenshot(context: android.content.Context, uri: Uri, auto: Boolean): Intent =
+            Intent(context, ImportActivity::class.java).apply {
+                action = Intent.ACTION_VIEW
+                data = uri
+                putExtra(EXTRA_AUTO_RECOGNIZE, auto)
+                addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP
+                )
+            }
     }
 
     private val picker = registerForActivityResult(
@@ -101,7 +116,25 @@ class ImportActivity : AppCompatActivity() {
         } else if (imageUri == null) {
             // 从相册/分享带着图进来的，就别再把上一次的旧结果顶上来
             offerRestoreFromPrefs()
+        } else {
+            maybeAutoRecognize(intent)
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIncomingIntent(intent)
+        maybeAutoRecognize(intent)
+    }
+
+    /** 截图通知点进来时直接开识别，省掉一次「点识别」。 */
+    private fun maybeAutoRecognize(intent: Intent?) {
+        val auto = intent?.getBooleanExtra(EXTRA_AUTO_RECOGNIZE, false) ?: false
+        if (!auto || imageUri == null) return
+        tvStatus.postDelayed({
+            if (!isFinishing && !isDestroyed && imageUri != null) recognize()
+        }, 400)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

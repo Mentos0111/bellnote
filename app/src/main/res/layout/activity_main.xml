@@ -7,6 +7,15 @@
     android:paddingRight="14dp"
     android:paddingTop="12dp">
 
+    <Button
+        android:id="@+id/btnShotBig"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_marginBottom="10dp"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:text="@string/btn_shot_big" />
+
     <LinearLayout
         android:id="@+id/statusCard"
         android:layout_width="match_parent"
@@ -71,7 +80,7 @@
             android:text="@string/btn_add_manual" />
 
         <Button
-            android:id="@+id/btnShot"
+            android:id="@+id/btnAllEvents"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -79,7 +88,7 @@
             android:paddingLeft="2dp"
             android:paddingRight="2dp"
             android:textSize="13sp"
-            android:text="@string/btn_import_shot" />
+            android:text="@string/btn_all_events" />
 
         <Button
             android:id="@+id/btnReconcile"

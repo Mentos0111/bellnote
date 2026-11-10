@@ -2,6 +2,7 @@ package com.bellnote.ui
 
 import android.Manifest
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
 import android.widget.ArrayAdapter
@@ -17,6 +18,7 @@ import com.bellnote.R
 import com.bellnote.data.CalendarRepository
 import com.bellnote.data.Prefs
 import com.bellnote.service.ReconcileScheduler
+import com.bellnote.service.ScreenshotWatcher
 import com.bellnote.util.Permissions
 import com.bellnote.util.enableHomeUp
 import com.bellnote.util.handleHomeUp
@@ -37,11 +39,24 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var cbReconcile: CheckBox
     private lateinit var cbReconcileNotify: CheckBox
     private lateinit var spReconcileInterval: Spinner
+    private lateinit var cbShotWatch: CheckBox
+    private lateinit var btnMediaPerm: Button
     private var intervalValues: List<Int> = emptyList()
 
     private val requestCalendar = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { loadCalendars() }
+
+    private val requestMedia = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            ScreenshotWatcher.ensureStarted(this)
+            toast(getString(R.string.shot_saved))
+        } else {
+            toast(getString(R.string.shot_watch_hint))
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,6 +74,8 @@ class SettingsActivity : AppCompatActivity() {
         cbReconcile = findViewById(R.id.cbReconcile)
         cbReconcileNotify = findViewById(R.id.cbReconcileNotify)
         spReconcileInterval = findViewById(R.id.spReconcileInterval)
+        cbShotWatch = findViewById(R.id.cbShotWatch)
+        btnMediaPerm = findViewById(R.id.btnMediaPerm)
 
         etRemind.setText(Prefs.remindMinutes(this).ifEmpty { listOf(1440, 60) }.joinToString(","))
         etApiKey.setText(Prefs.apiKey(this))
@@ -67,6 +84,8 @@ class SettingsActivity : AppCompatActivity() {
         cbStrictParse.isChecked = Prefs.strictParse(this)
         cbReconcile.isChecked = Prefs.reconcileEnabled(this)
         cbReconcileNotify.isChecked = Prefs.reconcileNotify(this)
+        cbShotWatch.isChecked = Prefs.shotWatchEnabled(this)
+        btnMediaPerm.setOnClickListener { requestMediaPermission() }
         setupIntervalSpinner()
         findViewById<TextView>(R.id.tvVersion).text = versionLabel()
 
@@ -199,6 +218,8 @@ class SettingsActivity : AppCompatActivity() {
         Prefs.setModel(this, etModel.text.toString())
         Prefs.setAutoImport(this, cbAutoImport.isChecked)
         Prefs.setStrictParse(this, cbStrictParse.isChecked)
+        Prefs.setShotWatchEnabled(this, cbShotWatch.isChecked)
+        if (cbShotWatch.isChecked) ScreenshotWatcher.ensureStarted(this)
 
         val interval = intervalValues.getOrNull(spReconcileInterval.selectedItemPosition)
             ?: Prefs.DEFAULT_RECONCILE_INTERVAL
@@ -218,6 +239,19 @@ class SettingsActivity : AppCompatActivity() {
         }
         toast("设置已保存（提醒：${effective.joinToString(" / ")} 分钟前；$reconcileText）")
         finish()
+    }
+
+    private fun requestMediaPermission() {
+        if (Permissions.hasMediaImages(this)) {
+            toast(getString(R.string.shot_saved))
+            return
+        }
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_IMAGES
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+        requestMedia.launch(permission)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

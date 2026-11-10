@@ -95,6 +95,32 @@
         <TextView
             style="@style/FormLabel"
             android:layout_marginTop="20dp"
+            android:text="@string/btn_shot_big" />
+
+        <CheckBox
+            android:id="@+id/cbShotWatch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/shot_watch_label" />
+
+        <TextView
+            android:id="@+id/tvShotWatchHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:text="@string/shot_watch_hint" />
+
+        <Button
+            android:id="@+id/btnMediaPerm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/btn_grant_media" />
+
+        <TextView
+            style="@style/FormLabel"
+            android:layout_marginTop="20dp"
             android:text="@string/title_reconcile" />
 
         <CheckBox

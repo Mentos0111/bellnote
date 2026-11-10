@@ -26,6 +26,10 @@ object Prefs {
     private const val KEY_IMPORT_RAW = "import_pending_raw"
     private const val KEY_IMPORT_AT = "import_pending_at"
 
+    /** 截图监听：截完图自动问「要不要识别成待办」。 */
+    private const val KEY_SHOT_WATCH = "shot_watch_enabled"
+    private const val KEY_LAST_SHOT_ID = "last_shot_id"
+
     private const val KEY_RECONCILE_ENABLED = "reconcile_enabled"
     private const val KEY_RECONCILE_INTERVAL = "reconcile_interval"
     private const val KEY_RECONCILE_NOTIFY = "reconcile_notify"
@@ -86,6 +90,21 @@ object Prefs {
 
     fun setModel(context: Context, model: String) {
         sp(context).edit().putString(KEY_MODEL, model.trim().ifBlank { DEFAULT_MODEL }).apply()
+    }
+
+    // ---------------- 截图监听 ----------------
+
+    fun shotWatchEnabled(context: Context): Boolean = sp(context).getBoolean(KEY_SHOT_WATCH, true)
+
+    fun setShotWatchEnabled(context: Context, on: Boolean) {
+        sp(context).edit().putBoolean(KEY_SHOT_WATCH, on).apply()
+    }
+
+    /** 已经提醒过的最后一张截图的 MediaStore id，避免同一张反复弹。 */
+    fun lastShotId(context: Context): Long = sp(context).getLong(KEY_LAST_SHOT_ID, -1L)
+
+    fun setLastShotId(context: Context, id: Long) {
+        sp(context).edit().putLong(KEY_LAST_SHOT_ID, id).apply()
     }
 
     // ---------------- 截图识别现场 ----------------

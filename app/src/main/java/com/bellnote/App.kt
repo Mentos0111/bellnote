@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
 import com.bellnote.service.ReconcileScheduler
+import com.bellnote.service.ScreenshotWatcher
 
 class App : Application() {
 
@@ -22,6 +23,8 @@ class App : Application() {
         }
         // 每次进程起来重排一次定时对账；闹钟跑完会自己续下一次
         ReconcileScheduler.sync(this)
+        // 有相册权限就顺手挂上截图监听（没权限时它在内部直接返回）
+        ScreenshotWatcher.ensureStarted(this)
     }
 
     companion object {

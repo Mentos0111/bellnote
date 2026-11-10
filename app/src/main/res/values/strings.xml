@@ -59,4 +59,23 @@
     <string name="label_reconcile_interval">对账间隔</string>
     <string name="label_reconcile_notify">有差异时发通知</string>
     <string name="btn_reconcile_now">立即对账一次</string>
-</resources>
+    <string name="btn_shot_big">截图建待办</string>
+    <string name="btn_all_events">全部日程</string>
+    <string name="title_all_events">全部日程</string>
+    <string name="all_events_loading">正在读取手机日历…</string>
+    <string name="all_events_empty">这段时间没有日程</string>
+    <string name="all_events_summary">共 %1$d 条 · 来自手机所有日历</string>
+    <string name="all_events_need_permission">需要日历权限才能读日程</string>
+    <string name="all_events_action_edit">编辑</string>
+    <string name="all_events_action_adopt">纳入 Bellnote 管理</string>
+    <string name="all_events_action_delete">删除</string>
+    <string name="all_events_untitled">（无标题）</string>
+    <string name="all_events_adopted">已纳入管理：%1$s</string>
+    <string name="all_events_delete_title">删除日程</string>
+    <string name="all_events_delete_message">删除「%1$s」？手机日历里的这条会被删掉。</string>
+    <string name="all_events_deleted">已删除</string>
+    <string name="all_events_delete_failed">删除失败</string>
+    <string name="shot_watch_label">截完图提醒我识别</string>
+    <string name="shot_watch_hint">需要「读取相册」权限：没有权限时只保留分享和手动选图。</string>
+    <string name="btn_grant_media">允许读取相册</string>
+    <string name="shot_saved">设置已保存</string></resources>

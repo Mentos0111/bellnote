@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_launcher"
+        android:shortcutId="shot"
+        android:shortcutLongLabel="@string/btn_shot_big"
+        android:shortcutShortLabel="@string/btn_shot_big">
+        <intent
+            android:action="android.intent.action.MAIN"
+            android:targetClass="com.bellnote.ui.ImportActivity"
+            android:targetPackage="com.bellnote" />
+    </shortcut>
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_launcher"
+        android:shortcutId="new_todo"
+        android:shortcutLongLabel="@string/btn_add_manual"
+        android:shortcutShortLabel="@string/btn_add_manual">
+        <intent
+            android:action="android.intent.action.MAIN"
+            android:targetClass="com.bellnote.ui.EditActivity"
+            android:targetPackage="com.bellnote" />
+    </shortcut>
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_launcher"
+        android:shortcutId="all_events"
+        android:shortcutLongLabel="@string/btn_all_events"
+        android:shortcutShortLabel="@string/btn_all_events">
+        <intent
+            android:action="android.intent.action.MAIN"
+            android:targetClass="com.bellnote.ui.AllEventsActivity"
+            android:targetPackage="com.bellnote" />
+    </shortcut>
+</shortcuts>
