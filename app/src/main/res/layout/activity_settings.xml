@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -111,6 +111,11 @@
                     android:src="@drawable/ic_nav_help" />
             </LinearLayout>
 
+            <TextView
+                style="@style/FormLabel"
+                android:layout_marginTop="6dp"
+                android:text="侧边栏" />
+
             <Button
                 android:id="@+id/btnSidebarEntry"
                 style="@style/BtnTonal"
@@ -123,10 +128,14 @@
                 android:layout_marginTop="10dp"
                 android:text="@string/btn_sidebar_guide" />
 
+            <TextView
+                style="@style/FormLabel"
+                android:text="通知栏" />
+
             <Button
                 android:id="@+id/btnTileGuide"
                 style="@style/BtnTonal"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="4dp"
                 android:text="@string/btn_tile_guide" />
 
             <LinearLayout

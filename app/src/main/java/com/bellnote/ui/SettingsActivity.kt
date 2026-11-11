@@ -248,13 +248,15 @@ class SettingsActivity : AppCompatActivity() {
 
     /** 分级目录：四个分组标题点一下展开 / 收起，默认只展开「输入渠道」。 */
     private fun setupSections() {
-        bindSection(R.id.headInput, R.id.groupInput, R.id.arrowInput, true)
-        bindSection(R.id.headCalendar, R.id.groupCalendar, R.id.arrowCalendar, false)
-        bindSection(R.id.headAppearance, R.id.groupAppearance, R.id.arrowAppearance, false)
-        bindSection(R.id.headDiagnostics, R.id.groupDiagnostics, R.id.arrowDiagnostics, false)
+        val open = Prefs.settingsOpenSections(this)
+        bindSection("input", R.id.headInput, R.id.groupInput, R.id.arrowInput, open.contains("input"))
+        bindSection("calendar", R.id.headCalendar, R.id.groupCalendar, R.id.arrowCalendar, open.contains("calendar"))
+        bindSection("appearance", R.id.headAppearance, R.id.groupAppearance, R.id.arrowAppearance, open.contains("appearance"))
+        bindSection("diagnostics", R.id.headDiagnostics, R.id.groupDiagnostics, R.id.arrowDiagnostics, open.contains("diagnostics"))
     }
 
-    private fun bindSection(headId: Int, groupId: Int, arrowId: Int, startExpanded: Boolean) {
+    /** 展开状态记在 Prefs 里：换主题重建页面后，还是用户上次留下的样子。 */
+    private fun bindSection(id: String, headId: Int, groupId: Int, arrowId: Int, startExpanded: Boolean) {
         val group = findViewById<View>(groupId)
         val arrow = findViewById<android.widget.ImageView>(arrowId)
         var open = startExpanded
@@ -264,6 +266,9 @@ class SettingsActivity : AppCompatActivity() {
             open = !open
             group.visibility = if (open) View.VISIBLE else View.GONE
             arrow.animate().rotation(if (open) 90f else 0f).setDuration(150L).start()
+            val current = Prefs.settingsOpenSections(this).toMutableSet()
+            if (open) current.add(id) else current.remove(id)
+            Prefs.setSettingsOpenSections(this, current)
         }
     }
 
@@ -275,9 +280,9 @@ class SettingsActivity : AppCompatActivity() {
             "· 截完图提醒我识别：需要「读取相册」权限；没权限时只保留分享和手动选图。")
 
         help(R.id.btnHelpEntry, "其他入口", "除了首页输入框，还有两条更快的路：\n\n" +
-            "· 系统侧边栏：侧边栏添加 App 只认带桌面图标的，所以要先让桌面出现「Bellnote 截屏记」，" +
-            "加进侧边栏后再把它隐藏；已经加进侧边栏的入口不受影响。\n" +
-            "· 通知栏磁贴：下拉点「记一条」直接回首页并聚焦输入框。")
+            "· 侧边栏：系统侧边栏添加 App 时只认带桌面图标的，所以要先临时显示「Bellnote 截屏记」这个桌面入口，" +
+            "加进侧边栏后再把它隐藏——它只是添加时的临时副产物，不用长期放在桌面上。已经加进侧边栏的入口不受影响。\n" +
+            "· 通知栏：下拉通知栏点「记一条」，直接回首页并聚焦输入框。")
 
         help(R.id.btnHelpA11y, "系统权限", "· 通知使用权：读不到第三方推送就收不到 ntfy 的消息，补查也没法给你提醒。\n" +
             "· 截屏服务（无障碍）：只用来截当前屏幕，不读输入内容；不开就不能从侧边栏点一下截屏。")
