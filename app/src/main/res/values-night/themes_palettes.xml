@@ -76,4 +76,23 @@
         <item name="bnRipple">#22ECEEED</item>
     </style>
 
+
+    <style name="ThemeOverlay.Bellnote.Pink" parent="">
+        <item name="bnPrimary">#FFFF9EC4</item>
+        <item name="bnPrimaryDark">#FF4A1230</item>
+        <item name="bnOnPrimary">#FF2A0A18</item>
+        <item name="bnAccent">#FFF2B65C</item>
+        <item name="bnWindowBg">#FF120A0F</item>
+        <item name="bnSurface">#FF1A1016</item>
+        <item name="bnCard">#FF1D1219</item>
+        <item name="bnCardStroke">#FF2E1D26</item>
+        <item name="bnDivider">#FF26171F</item>
+        <item name="bnTextPrimary">#FFF7E8EF</item>
+        <item name="bnTextSecondary">#FFB08E9C</item>
+        <item name="bnChipBg">#FF2A1622</item>
+        <item name="bnIconBg">#FF24141C</item>
+        <item name="bnDanger">#FFFF8A8A</item>
+        <item name="bnNavBg">#FF160C12</item>
+        <item name="bnRipple">#22F7E8EF</item>
+    </style>
 </resources>
