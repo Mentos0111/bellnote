@@ -110,6 +110,9 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnExportIcs).setOnClickListener { exportIcs() }
         findViewById<Button>(R.id.btnBackupLedger).setOnClickListener { backupLedger() }
         findViewById<Button>(R.id.btnCrashLog).setOnClickListener { showCrashLog() }
+        findViewById<Button>(R.id.btnHealth).setOnClickListener {
+            startActivity(Intent(this, HealthActivity::class.java))
+        }
         findViewById<Button>(R.id.btnAbout).setOnClickListener {
             startActivity(Intent(this, AboutActivity::class.java))
         }

@@ -41,7 +41,6 @@ class HealthActivity : AppCompatActivity() {
         }
         render()
         HealthInspector.refreshInBackground(this) { render() }
-        setupBackgroundSection()
     }
 
     private fun render(loading: Boolean = false) {
@@ -97,26 +96,6 @@ class HealthActivity : AppCompatActivity() {
     }
 
 
-    /** 后台存活：不同厂商入口不一样，按钮跳对应系统页，说明按机型现算。 */
-    private fun setupBackgroundSection() {
-        val vendor = DeviceVendor.current()
-        findViewById<TextView>(R.id.tvBackgroundHint).text =
-            "系统会冻结长期在后台的 App，冻结后推送和定时任务都会停。\n" +
-                "当前机型：${vendor.label}。" + vendorAutostartHint(vendor.label)
-
-        findViewById<Button>(R.id.btnHealthBattery).setOnClickListener {
-            if (!DeviceVendor.openBattery(this)) {
-                Toast.makeText(this, "打不开电池页面，去系统设置里搜「电池」", Toast.LENGTH_LONG).show()
-                SystemPages.openAppDetails(this)
-            }
-        }
-        findViewById<Button>(R.id.btnHealthAutostart).setOnClickListener {
-            if (!DeviceVendor.openAutostart(this)) {
-                Toast.makeText(this, "打不开自启动页面，去系统设置里搜「自启动」", Toast.LENGTH_LONG).show()
-                SystemPages.openAppDetails(this)
-            }
-        }
-    }
 
     private fun dotOf(status: HealthCheck.Status): Int = when (status) {
         HealthCheck.Status.BAD -> R.drawable.dot_bad
