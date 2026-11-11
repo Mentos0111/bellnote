@@ -79,6 +79,7 @@ class OnboardingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_onboarding)
         step = savedInstanceState?.getInt("step", 0) ?: 0
+        com.bellnote.util.PrivacyGate.ensure(this)
 
         deck = findViewById(R.id.deck)
         steps = listOf(
@@ -132,11 +133,6 @@ class OnboardingActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
 
-        findViewById<LinearLayout>(R.id.permNotification).setOnClickListener {
-            if (!SystemPages.openNotificationAccess(this)) {
-                toast("打不开通知使用权页面，请手动到 设置 → 通知 → 通知使用权")
-            }
-        }
         findViewById<LinearLayout>(R.id.permCalendar).setOnClickListener {
             if (Permissions.hasCalendar(this)) toast("日历权限已经有了")
             else requestCalendar.launch(
@@ -496,7 +492,6 @@ class OnboardingActivity : AppCompatActivity() {
     }
 
     private fun refreshPermissionRows() {
-        setState(R.id.permNotificationState, Permissions.hasNotificationAccess(this))
         setState(R.id.permCalendarState, Permissions.hasCalendar(this))
         setState(R.id.permBatteryState, HealthInspector.isIgnoringBatteryOptimizations(this))
         setState(R.id.permMediaState, Permissions.hasMediaImages(this))
@@ -509,12 +504,10 @@ class OnboardingActivity : AppCompatActivity() {
     }
 
     /** 通知使用权 + 日历读写是「能跑起来」的最低要求，缺一个就不让往下走。 */
-    private fun hasBasicPermissions(): Boolean =
-        Permissions.hasNotificationAccess(this) && Permissions.hasCalendar(this)
+    private fun hasBasicPermissions(): Boolean = Permissions.hasCalendar(this)
 
     private fun updatePermGate() {
         val missing = mutableListOf<String>()
-        if (!Permissions.hasNotificationAccess(this)) missing.add("通知使用权")
         if (!Permissions.hasCalendar(this)) missing.add("日历读写")
 
         tvPermHint.text = if (missing.isEmpty()) "" else "还要开：" + missing.joinToString("、")

@@ -130,22 +130,6 @@
                     android:paddingRight="16dp">
 
                     <LinearLayout
-                        android:id="@+id/permNotification"
-                        style="@style/AboutRow"
-                        android:background="?android:attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <TextView
-                            style="@style/AboutKey"
-                            android:text="通知使用权" />
-                        <TextView
-                            android:id="@+id/permNotificationState"
-                            style="@style/AboutValue" />
-                    </LinearLayout>
-
-                    <View style="@style/AboutDivider" />
-
-                    <LinearLayout
                         android:id="@+id/permCalendar"
                         style="@style/AboutRow"
                         android:background="?android:attr/selectableItemBackground"

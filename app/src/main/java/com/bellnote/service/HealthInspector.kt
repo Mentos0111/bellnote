@@ -30,40 +30,37 @@ object HealthInspector {
         val items = mutableListOf<HealthCheck.Item>()
         val vendor = DeviceVendor.current()
 
-        // 1) 通知使用权
-        val hasNotificationAccess = Permissions.hasNotificationAccess(app)
-        if (!hasNotificationAccess) {
+        // 1) 自动补查（不再依赖通知使用权：直接问 ntfy 服务器）
+        val topic = Prefs.ntfyTopic(app)
+        if (topic.isBlank()) {
             items.add(
                 HealthCheck.Item(
-                    "notification_access", "通知权限", HealthCheck.Status.BAD,
-                    "没开通知使用权：第三方推送读不到，进不了日历",
-                    HealthCheck.Action.NOTIFICATION_ACCESS
+                    "ntfy_poll", "自动补查", HealthCheck.Status.UNKNOWN,
+                    "没配 ntfy 主题：走「一句话 / 截图 / 分享」就够用，不需要它",
+                    HealthCheck.Action.SETTINGS
                 )
             )
         } else {
+            val lastAt = Prefs.lastCatchUpAt(app)
+            val hours = if (lastAt > 0) (System.currentTimeMillis() - lastAt) / 3_600_000L else -1
             items.add(
-                HealthCheck.Item(
-                    "notification_access", "通知权限", HealthCheck.Status.OK,
-                    "已授权，第三方推送能被读取", HealthCheck.Action.NOTIFICATION_ACCESS
-                )
-            )
-        }
-
-        // 2) 监听器是否被系统回收
-        if (hasNotificationAccess) {
-            val connectedAt = Prefs.listenerConnectedAt(app)
-            val stale = connectedAt > 0 && System.currentTimeMillis() - connectedAt > 24 * 60 * 60 * 1000L
-            items.add(
-                if (stale) {
-                    HealthCheck.Item(
-                        "listener", "监听", HealthCheck.Status.WARN,
-                        "授权还在，但超过 24 小时没连上，可能被系统回收了：去通知使用权里关一下再打开",
-                        HealthCheck.Action.NOTIFICATION_ACCESS
+                when {
+                    lastAt <= 0 -> HealthCheck.Item(
+                        "ntfy_poll", "自动补查", HealthCheck.Status.WARN,
+                        "配了主题但还没成功拉过：检查网络，或在推送页点「立即补查」",
+                        HealthCheck.Action.SETTINGS
                     )
-                } else {
-                    HealthCheck.Item(
-                        "listener", "监听", HealthCheck.Status.OK,
-                        "监听服务正常", HealthCheck.Action.NOTIFICATION_ACCESS
+
+                    hours > 6 -> HealthCheck.Item(
+                        "ntfy_poll", "自动补查", HealthCheck.Status.WARN,
+                        "上次补查是 ${hours} 小时前：可能被系统限制了后台，把电池白名单打开",
+                        HealthCheck.Action.BATTERY
+                    )
+
+                    else -> HealthCheck.Item(
+                        "ntfy_poll", "自动补查", HealthCheck.Status.OK,
+                        "每 15 分钟主动拉一次，不依赖任何人的通知权限",
+                        HealthCheck.Action.SETTINGS
                     )
                 }
             )
@@ -163,35 +160,6 @@ object HealthInspector {
                 )
             }
         )
-
-        // 7) ntfy 补查
-        val topic = Prefs.ntfyTopic(app)
-        if (topic.isBlank()) {
-            items.add(
-                HealthCheck.Item(
-                    "catchup", "补查", HealthCheck.Status.WARN,
-                    "没填 ntfy 主题：第三方 App 不弹通知时就收不到消息了",
-                    HealthCheck.Action.SETTINGS
-                )
-            )
-        } else {
-            val summary = Prefs.lastCatchUpSummary(app)
-            val failed = summary.contains("失败")
-            items.add(
-                if (failed) {
-                    HealthCheck.Item(
-                        "catchup", "补查", HealthCheck.Status.BAD,
-                        "上次补查失败：$summary", HealthCheck.Action.SETTINGS
-                    )
-                } else {
-                    HealthCheck.Item(
-                        "catchup", "补查", HealthCheck.Status.OK,
-                        if (summary.isBlank()) "已配置主题，还没跑过补查" else summary,
-                        HealthCheck.Action.SETTINGS
-                    )
-                }
-            )
-        }
 
         // 8) 最近没写进日历的推送
         val ignored = Prefs.ignoredNotices(app)
