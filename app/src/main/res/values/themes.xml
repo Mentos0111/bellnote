@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.NtfyCalendar" parent="Theme.AppCompat.DayNight.DarkActionBar">
         <item name="colorPrimary">?attr/bnPrimaryDark</item>
@@ -7,6 +7,7 @@
         <item name="android:windowBackground">?attr/bnWindowBg</item>
         <item name="android:statusBarColor">?attr/bnPrimaryDark</item>
         <item name="android:navigationBarColor">?attr/bnWindowBg</item>
+        <item name="android:windowAnimationStyle">@style/BellnoteWindowAnim</item>
         <item name="bnPrimary">@color/primary</item>
         <item name="bnPrimaryDark">@color/primary_dark</item>
         <item name="bnOnPrimary">@color/text_on_primary</item>
@@ -25,6 +26,14 @@
         <item name="bnRipple">@color/ripple</item>
     </style>
 
+    <!-- 页面切换：轻微上浮 + 淡入；返回时缩放淡出，比系统默认轻 -->
+    <style name="BellnoteWindowAnim" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/act_open_enter</item>
+        <item name="android:activityOpenExitAnimation">@anim/act_open_exit</item>
+        <item name="android:activityCloseEnterAnimation">@anim/act_close_enter</item>
+        <item name="android:activityCloseExitAnimation">@anim/act_close_exit</item>
+    </style>
+
     <!-- 首页自带顶栏（☰ + 标题），不要再叠一层系统 ActionBar -->
     <style name="Theme.NtfyCalendar.Home" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">?attr/bnPrimary</item>
@@ -33,6 +42,7 @@
         <item name="android:windowBackground">?attr/bnWindowBg</item>
         <item name="android:statusBarColor">?attr/bnPrimaryDark</item>
         <item name="android:navigationBarColor">?attr/bnWindowBg</item>
+        <item name="android:windowAnimationStyle">@style/BellnoteWindowAnim</item>
         <item name="bnPrimary">@color/primary</item>
         <item name="bnPrimaryDark">@color/primary_dark</item>
         <item name="bnOnPrimary">@color/text_on_primary</item>
