@@ -46,6 +46,7 @@ object Prefs {
     private const val KEY_LISTENER_AT = "listener_connected_at"
     private const val KEY_THEME = "theme_palette"
     private const val KEY_HEALTH = "health_cache"
+    private const val KEY_ONBOARDED = "onboarded"
     private const val KEY_HEALTH_AT = "health_cached_at"
 
     /** 存「被忽略的通知」用的分隔符：\u0001 分条、\u0002 分字段，正常正文里不会出现。 */
@@ -264,6 +265,14 @@ object Prefs {
 
     fun clearIgnoredNotices(context: Context) {
         sp(context).edit().remove(KEY_IGNORED).apply()
+    }
+
+    // ---------------- 首次引导 ----------------
+
+    fun onboardingDone(context: Context): Boolean = sp(context).getBoolean(KEY_ONBOARDED, false)
+
+    fun setOnboardingDone(context: Context, done: Boolean) {
+        sp(context).edit().putBoolean(KEY_ONBOARDED, done).apply()
     }
 
     // ---------------- 体检结果缓存 ----------------

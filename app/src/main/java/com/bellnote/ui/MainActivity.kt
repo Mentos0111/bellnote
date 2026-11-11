@@ -93,6 +93,9 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, ImportActivity::class.java))
         }
         findViewById<TextView>(R.id.tvVersionTop).text = versionLabel()
+        if (!Prefs.onboardingDone(this)) {
+            startActivity(Intent(this, OnboardingActivity::class.java))
+        }
         findViewById<View>(R.id.healthChip).setOnClickListener {
             startActivity(Intent(this, HealthActivity::class.java))
         }
