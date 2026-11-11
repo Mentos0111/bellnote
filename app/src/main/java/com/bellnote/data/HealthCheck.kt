@@ -44,8 +44,8 @@ object HealthCheck {
         val pending = pending(items)
         return when {
             pending.isEmpty() -> "一切正常"
-            pending.size == 1 -> "1 项需要看一下"
-            else -> "${pending.size} 项需要看一下"
+            pending.size == 1 -> "1 项可优化"
+            else -> "${pending.size} 项可优化"
         }
     }
 }
