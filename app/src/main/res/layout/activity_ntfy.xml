@@ -49,6 +49,10 @@
             android:text="@string/btn_send_test" />
 
         <TextView
+            style="@style/HintText"
+            android:text="测试推送会在 10 分钟后发出，用来确认整条链路通不通。" />
+
+        <TextView
             style="@style/SectionSubLabel"
             android:text="推送怎么处理" />
 
