@@ -42,6 +42,13 @@ class OnboardingActivity : AppCompatActivity() {
     private lateinit var intro2: android.view.View
     private lateinit var body2: android.view.View
     private val ui = android.os.Handler(android.os.Looper.getMainLooper())
+
+    // 统一动效：进场 360ms 标准曲线，退场 280ms，元素之间错开 70ms
+    private val easeStd = android.view.animation.PathInterpolator(0.2f, 0f, 0f, 1f)
+    private val easeOutSoft = android.view.animation.PathInterpolator(0.3f, 0f, 1f, 1f)
+    private val enterMs = 360L
+    private val exitMs = 280L
+    private val staggerMs = 70L
     private var pendingStage: Runnable? = null
 
     private val repository by lazy { CalendarRepository(this) }
@@ -178,19 +185,8 @@ class OnboardingActivity : AppCompatActivity() {
     }
 
     private fun playIntro() {
-        val d = resources.displayMetrics.density
-        steps[0].apply {
-            alpha = 0f
-            translationY = 26f * d
-            animate().alpha(1f).translationY(0f).setDuration(360L)
-                .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
-        }
-        findViewById<View>(R.id.hero1).apply {
-            scaleX = 0.8f
-            scaleY = 0.8f
-            animate().scaleX(1f).scaleY(1f).setStartDelay(120L).setDuration(420L)
-                .setInterpolator(android.view.animation.OvershootInterpolator(1.4f)).start()
-        }
+        staggerContent(0)
+        popHero(0)
     }
 
     // ---------------- 翻页 ----------------
@@ -198,21 +194,15 @@ class OnboardingActivity : AppCompatActivity() {
     private fun goTo(target: Int) {
         if (target == step || target !in steps.indices) return
         val width = deck.width.takeIf { it > 0 } ?: resources.displayMetrics.widthPixels
-        val forward = target > step
-        val dir = if (forward) 1 else -1
+        val dir = if (target > step) 1 else -1
         val old = steps[step]
         val next = steps[target]
 
-        heroOf(target).translationX = dir * width * 0.18f
-        heroOf(target).animate().translationX(0f).setDuration(360L)
-            .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
-
         old.animate()
-            .translationX(-dir * width * 0.35f)
+            .translationX(-dir * width * 0.25f)
             .alpha(0f)
-            .scaleX(0.94f).scaleY(0.94f)
-            .setDuration(240L)
-            .setInterpolator(android.view.animation.AccelerateInterpolator())
+            .setDuration(exitMs)
+            .setInterpolator(easeOutSoft)
             .withEndAction {
                 old.visibility = View.GONE
                 resetView(old)
@@ -220,51 +210,56 @@ class OnboardingActivity : AppCompatActivity() {
             .start()
 
         next.visibility = View.VISIBLE
-        next.translationX = dir * width * 0.45f
+        next.translationX = dir * width * 0.25f
         next.alpha = 0f
-        next.scaleX = 1.04f
-        next.scaleY = 1.04f
         next.animate()
-            .translationX(0f).alpha(1f).scaleX(1f).scaleY(1f)
-            .setDuration(300L)
-            .setInterpolator(android.view.animation.DecelerateInterpolator())
+            .translationX(0f).alpha(1f)
+            .setDuration(enterMs)
+            .setInterpolator(easeStd)
             .start()
 
         afterPageChanged(target)
-        popHero(target)
     }
 
     private fun afterPageChanged(target: Int) {
         step = target
-        if (target == 1) playStage2() else resetStage2()
-        if (target != 1) staggerContent(target)
+        if (target == 1) playStage2() else {
+            resetStage2()
+            staggerContent(target)
+        }
+        popHero(target)
         renderDots()
         btnNext.text = if (step == steps.lastIndex) "开始使用" else "下一步"
         if (step == 3) loadCalendars()
     }
 
-    /** 第二页：图标 + 「如何实现」→ 淡出 → 开关清单浮上来。 */
+    /** 第二页：图标 +「如何实现」先稳住，随后与开关清单交叉淡入淡出，没有空档。 */
     private fun playStage2() {
         val d = resources.displayMetrics.density
         pendingStage?.let { ui.removeCallbacks(it) }
         intro2.visibility = View.VISIBLE
         intro2.alpha = 0f
-        intro2.translationY = 18f * d
+        intro2.translationY = 16f * d
         body2.visibility = View.INVISIBLE
-        intro2.animate().alpha(1f).translationY(0f).setDuration(260L)
-            .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
+        body2.alpha = 0f
+        body2.translationY = 0f
+        intro2.animate().alpha(1f).translationY(0f)
+            .setDuration(enterMs).setInterpolator(easeStd).start()
 
         val runnable = Runnable {
-            intro2.animate().alpha(0f).translationY(-28f * d).setDuration(220L)
+            // 两段交叉：上段往上走、下段同时淡入，重叠 120ms
+            intro2.animate().alpha(0f).translationY(-24f * d)
+                .setDuration(300L).setInterpolator(easeOutSoft)
                 .withEndAction { intro2.visibility = View.GONE }.start()
+
             body2.visibility = View.VISIBLE
             body2.alpha = 0f
-            body2.translationY = 26f * d
-            body2.animate().alpha(1f).translationY(0f).setDuration(300L)
-                .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
+            body2.translationY = 20f * d
+            body2.animate().alpha(1f).translationY(0f)
+                .setStartDelay(120L).setDuration(enterMs).setInterpolator(easeStd).start()
         }
         pendingStage = runnable
-        ui.postDelayed(runnable, 820L)
+        ui.postDelayed(runnable, 900L)
     }
 
     private fun resetStage2() {
@@ -278,20 +273,21 @@ class OnboardingActivity : AppCompatActivity() {
         body2.translationY = 0f
     }
 
-    /** 其它页：标题、说明、内容依次浮上来。 */
+    /** 每页都是同一套：内容按 70ms 错开、向上 14dp 浮入。 */
     private fun staggerContent(index: Int) {
         val page = steps.getOrNull(index) ?: return
         val d = resources.displayMetrics.density
-        val children = (page as? android.view.ViewGroup)?.let { group ->
-            (0 until group.childCount).map { group.getChildAt(it) }
-        } ?: return
+        val group = page as? android.view.ViewGroup ?: return
+        val children = (0 until group.childCount).map { group.getChildAt(it) }
         children.forEachIndexed { i, child ->
+            if (child === body2) return@forEachIndexed
+            child.animate().cancel()
             child.alpha = 0f
             child.translationY = 14f * d
             child.animate().alpha(1f).translationY(0f)
-                .setStartDelay(60L + i * 70L)
-                .setDuration(260L)
-                .setInterpolator(android.view.animation.DecelerateInterpolator())
+                .setStartDelay(80L + i * staggerMs)
+                .setDuration(enterMs)
+                .setInterpolator(easeStd)
                 .start()
         }
     }
@@ -306,12 +302,13 @@ class OnboardingActivity : AppCompatActivity() {
 
     private fun popHero(index: Int) {
         val hero = heroOf(index)
-        hero.scaleX = 0.85f
-        hero.scaleY = 0.85f
-        hero.alpha = 0.6f
+        hero.animate().cancel()
+        hero.scaleX = 0.94f
+        hero.scaleY = 0.94f
+        hero.alpha = 0.85f
         hero.animate().scaleX(1f).scaleY(1f).alpha(1f)
-            .setStartDelay(80L).setDuration(380L)
-            .setInterpolator(android.view.animation.OvershootInterpolator(1.3f))
+            .setStartDelay(60L).setDuration(enterMs)
+            .setInterpolator(easeStd)
             .start()
     }
 
@@ -332,7 +329,7 @@ class OnboardingActivity : AppCompatActivity() {
         val width = deck.width.toFloat().takeIf { it > 0f } ?: return
         val cur = steps[step]
         cur.translationX = dx
-        cur.alpha = 1f - (abs(dx) / width) * 0.5f
+        cur.alpha = 1f - (abs(dx) / width) * 0.35f
 
         val target = if (dx < 0) step + 1 else step - 1
         if (target in steps.indices) {
@@ -352,10 +349,10 @@ class OnboardingActivity : AppCompatActivity() {
         val nxt = steps[target]
 
         nxt.visibility = View.VISIBLE
-        nxt.animate().translationX(0f).alpha(1f).setDuration(200L)
-            .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
-        cur.animate().translationX(-dir * width).alpha(0f).setDuration(200L)
-            .setInterpolator(android.view.animation.DecelerateInterpolator())
+        nxt.animate().translationX(0f).alpha(1f).setDuration(enterMs)
+            .setInterpolator(easeStd).start()
+        cur.animate().translationX(-dir * width).alpha(0f).setDuration(exitMs)
+            .setInterpolator(easeOutSoft)
             .withEndAction {
                 cur.visibility = View.GONE
                 resetView(cur)
@@ -368,12 +365,12 @@ class OnboardingActivity : AppCompatActivity() {
     private fun snapBack() {
         val cur = steps[step]
         val width = deck.width.toFloat().takeIf { it > 0f } ?: return
-        cur.animate().translationX(0f).alpha(1f).setDuration(180L).start()
+        cur.animate().translationX(0f).alpha(1f).setDuration(exitMs).setInterpolator(easeStd).start()
         val other = if (cur.translationX < 0) step + 1 else step - 1
         if (other in steps.indices) {
             val nxt = steps[other]
             nxt.animate().translationX(if (cur.translationX < 0) width else -width).alpha(0f)
-                .setDuration(180L).withEndAction { nxt.visibility = View.GONE }.start()
+                .setDuration(exitMs).setInterpolator(easeOutSoft).withEndAction { nxt.visibility = View.GONE }.start()
         }
     }
 
