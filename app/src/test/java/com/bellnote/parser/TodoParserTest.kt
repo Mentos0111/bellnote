@@ -236,9 +236,9 @@ class TodoParserTest {
 
     @Test
     fun `推送脚本发的带重复的正文能被解析`() {
-        val body = "标题：追学生：本周末问清期中考试范围\n时间：2026-11-09 20:00\n重复：weekly"
+        val body = "标题：追同学A：本周末问清期中考试范围\n时间：2026-11-09 20:00\n重复：weekly"
         val result = TodoParser.parse(null, body, now)
-        assertEquals("追学生：本周末问清期中考试范围", result.spec.title)
+        assertEquals("追同学A：本周末问清期中考试范围", result.spec.title)
         assertEquals(com.bellnote.data.RepeatRule.WEEKLY, result.spec.repeat)
         assertTrue(result.timeParsed)
     }
