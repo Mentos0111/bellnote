@@ -151,16 +151,6 @@
                 style="@style/HintText"
                 android:visibility="gone" />
 
-            <TextView
-                style="@style/FormLabel"
-                android:text="DeepSeek API Key（截图识别用）" />
-
-            <EditText
-                android:id="@+id/etOnbApiKey"
-                style="@style/FormInput"
-                android:layout_marginTop="18dp"
-                android:hint="sk-…"
-                android:inputType="textPassword" />
         </LinearLayout>
 
         <!-- 3 开关 -->

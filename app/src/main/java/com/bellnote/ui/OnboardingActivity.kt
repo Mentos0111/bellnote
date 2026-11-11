@@ -48,7 +48,6 @@ class OnboardingActivity : AppCompatActivity() {
 
     private lateinit var spCalendar: Spinner
     private lateinit var tvCalendarHint: TextView
-    private lateinit var etApiKey: EditText
 
     private val requestCalendar = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -74,8 +73,6 @@ class OnboardingActivity : AppCompatActivity() {
 
         spCalendar = findViewById(R.id.spOnbCalendar)
         tvCalendarHint = findViewById(R.id.tvOnbCalendarHint)
-        etApiKey = findViewById(R.id.etOnbApiKey)
-        etApiKey.setText(Prefs.apiKey(this))
 
         btnNext.setOnClickListener {
             if (step < steps.lastIndex) goTo(step + 1) else {
@@ -366,8 +363,6 @@ class OnboardingActivity : AppCompatActivity() {
     private fun persistConfig() {
         val index = spCalendar.selectedItemPosition
         if (index in calendars.indices) Prefs.setCalendarId(this, calendars[index].id)
-        val key = etApiKey.text.toString().trim()
-        if (key.isNotEmpty()) Prefs.setApiKey(this, key)
     }
 
     private fun loadCalendars() {
