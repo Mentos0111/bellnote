@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
@@ -13,6 +14,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
+import kotlin.math.abs
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.bellnote.R
@@ -39,7 +41,6 @@ class OnboardingActivity : AppCompatActivity() {
     private lateinit var steps: List<View>
     private lateinit var dots: List<View>
     private lateinit var btnNext: Button
-    private lateinit var btnSkip: Button
 
     private val repository by lazy { CalendarRepository(this) }
     private var calendars: List<CalendarRepository.CalendarInfo> = emptyList()
@@ -69,7 +70,6 @@ class OnboardingActivity : AppCompatActivity() {
         steps = listOf(findViewById(R.id.step1), findViewById(R.id.step2), findViewById(R.id.step3))
         dots = listOf(findViewById(R.id.dot1), findViewById(R.id.dot2), findViewById(R.id.dot3))
         btnNext = findViewById(R.id.btnNext)
-        btnSkip = findViewById(R.id.btnSkip)
 
         spCalendar = findViewById(R.id.spOnbCalendar)
         tvCalendarHint = findViewById(R.id.tvOnbCalendarHint)
@@ -81,10 +81,6 @@ class OnboardingActivity : AppCompatActivity() {
                 persistConfig()
                 finishOnboarding()
             }
-        }
-        btnSkip.setOnClickListener {
-            persistConfig()
-            finishOnboarding()
         }
 
         findViewById<Button>(R.id.btnOnbCreateCalendar).setOnClickListener { createLocalCalendar() }
@@ -126,6 +122,7 @@ class OnboardingActivity : AppCompatActivity() {
             view.visibility = if (index == 0) View.VISIBLE else View.GONE
             view.translationX = 0f
         }
+        setupSwipe()
         renderDots()
         refreshPermissionRows()
         loadCalendars()
@@ -150,6 +147,108 @@ class OnboardingActivity : AppCompatActivity() {
         super.onResume()
         refreshPermissionRows()
         if (step == 1) loadCalendars()
+    }
+
+
+    /** 手指左右拖：跟手位移，松手按距离决定翻页还是弹回。 */
+    private fun setupSwipe() {
+        val slop = android.view.ViewConfiguration.get(this).scaledTouchSlop
+        var downX = 0f
+        var dragging = false
+
+        deck.setOnTouchListener { _, ev ->
+            when (ev.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    downX = ev.rawX
+                    dragging = false
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    val dx = ev.rawX - downX
+                    if (!dragging && abs(dx) > slop) dragging = true
+                    if (dragging) dragTo(dx)
+                }
+
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    if (dragging) {
+                        val dx = ev.rawX - downX
+                        val width = deck.width.toFloat().takeIf { it > 0f } ?: return@setOnTouchListener true
+                        val target = if (dx < 0) step + 1 else step - 1
+                        if (abs(dx) > width * 0.22f && target in steps.indices) {
+                            settleTo(target)
+                        } else {
+                            snapBack()
+                        }
+                    }
+                    dragging = false
+                }
+            }
+            true
+        }
+    }
+
+    /** 拖动过程中的实时位移。 */
+    private fun dragTo(dx: Float) {
+        val width = deck.width.toFloat().takeIf { it > 0f } ?: return
+        val cur = steps[step]
+        cur.translationX = dx
+        cur.alpha = 1f - (abs(dx) / width) * 0.5f
+
+        val target = if (dx < 0) step + 1 else step - 1
+        if (target in steps.indices) {
+            val nxt = steps[target]
+            nxt.visibility = View.VISIBLE
+            val base = if (dx < 0) width else -width
+            nxt.translationX = base + dx * 0.55f
+            nxt.alpha = (abs(dx) / width) * 0.9f
+            nxt.scaleX = 1f
+            nxt.scaleY = 1f
+        }
+    }
+
+    /** 松手后翻页：当前页滑出去，目标页归位。 */
+    private fun settleTo(target: Int) {
+        val width = deck.width.toFloat().takeIf { it > 0f } ?: return
+        val dir = if (target > step) 1 else -1
+        val cur = steps[step]
+        val nxt = steps[target]
+
+        nxt.visibility = View.VISIBLE
+        nxt.animate().translationX(0f).alpha(1f).setDuration(200L)
+            .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
+
+        cur.animate().translationX(-dir * width).alpha(0f).setDuration(200L)
+            .setInterpolator(android.view.animation.DecelerateInterpolator())
+            .withEndAction {
+                cur.visibility = View.GONE
+                resetView(cur)
+            }.start()
+
+        step = target
+        popHero(target)
+        renderDots()
+        btnNext.text = if (step == steps.lastIndex) "开始使用" else "下一步"
+        if (step == 1) loadCalendars()
+    }
+
+    /** 松手但没滑够：两边都弹回原位。 */
+    private fun snapBack() {
+        val cur = steps[step]
+        cur.animate().translationX(0f).alpha(1f).setDuration(180L).start()
+        val other = if (cur.translationX < 0) step + 1 else step - 1
+        if (other in steps.indices) {
+            val nxt = steps[other]
+            val width = deck.width.toFloat().takeIf { it > 0f } ?: return
+            nxt.animate().translationX(if (cur.translationX < 0) width else -width).alpha(0f)
+                .setDuration(180L).withEndAction { nxt.visibility = View.GONE }.start()
+        }
+    }
+
+    private fun resetView(view: View) {
+        view.translationX = 0f
+        view.alpha = 1f
+        view.scaleX = 1f
+        view.scaleY = 1f
     }
 
     /** 卡片式翻页：旧页往左退、缩小淡掉；新页从右侧带着 1.04 的缩放滑进来。 */
@@ -200,8 +299,6 @@ class OnboardingActivity : AppCompatActivity() {
         if (step == 1) loadCalendars()
         renderDots()
         btnNext.text = if (step == steps.lastIndex) "开始使用" else "下一步"
-        btnSkip.animate().alpha(if (step == steps.lastIndex) 0f else 1f).setDuration(150L).start()
-        btnSkip.isEnabled = step != steps.lastIndex
     }
 
     private fun heroOf(index: Int): View = when (index) {
