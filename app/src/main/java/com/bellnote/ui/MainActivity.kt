@@ -24,6 +24,7 @@ import com.bellnote.data.CalendarRepository
 import com.bellnote.data.MANUAL_DEFAULT_DURATION_MINUTES
 import com.bellnote.data.HealthCheck
 import com.bellnote.data.Prefs
+import com.bellnote.data.StatusLines
 import com.bellnote.data.TodoItem
 import com.bellnote.data.TodoSpec
 import com.bellnote.data.TodoStore
@@ -97,9 +98,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.healthChip).setOnClickListener {
             startActivity(Intent(this, HealthActivity::class.java))
         }
-        findViewById<View>(R.id.statusChip).setOnClickListener {
-            startActivity(Intent(this, HealthActivity::class.java))
-        }
+        findViewById<View>(R.id.statusChip).setOnClickListener { showSyncDialog() }
     }
 
     /** 首页顶部「一句话记」：敲完回车 / 点「记」→ 本地解析 → 填好编辑页给你确认。 */
@@ -384,26 +383,28 @@ class MainActivity : AppCompatActivity() {
         }.start()
     }
 
+    /** 右边那颗灯：同步状态（对账 / 补查 / 写失败），和左边「体检」不是一回事。 */
     private fun updateStatus() {
-        val problems = mutableListOf<String>()
-        if (!Permissions.hasCalendar(this)) problems.add("· 日历读写权限未授权")
-        if (!Permissions.hasNotificationAccess(this)) {
-            problems.add("· 通知使用权没开，收不到 ntfy 通知")
-        } else {
-            // 授权开着但很久没连上：多半是被系统回收了，提示关一下再打开
-            val connectedAt = Prefs.listenerConnectedAt(this)
-            val stale = connectedAt > 0 && System.currentTimeMillis() - connectedAt > 24 * 60 * 60 * 1000L
-            if (stale) {
-                problems.add("· 通知监听可能被系统回收了（最近连接：${TimeFormat.full(connectedAt)}）")
-            }
+        val chip = findViewById<TextView>(R.id.statusChip)
+        val dot = when (StatusLines.level(this)) {
+            StatusLines.Level.OK -> R.drawable.dot_ok
+            StatusLines.Level.IDLE -> R.drawable.dot_idle
+            StatusLines.Level.WARN -> R.drawable.dot_warn
         }
-        if (Prefs.calendarId(this) <= 0) problems.add("· 还没选目标日历")
+        styleChip(chip, dot, StatusLines.chipLabel(this))
+    }
 
-        if (problems.isEmpty()) {
-            styleChip(findViewById(R.id.statusChip), R.drawable.dot_ok, "一切就绪")
-        } else {
-            styleChip(findViewById(R.id.statusChip), R.drawable.dot_warn, "还差 ${problems.size} 项")
-        }
+    /** 点「同步」灯：把对账 / 补查 / 写失败三行摊开，能直接去对账。 */
+    private fun showSyncDialog() {
+        val lines = StatusLines.recent(this).joinToString("\n")
+        AlertDialog.Builder(this)
+            .setTitle("同步状态")
+            .setMessage(lines)
+            .setPositiveButton("知道了", null)
+            .setNeutralButton("去对账") { _, _ ->
+                startActivity(Intent(this, ReconcileActivity::class.java))
+            }
+            .show()
     }
 
     private fun confirmDelete(item: TodoItem) {
