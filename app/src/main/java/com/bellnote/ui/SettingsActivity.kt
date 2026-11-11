@@ -121,6 +121,8 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btnSaveSettings).setOnClickListener { saveSettings() }
+        setupHelp()
+        setupSections()
         findViewById<Button>(R.id.btnCreateCalendar).setOnClickListener { createLocalCalendar() }
         findViewById<Button>(R.id.btnNotifAccess).setOnClickListener {
             if (!SystemPages.openNotificationAccess(this)) {
@@ -240,6 +242,68 @@ class SettingsActivity : AppCompatActivity() {
     }
 
 
+
+
+
+    /** 分级目录：四个分组标题点一下展开 / 收起，默认只展开「输入渠道」。 */
+    private fun setupSections() {
+        bindSection(R.id.headInput, R.id.groupInput, R.id.arrowInput, true)
+        bindSection(R.id.headCalendar, R.id.groupCalendar, R.id.arrowCalendar, false)
+        bindSection(R.id.headAppearance, R.id.groupAppearance, R.id.arrowAppearance, false)
+        bindSection(R.id.headDiagnostics, R.id.groupDiagnostics, R.id.arrowDiagnostics, false)
+    }
+
+    private fun bindSection(headId: Int, groupId: Int, arrowId: Int, startExpanded: Boolean) {
+        val group = findViewById<View>(groupId)
+        val arrow = findViewById<android.widget.ImageView>(arrowId)
+        var open = startExpanded
+        group.visibility = if (open) View.VISIBLE else View.GONE
+        arrow.rotation = if (open) 90f else 0f
+        findViewById<View>(headId).setOnClickListener {
+            open = !open
+            group.visibility = if (open) View.VISIBLE else View.GONE
+            arrow.animate().rotation(if (open) 90f else 0f).setDuration(150L).start()
+        }
+    }
+
+    /** 每个分组的问号：把原来铺在页面上的长说明收进弹窗。 */
+    private fun setupHelp() {
+        help(R.id.btnHelpShot, "截图识别", "两种方式：从相册选图识别，或者截完图后提醒你识别。\n\n" +
+            "· 视觉模型：目前平台支持 deepseek-flash / deepseek-v4-pro，填错时识别会提示可用名称。\n" +
+            "· API Key：调用 DeepSeek 读图用，只存在本机。\n" +
+            "· 截完图提醒我识别：需要「读取相册」权限；没权限时只保留分享和手动选图。")
+
+        help(R.id.btnHelpEntry, "其他入口", "除了首页输入框，还有两条更快的路：\n\n" +
+            "· 系统侧边栏：侧边栏添加 App 只认带桌面图标的，所以要先让桌面出现「Bellnote 截屏记」，" +
+            "加进侧边栏后再把它隐藏；已经加进侧边栏的入口不受影响。\n" +
+            "· 通知栏磁贴：下拉点「记一条」直接回首页并聚焦输入框。")
+
+        help(R.id.btnHelpA11y, "系统权限", "· 通知使用权：读不到第三方推送就收不到 ntfy 的消息，补查也没法给你提醒。\n" +
+            "· 截屏服务（无障碍）：只用来截当前屏幕，不读输入内容；不开就不能从侧边栏点一下截屏。")
+
+        help(R.id.btnHelpReconcile, "对账", "定时把本地的待办清单和系统日历对一遍，" +
+            "发现「清单有、日历没有」「日历被删了」「时间被改了」会提醒你。\n\n" +
+            "· 通知开关：控制对账发现问题时要不要弹提醒。\n" +
+            "· 立即对账：不看间隔，马上跑一次。")
+
+        help(R.id.btnHelpBackground, "后台不被杀", "国产 ROM 会冻结后台，冻结后推送和定时任务都会停。\n\n" +
+            "需要同时放开「电池 / 后台耗电白名单」和「自启动」两项；这两项系统不开放读取，" +
+            "这里只能帮你跳到对应的系统页面。")
+
+        help(R.id.btnHelpTheme, "外观", "两套开关互不影响：\n\n" +
+            "· 配色主题：青绿 / 靛蓝 / 暖沙 / 墨黑四套调色板。\n" +
+            "· 明暗：跟随系统 / 浅色 / 深色，选浅色或深色后就不再跟系统变。")
+    }
+
+    private fun help(buttonId: Int, title: String, message: String) {
+        findViewById<View>(buttonId).setOnClickListener {
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton("知道了", null)
+                .show()
+        }
+    }
 
     /** 状态行只在启用了 ntfy 时出现；没启用就完全不占地方。 */
     private fun renderNtfyEntry() {

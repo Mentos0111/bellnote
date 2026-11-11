@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,328 +8,452 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
         android:paddingTop="8dp"
         android:paddingBottom="28dp">
 
-                <!-- ===== 输入渠道 ===== -->
-        <TextView
-            style="@style/FormLabel"
-            android:text="输入渠道" />
+        <!-- ================= 输入渠道 ================= -->
+        <LinearLayout
+            android:id="@+id/headInput"
+            style="@style/SettingsGroupHead">
 
-<!-- ===== 识别模型 ===== -->
-        <TextView
-            style="@style/SectionSubLabel"
-            android:text="截图识别" />
+            <TextView
+                style="@style/SectionLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="0dp"
+                android:layout_weight="1"
+                android:text="输入渠道" />
 
-        <TextView
-            style="@style/FormLabel"
-            android:layout_marginTop="0dp"
-            android:text="@string/label_api_key" />
+            <ImageView
+                android:id="@+id/arrowInput"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="展开或收起"
+                android:rotation="90"
+                android:src="@drawable/ic_chevron_right"
+                android:tint="?attr/bnTextSecondary" />
+        </LinearLayout>
 
-        <EditText
-            android:id="@+id/etApiKey"
-            style="@style/FormInput"
-            android:hint="sk-..."
-            android:inputType="textPassword" />
-
-        <TextView
-            style="@style/FormLabel"
-            android:text="@string/label_model" />
-
-        <EditText
-            android:id="@+id/etModel"
-            style="@style/FormInput"
-            android:inputType="text" />
-
-        <TextView
-            android:id="@+id/tvModelHint"
-            style="@style/FormLabel"
-            android:layout_marginTop="6dp"
-            android:text="@string/model_hint" />
-
-        <CheckBox
-            android:id="@+id/cbShotWatch"
+        <LinearLayout
+            android:id="@+id/groupInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="@string/shot_watch_label" />
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/tvShotWatchHint"
-            style="@style/FormLabel"
-            android:text="@string/shot_watch_hint" />
-
-        <Button
-            android:id="@+id/btnMediaPerm"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/btn_grant_media" />
+            <LinearLayout
+                style="@style/SettingsSubHead">
 
                 <TextView
-            style="@style/SectionSubLabel"
-            android:text="其他入口" />
+                    style="@style/SectionSubLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="0dp"
+                    android:layout_weight="1"
+                    android:text="截图识别" />
 
-        <TextView
-            style="@style/FormLabel"
-            android:text="@string/sidebar_entry_title" />
+                <ImageButton
+                    android:id="@+id/btnHelpShot"
+                    style="@style/SettingsHelpButton"
+                    android:contentDescription="看说明"
+                    android:src="@drawable/ic_nav_help" />
+            </LinearLayout>
 
-        <TextView
-            android:id="@+id/tvSidebarEntryHint"
-            style="@style/HintText"
-            android:text="@string/sidebar_entry_hint" />
+            <TextView
+                style="@style/FormLabel"
+                android:layout_marginTop="4dp"
+                android:text="@string/label_model" />
 
-        <Button
-            android:id="@+id/btnSidebarEntry"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/sidebar_entry_show" />
+            <EditText
+                android:id="@+id/etModel"
+                style="@style/FormInput"
+                android:inputType="text" />
 
-        <Button
-            android:id="@+id/btnSidebarGuide"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/btn_sidebar_guide" />
+            <TextView
+                style="@style/FormLabel"
+                android:text="@string/label_api_key" />
 
-        <Button
-            android:id="@+id/btnTileGuide"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/btn_tile_guide" />
+            <EditText
+                android:id="@+id/etApiKey"
+                style="@style/FormInput"
+                android:inputType="textPassword" />
 
-        <TextView
-            style="@style/SectionSubLabel"
-            android:text="系统权限" />
+            <CheckBox
+                android:id="@+id/cbShotWatch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/shot_watch_label" />
 
-        <Button
-            android:id="@+id/btnNotifAccess"
-            style="@style/BtnTonal"
-            android:text="@string/perm_notification" />
+            <Button
+                android:id="@+id/btnMediaPerm"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="@string/btn_grant_media" />
 
-        <TextView
-            style="@style/FormLabel"
-            android:text="@string/a11y_title" />
+            <LinearLayout
+                style="@style/SettingsSubHead">
 
-        <TextView
-            android:id="@+id/tvA11yHint"
-            style="@style/HintText"
-            android:text="@string/a11y_hint" />
+                <TextView
+                    style="@style/SectionSubLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="0dp"
+                    android:layout_weight="1"
+                    android:text="其他入口" />
 
-        <Button
-            android:id="@+id/btnOpenA11y"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/btn_open_a11y" />
+                <ImageButton
+                    android:id="@+id/btnHelpEntry"
+                    style="@style/SettingsHelpButton"
+                    android:contentDescription="看说明"
+                    android:src="@drawable/ic_nav_help" />
+            </LinearLayout>
 
-<!-- ===== 第三方通知 ===== -->
-        <Button
-            android:id="@+id/btnNtfy"
-            style="@style/BtnTonal"
-            android:layout_marginTop="14dp"
-            android:text="高级 · 第三方推送" />
+            <Button
+                android:id="@+id/btnSidebarEntry"
+                style="@style/BtnTonal"
+                android:layout_marginTop="4dp"
+                android:text="@string/sidebar_entry_show" />
 
-        <TextView
-            android:id="@+id/tvNtfySummary"
-            style="@style/HintText"
-            android:visibility="gone"
-            android:text="已启用" />
+            <Button
+                android:id="@+id/btnSidebarGuide"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="@string/btn_sidebar_guide" />
 
-        <!-- ===== 日历与同步 ===== -->
-        <TextView
-            style="@style/FormLabel"
-            android:text="日历与同步" />
+            <Button
+                android:id="@+id/btnTileGuide"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="@string/btn_tile_guide" />
 
-<!-- ===== 目标日历 ===== -->
-        <TextView
-            style="@style/SectionSubLabel"
-            android:layout_marginTop="10dp"
-            android:text="目标日历" />
+            <LinearLayout
+                style="@style/SettingsSubHead">
 
-        <Spinner
-            android:id="@+id/spCalendar"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:background="@drawable/bg_input"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp" />
+                <TextView
+                    style="@style/SectionSubLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="0dp"
+                    android:layout_weight="1"
+                    android:text="系统权限" />
 
-        <TextView
-            android:id="@+id/tvCalendarHint"
-            style="@style/FormLabel"
-            android:layout_marginTop="6dp" />
+                <ImageButton
+                    android:id="@+id/btnHelpA11y"
+                    style="@style/SettingsHelpButton"
+                    android:contentDescription="看说明"
+                    android:src="@drawable/ic_nav_help" />
+            </LinearLayout>
 
-        <Button
-            android:id="@+id/btnCreateCalendar"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/btn_create_calendar" />
+            <Button
+                android:id="@+id/btnNotifAccess"
+                style="@style/BtnTonal"
+                android:layout_marginTop="4dp"
+                android:text="@string/perm_notification" />
 
-        <!-- ===== 提醒 ===== -->
-        <TextView
-            style="@style/FormLabel"
-            android:text="@string/label_remind" />
+            <Button
+                android:id="@+id/btnOpenA11y"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="@string/btn_open_a11y" />
 
-        <EditText
-            android:id="@+id/etRemind"
-            style="@style/FormInput"
-            android:hint="1440,60"
-            android:inputType="text" />
+            <Button
+                android:id="@+id/btnNtfy"
+                style="@style/BtnTonal"
+                android:layout_marginTop="14dp"
+                android:text="高级 · 第三方推送" />
 
-        <!-- ===== 对账 ===== -->
-        <TextView
-            style="@style/SectionSubLabel"
-            android:text="@string/title_reconcile" />
+            <TextView
+                android:id="@+id/tvNtfySummary"
+                style="@style/HintText"
+                android:visibility="gone"
+                android:text="已启用" />
+        </LinearLayout>
 
-        <CheckBox
-            android:id="@+id/cbReconcile"
+        <!-- ================= 日历与同步 ================= -->
+        <LinearLayout
+            android:id="@+id/headCalendar"
+            style="@style/SettingsGroupHead">
+
+            <TextView
+                style="@style/SectionLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="0dp"
+                android:layout_weight="1"
+                android:text="日历与同步" />
+
+            <ImageView
+                android:id="@+id/arrowCalendar"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="展开或收起"
+                android:src="@drawable/ic_chevron_right"
+                android:tint="?attr/bnTextSecondary" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/groupCalendar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/label_reconcile_enabled" />
+            android:orientation="vertical"
+            android:visibility="gone">
 
-        <TextView
-            style="@style/FormLabel"
-            android:text="@string/label_reconcile_interval" />
+            <TextView
+                style="@style/SectionSubLabel"
+                android:layout_marginTop="4dp"
+                android:text="目标日历" />
 
-        <Spinner
-            android:id="@+id/spReconcileInterval"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:background="@drawable/bg_input"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp" />
+            <Spinner
+                android:id="@+id/spCalendar"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_input"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp" />
 
-        <CheckBox
-            android:id="@+id/cbReconcileNotify"
+            <TextView
+                android:id="@+id/tvCalendarHint"
+                style="@style/HintText" />
+
+            <Button
+                android:id="@+id/btnCreateCalendar"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="@string/btn_create_calendar" />
+
+            <TextView
+                style="@style/SectionSubLabel"
+                android:text="@string/label_remind" />
+
+            <EditText
+                android:id="@+id/etRemind"
+                style="@style/FormInput"
+                android:inputType="text" />
+
+            <LinearLayout
+                style="@style/SettingsSubHead">
+
+                <TextView
+                    style="@style/SectionSubLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="0dp"
+                    android:layout_weight="1"
+                    android:text="@string/title_reconcile" />
+
+                <ImageButton
+                    android:id="@+id/btnHelpReconcile"
+                    style="@style/SettingsHelpButton"
+                    android:contentDescription="看说明"
+                    android:src="@drawable/ic_nav_help" />
+            </LinearLayout>
+
+            <CheckBox
+                android:id="@+id/cbReconcile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/label_reconcile_enabled" />
+
+            <TextView
+                style="@style/FormLabel"
+                android:text="@string/label_reconcile_interval" />
+
+            <Spinner
+                android:id="@+id/spReconcileInterval"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_input"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp" />
+
+            <CheckBox
+                android:id="@+id/cbReconcileNotify"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/label_reconcile_notify" />
+
+            <Button
+                android:id="@+id/btnReconcileNow"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="@string/btn_reconcile_now" />
+
+            <Button
+                android:id="@+id/btnCalendarPerm"
+                style="@style/BtnTonal"
+                android:layout_marginTop="14dp"
+                android:text="@string/perm_calendar" />
+
+            <LinearLayout
+                style="@style/SettingsSubHead">
+
+                <TextView
+                    style="@style/SectionSubLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="0dp"
+                    android:layout_weight="1"
+                    android:text="后台不被杀" />
+
+                <ImageButton
+                    android:id="@+id/btnHelpBackground"
+                    style="@style/SettingsHelpButton"
+                    android:contentDescription="看说明"
+                    android:src="@drawable/ic_nav_help" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnBattery"
+                style="@style/BtnTonal"
+                android:layout_marginTop="4dp"
+                android:text="@string/perm_battery" />
+
+            <Button
+                android:id="@+id/btnAutostart"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="@string/perm_autostart" />
+
+            <TextView
+                style="@style/SectionSubLabel"
+                android:text="备份" />
+
+            <Button
+                android:id="@+id/btnExportIcs"
+                style="@style/BtnTonal"
+                android:layout_marginTop="4dp"
+                android:text="@string/btn_export_ics" />
+
+            <Button
+                android:id="@+id/btnBackupLedger"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="@string/btn_backup_ledger" />
+        </LinearLayout>
+
+        <!-- ================= 外观 ================= -->
+        <LinearLayout
+            android:id="@+id/headAppearance"
+            style="@style/SettingsGroupHead">
+
+            <TextView
+                style="@style/SectionLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="0dp"
+                android:layout_weight="1"
+                android:text="外观" />
+
+            <ImageButton
+                android:id="@+id/btnHelpTheme"
+                style="@style/SettingsHelpButton"
+                android:contentDescription="看说明"
+                android:src="@drawable/ic_nav_help" />
+
+            <ImageView
+                android:id="@+id/arrowAppearance"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="6dp"
+                android:contentDescription="展开或收起"
+                android:src="@drawable/ic_chevron_right"
+                android:tint="?attr/bnTextSecondary" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/groupAppearance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/label_reconcile_notify" />
+            android:orientation="vertical"
+            android:visibility="gone">
 
-        <Button
-            android:id="@+id/btnReconcileNow"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/btn_reconcile_now" />
+            <TextView
+                style="@style/FormLabel"
+                android:layout_marginTop="4dp"
+                android:text="配色主题" />
 
-                <Button
-            android:id="@+id/btnCalendarPerm"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/perm_calendar" />
+            <Spinner
+                android:id="@+id/spTheme"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_input"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp" />
 
-        <TextView
-            style="@style/SectionSubLabel"
-            android:text="后台不被杀" />
+            <TextView
+                style="@style/FormLabel"
+                android:text="明暗" />
 
-        <Button
-            android:id="@+id/btnBattery"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/perm_battery" />
+            <Spinner
+                android:id="@+id/spThemeMode"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_input"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp" />
+        </LinearLayout>
 
-        <Button
-            android:id="@+id/btnAutostart"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/perm_autostart" />
+        <!-- ================= 诊断与帮助 ================= -->
+        <LinearLayout
+            android:id="@+id/headDiagnostics"
+            style="@style/SettingsGroupHead">
 
-<!-- ===== 备份 ===== -->
-        <TextView
-            style="@style/SectionSubLabel"
-            android:text="备份" />
+            <TextView
+                style="@style/SectionLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="0dp"
+                android:layout_weight="1"
+                android:text="诊断与帮助" />
 
-        <Button
-            android:id="@+id/btnExportIcs"
-            style="@style/BtnTonal"
-            android:text="@string/btn_export_ics" />
+            <ImageView
+                android:id="@+id/arrowDiagnostics"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="展开或收起"
+                android:src="@drawable/ic_chevron_right"
+                android:tint="?attr/bnTextSecondary" />
+        </LinearLayout>
 
-        <Button
-            android:id="@+id/btnBackupLedger"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/btn_backup_ledger" />
-
-                <!-- ===== 外观 ===== -->
-        <TextView
-            style="@style/FormLabel"
-            android:text="外观" />
-
-<!-- 外观 -->
-        <TextView
-            style="@style/FormLabel"
-            android:layout_marginTop="8dp"
-            android:text="外观" />
-
-        <TextView
-            style="@style/FormLabel"
-            android:layout_marginTop="0dp"
-            android:text="配色主题" />
-
-        <Spinner
-            android:id="@+id/spTheme"
+        <LinearLayout
+            android:id="@+id/groupDiagnostics"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_input"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp" />
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
 
-        <TextView
-            style="@style/FormLabel"
-            android:layout_marginTop="6dp"
-            android:text="@string/hint_theme" />
+            <Button
+                android:id="@+id/btnAbout"
+                style="@style/BtnTonal"
+                android:layout_marginTop="6dp"
+                android:text="@string/about_entry" />
 
-        <TextView
-            style="@style/FormLabel"
-            android:layout_marginTop="14dp"
-            android:text="明暗" />
+            <Button
+                android:id="@+id/btnCrashLog"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="@string/btn_crash_log" />
 
-        <Spinner
-            android:id="@+id/spThemeMode"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_input"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp" />
+            <Button
+                android:id="@+id/btnAppDetail"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="@string/perm_app_detail" />
+        </LinearLayout>
 
-        <TextView
-            style="@style/FormLabel"
-            android:layout_marginTop="6dp"
-            android:text="@string/hint_theme_mode" />
-
-                <!-- ===== 诊断与帮助 ===== -->
-        <TextView
-            style="@style/FormLabel"
-            android:text="诊断与帮助" />
-
-<!-- ===== 关于 ===== -->
-        <TextView
-            style="@style/SectionSubLabel"
-            android:text="关于" />
-
-        <Button
-            android:id="@+id/btnAbout"
-            style="@style/BtnTonal"
-            android:text="@string/about_entry" />
-
-                <Button
-            android:id="@+id/btnCrashLog"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/btn_crash_log" />
-
-        <Button
-            android:id="@+id/btnAppDetail"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/perm_app_detail" />
-
-<!-- ===== 保存 ===== -->
         <Button
             android:id="@+id/btnSaveSettings"
             style="@style/BtnPrimary"
             android:layout_marginTop="26dp"
             android:text="@string/btn_save_settings" />
-
-        
     </LinearLayout>
 </ScrollView>
