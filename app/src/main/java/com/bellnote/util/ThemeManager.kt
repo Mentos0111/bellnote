@@ -1,7 +1,9 @@
 package com.bellnote.util
 
 import android.app.Activity
+import android.content.ComponentName
 import android.content.Context
+import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatDelegate
 import com.bellnote.R
 import com.bellnote.data.Prefs
@@ -48,6 +50,34 @@ object ThemeManager {
         val target = nightModeOf(Prefs.themeMode(context))
         if (AppCompatDelegate.getDefaultNightMode() != target) {
             AppCompatDelegate.setDefaultNightMode(target)
+        }
+    }
+
+    private val iconAliases = mapOf(
+        "teal" to ".ui.IconTeal",
+        "indigo" to ".ui.IconIndigo",
+        "sand" to ".ui.IconSand",
+        "ink" to ".ui.IconInk"
+    )
+
+    /**
+     * 桌面图标跟着配色走：四套图标各挂在一个 activity-alias 上，只开当前这套。
+     * 注意：部分桌面（realme / ColorOS）会缓存图标，切完可能要等桌面刷新一次才看到。
+     */
+    fun applyLauncherIcon(context: Context) {
+        val current = Prefs.theme(context)
+        val pm = context.packageManager
+        for ((id, alias) in iconAliases) {
+            val state = if (id == current) {
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+            } else {
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+            }
+            val name = ComponentName(context.packageName, context.packageName + alias)
+            val now = pm.getComponentEnabledSetting(name)
+            if (now != state) {
+                pm.setComponentEnabledSetting(name, state, PackageManager.DONT_KILL_APP)
+            }
         }
     }
 

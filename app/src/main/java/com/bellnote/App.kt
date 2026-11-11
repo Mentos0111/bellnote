@@ -16,6 +16,7 @@ class App : Application() {
         super.onCreate()
         // 深浅色：跟随系统 / 浅色 / 深色，设置里可改
         ThemeManager.applyNightMode(this)
+        ThemeManager.applyLauncherIcon(this)
         // 崩了要留痕：realme 后台被杀是不留日志的，至少能分清「崩」和「被杀」
         CrashLog.install(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
