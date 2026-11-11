@@ -11,6 +11,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.bellnote.R
 import com.bellnote.data.HealthCheck
+import com.bellnote.data.StatusLines
 import com.bellnote.service.HealthInspector
 import com.bellnote.util.DeviceVendor
 import com.bellnote.util.Permissions
@@ -47,6 +48,9 @@ class HealthActivity : AppCompatActivity() {
         val summaryTitle = findViewById<TextView>(R.id.summaryTitle)
         val summaryDetail = findViewById<TextView>(R.id.summaryDetail)
         val checkedAt = findViewById<TextView>(R.id.tvCheckedAt)
+
+        findViewById<TextView>(R.id.tvRecent).text =
+            StatusLines.recent(this).joinToString("\n")
 
         if (items.isEmpty()) {
             summaryTitle.text = if (loading) "正在检测…" else "还没检测过"
