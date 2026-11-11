@@ -68,140 +68,163 @@
                 android:textSize="14sp" />
         </LinearLayout>
 
-        <!-- 2 权限 -->
-        <LinearLayout
+        <!-- 2 权限：先出现图标与「如何实现」，再动画换成开关清单 -->
+        <FrameLayout
             android:id="@+id/step2"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
             android:paddingLeft="28dp"
             android:paddingRight="28dp"
             android:paddingTop="56dp"
             android:paddingBottom="104dp">
 
-            <FrameLayout
-                android:layout_width="112dp"
-                android:layout_height="112dp"
-                android:layout_marginBottom="14dp">
-
-                <View
-                    android:layout_width="112dp"
-                    android:layout_height="112dp"
-                    android:background="@drawable/bg_hero_ring" />
-
-                <ImageView
-                    android:id="@+id/hero2"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_gravity="center"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_scene_shield" />
-            </FrameLayout>
-
-            <TextView
+            <LinearLayout
+                android:id="@+id/intro2"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="把这几个开关打开"
-                android:textColor="?attr/bnTextPrimary"
-                android:textSize="28sp"
-                android:textStyle="bold" />
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="不开会漏推送，或被系统掐掉。"
-                android:textColor="?attr/bnTextSecondary"
-                android:textSize="14sp" />
+                <FrameLayout
+                    android:layout_width="150dp"
+                    android:layout_height="150dp">
+
+                    <View
+                        android:layout_width="150dp"
+                        android:layout_height="150dp"
+                        android:background="@drawable/bg_hero_ring" />
+
+                    <ImageView
+                        android:id="@+id/hero2"
+                        android:layout_width="72dp"
+                        android:layout_height="72dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_scene_shield" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="22dp"
+                    android:text="如何实现"
+                    android:textColor="?attr/bnTextPrimary"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/body2"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:background="@drawable/bg_card"
+                android:layout_height="match_parent"
                 android:orientation="vertical"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp">
+                android:visibility="invisible">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="先把这几个开关打开"
+                    android:textColor="?attr/bnTextPrimary"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="不开会漏推送，或被系统掐掉。点一行跳过去。"
+                    android:textColor="?attr/bnTextSecondary"
+                    android:textSize="14sp" />
 
                 <LinearLayout
-                    android:id="@+id/permNotification"
-                    style="@style/AboutRow"
-                    android:background="?android:attr/selectableItemBackground"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <TextView
-                        style="@style/AboutKey"
-                        android:text="通知使用权" />
-                    <TextView
-                        android:id="@+id/permNotificationState"
-                        style="@style/AboutValue" />
-                </LinearLayout>
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:background="@drawable/bg_card"
+                    android:orientation="vertical"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="16dp">
 
-                <View style="@style/AboutDivider" />
+                    <LinearLayout
+                        android:id="@+id/permNotification"
+                        style="@style/AboutRow"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView
+                            style="@style/AboutKey"
+                            android:text="通知使用权" />
+                        <TextView
+                            android:id="@+id/permNotificationState"
+                            style="@style/AboutValue" />
+                    </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/permCalendar"
-                    style="@style/AboutRow"
-                    android:background="?android:attr/selectableItemBackground"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <TextView
-                        style="@style/AboutKey"
-                        android:text="日历读写" />
-                    <TextView
-                        android:id="@+id/permCalendarState"
-                        style="@style/AboutValue" />
-                </LinearLayout>
+                    <View style="@style/AboutDivider" />
 
-                <View style="@style/AboutDivider" />
+                    <LinearLayout
+                        android:id="@+id/permCalendar"
+                        style="@style/AboutRow"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView
+                            style="@style/AboutKey"
+                            android:text="日历读写" />
+                        <TextView
+                            android:id="@+id/permCalendarState"
+                            style="@style/AboutValue" />
+                    </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/permBattery"
-                    style="@style/AboutRow"
-                    android:background="?android:attr/selectableItemBackground"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <TextView
-                        style="@style/AboutKey"
-                        android:text="电池白名单" />
-                    <TextView
-                        android:id="@+id/permBatteryState"
-                        style="@style/AboutValue" />
-                </LinearLayout>
+                    <View style="@style/AboutDivider" />
 
-                <View style="@style/AboutDivider" />
+                    <LinearLayout
+                        android:id="@+id/permBattery"
+                        style="@style/AboutRow"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView
+                            style="@style/AboutKey"
+                            android:text="电池白名单" />
+                        <TextView
+                            android:id="@+id/permBatteryState"
+                            style="@style/AboutValue" />
+                    </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/permAutostart"
-                    style="@style/AboutRow"
-                    android:background="?android:attr/selectableItemBackground"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <TextView
-                        style="@style/AboutKey"
-                        android:text="自启动" />
-                    <TextView
-                        android:id="@+id/permAutostartState"
-                        style="@style/AboutValue" />
-                </LinearLayout>
+                    <View style="@style/AboutDivider" />
 
-                <View style="@style/AboutDivider" />
+                    <LinearLayout
+                        android:id="@+id/permAutostart"
+                        style="@style/AboutRow"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView
+                            style="@style/AboutKey"
+                            android:text="自启动" />
+                        <TextView
+                            android:id="@+id/permAutostartState"
+                            style="@style/AboutValue" />
+                    </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/permMedia"
-                    style="@style/AboutRow"
-                    android:background="?android:attr/selectableItemBackground"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <TextView
-                        style="@style/AboutKey"
-                        android:text="读取相册（可选）" />
-                    <TextView
-                        android:id="@+id/permMediaState"
-                        style="@style/AboutValue" />
+                    <View style="@style/AboutDivider" />
+
+                    <LinearLayout
+                        android:id="@+id/permMedia"
+                        style="@style/AboutRow"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView
+                            style="@style/AboutKey"
+                            android:text="读取相册（可选）" />
+                        <TextView
+                            android:id="@+id/permMediaState"
+                            style="@style/AboutValue" />
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
-        </LinearLayout>
+        </FrameLayout>
 
         <!-- 3 配置 -->
         <LinearLayout
@@ -384,7 +407,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="可以开始用了"
+                android:text="谢谢用 Bellnote"
                 android:textColor="?attr/bnTextPrimary"
                 android:textSize="28sp"
                 android:textStyle="bold" />
@@ -394,7 +417,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:lineSpacingExtra="5dp"
-                android:text="首页顶部敲一句就能记；哪天觉得不对劲，点标题下两颗灯做个体检。"
+                android:text="这工具是我一个人一点点改出来的，用着有别扭的地方，随时跟我说，改就是了。\n\n现在去首页，顶部敲一句就能记第一条。"
                 android:textColor="?attr/bnTextSecondary"
                 android:textSize="14sp" />
         </LinearLayout>

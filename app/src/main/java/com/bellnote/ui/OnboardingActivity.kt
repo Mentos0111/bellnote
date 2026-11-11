@@ -39,6 +39,10 @@ class OnboardingActivity : AppCompatActivity() {
     private lateinit var steps: List<View>
     private lateinit var dots: List<View>
     private lateinit var btnNext: Button
+    private lateinit var intro2: android.view.View
+    private lateinit var body2: android.view.View
+    private val ui = android.os.Handler(android.os.Looper.getMainLooper())
+    private var pendingStage: Runnable? = null
 
     private val repository by lazy { CalendarRepository(this) }
     private var calendars: List<CalendarRepository.CalendarInfo> = emptyList()
@@ -79,6 +83,8 @@ class OnboardingActivity : AppCompatActivity() {
             findViewById(R.id.dot5)
         )
         btnNext = findViewById(R.id.btnNext)
+        intro2 = findViewById(R.id.intro2)
+        body2 = findViewById(R.id.body2)
 
         spCalendar = findViewById(R.id.spOnbCalendar)
         tvCalendarHint = findViewById(R.id.tvOnbCalendarHint)
@@ -230,9 +236,64 @@ class OnboardingActivity : AppCompatActivity() {
 
     private fun afterPageChanged(target: Int) {
         step = target
+        if (target == 1) playStage2() else resetStage2()
+        if (target != 1) staggerContent(target)
         renderDots()
         btnNext.text = if (step == steps.lastIndex) "开始使用" else "下一步"
         if (step == 3) loadCalendars()
+    }
+
+    /** 第二页：图标 + 「如何实现」→ 淡出 → 开关清单浮上来。 */
+    private fun playStage2() {
+        val d = resources.displayMetrics.density
+        pendingStage?.let { ui.removeCallbacks(it) }
+        intro2.visibility = View.VISIBLE
+        intro2.alpha = 0f
+        intro2.translationY = 18f * d
+        body2.visibility = View.INVISIBLE
+        intro2.animate().alpha(1f).translationY(0f).setDuration(260L)
+            .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
+
+        val runnable = Runnable {
+            intro2.animate().alpha(0f).translationY(-28f * d).setDuration(220L)
+                .withEndAction { intro2.visibility = View.GONE }.start()
+            body2.visibility = View.VISIBLE
+            body2.alpha = 0f
+            body2.translationY = 26f * d
+            body2.animate().alpha(1f).translationY(0f).setDuration(300L)
+                .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
+        }
+        pendingStage = runnable
+        ui.postDelayed(runnable, 820L)
+    }
+
+    private fun resetStage2() {
+        pendingStage?.let { ui.removeCallbacks(it) }
+        pendingStage = null
+        intro2.visibility = View.VISIBLE
+        intro2.alpha = 1f
+        intro2.translationY = 0f
+        body2.visibility = View.INVISIBLE
+        body2.alpha = 1f
+        body2.translationY = 0f
+    }
+
+    /** 其它页：标题、说明、内容依次浮上来。 */
+    private fun staggerContent(index: Int) {
+        val page = steps.getOrNull(index) ?: return
+        val d = resources.displayMetrics.density
+        val children = (page as? android.view.ViewGroup)?.let { group ->
+            (0 until group.childCount).map { group.getChildAt(it) }
+        } ?: return
+        children.forEachIndexed { i, child ->
+            child.alpha = 0f
+            child.translationY = 14f * d
+            child.animate().alpha(1f).translationY(0f)
+                .setStartDelay(60L + i * 70L)
+                .setDuration(260L)
+                .setInterpolator(android.view.animation.DecelerateInterpolator())
+                .start()
+        }
     }
 
     private fun heroOf(index: Int): View = when (index) {
