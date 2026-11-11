@@ -1,9 +1,7 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Bellnote</string>
 
-    <string name="main_status_ok">一切就绪</string>
-    <string name="main_status_need">还差一点配置</string>
     <string name="main_empty">暂无待办\n收到 ntfy 通知或手动添加后会出现在这里</string>
     <string name="btn_add_manual">手动添加</string>
     <string name="btn_import_shot">截图识别</string>

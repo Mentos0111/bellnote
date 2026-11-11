@@ -42,8 +42,6 @@ class MainActivity : AppCompatActivity() {
     private val repository by lazy { CalendarRepository(this) }
     private lateinit var adapter: TodoAdapter
     private lateinit var emptyView: TextView
-    private lateinit var statusTitle: TextView
-    private lateinit var statusDetail: TextView
     private lateinit var drawer: DrawerLayout
     private lateinit var etQuick: EditText
     private var pendingCameraUri: Uri? = null
@@ -72,8 +70,6 @@ class MainActivity : AppCompatActivity() {
         DeviceVendor.log(this)
 
         emptyView = findViewById(R.id.emptyView)
-        statusTitle = findViewById(R.id.statusTitle)
-        statusDetail = findViewById(R.id.statusDetail)
         drawer = findViewById(R.id.drawer)
         etQuick = findViewById(R.id.etQuick)
 
@@ -99,7 +95,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.healthChip).setOnClickListener {
             startActivity(Intent(this, HealthActivity::class.java))
         }
-        findViewById<View>(R.id.statusCard).setOnClickListener {
+        findViewById<View>(R.id.statusChip).setOnClickListener {
             startActivity(Intent(this, HealthActivity::class.java))
         }
         findViewById<TextView>(R.id.tvDate).text = TimeFormat.todayLine(System.currentTimeMillis())
@@ -269,8 +265,7 @@ class MainActivity : AppCompatActivity() {
         val chip = findViewById<TextView>(R.id.healthChip)
         val worst = HealthCheck.indicator(items)
         if (worst == null) {
-            chip.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.dot_warn, 0, 0, 0)
-            chip.text = "检测中"
+            styleChip(chip, R.drawable.dot_warn, "检测中")
             return
         }
         val dot = when (worst.status) {
@@ -279,8 +274,17 @@ class MainActivity : AppCompatActivity() {
             HealthCheck.Status.UNKNOWN -> R.drawable.dot_warn
             HealthCheck.Status.OK -> R.drawable.dot_ok
         }
-        chip.setCompoundDrawablesRelativeWithIntrinsicBounds(dot, 0, 0, 0)
-        chip.text = if (worst.status == HealthCheck.Status.OK) "正常" else worst.label
+        styleChip(
+            chip,
+            dot,
+            if (worst.status == HealthCheck.Status.OK) "正常" else "${HealthCheck.pending(items).size} 项待看"
+        )
+    }
+
+    /** 两颗灯同一个样子：圆点 + 文字 + 右侧箭头，点开都是「运行体检」。 */
+    private fun styleChip(chip: TextView, dot: Int, label: String) {
+        chip.text = label
+        chip.setCompoundDrawablesRelativeWithIntrinsicBounds(dot, 0, R.drawable.ic_chevron_right, 0)
     }
 
     private fun refreshHealthIfStale() {
@@ -395,38 +399,9 @@ class MainActivity : AppCompatActivity() {
         if (Prefs.calendarId(this) <= 0) problems.add("· 还没选目标日历")
 
         if (problems.isEmpty()) {
-            findViewById<View>(R.id.statusDot).setBackgroundResource(R.drawable.dot_ok)
-            statusTitle.text = getString(R.string.main_status_ok)
-            val lastAt = Prefs.lastReconcileAt(this)
-            val summary = Prefs.lastReconcileSummary(this)
-            val reconcileLine = if (lastAt > 0) {
-                "对账：$summary（${TimeFormat.full(lastAt)}）"
-            } else {
-                "还没跑过对账，点下方「对账」看清单和日历差在哪"
-            }
-            val catchUpLine = if (Prefs.ntfyTopic(this).isBlank()) {
-                "补查：没开（设置里填 ntfy 主题后，ntfy 没弹通知也能补回来）"
-            } else {
-                val catchAt = Prefs.lastCatchUpAt(this)
-                val catchSummary = Prefs.lastCatchUpSummary(this)
-                when {
-                    catchAt <= 0 -> "补查：开了，还没跑过"
-                    // summary 本身已经带「补查：」前缀，别再叠一层
-                    catchSummary.startsWith("补查") -> catchSummary
-                    else -> "补查：$catchSummary"
-                }
-            }
-            val ignored = Prefs.ignoredNotices(this).size
-            val ignoredLine = if (ignored > 0) {
-                "有 $ignored 条推送没写进日历（设置页可看原因）"
-            } else {
-                "最近没有写失败的推送"
-            }
-            statusDetail.text = "$reconcileLine\n$catchUpLine\n$ignoredLine"
+            styleChip(findViewById(R.id.statusChip), R.drawable.dot_ok, "一切就绪")
         } else {
-            findViewById<View>(R.id.statusDot).setBackgroundResource(R.drawable.dot_warn)
-            statusTitle.text = getString(R.string.main_status_need)
-            statusDetail.text = problems.joinToString("\n") + "\n点这里逐项去开"
+            styleChip(findViewById(R.id.statusChip), R.drawable.dot_warn, "还差 ${problems.size} 项")
         }
     }
 
