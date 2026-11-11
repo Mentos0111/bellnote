@@ -9,6 +9,7 @@
 
 ### 变更
 
+- 删掉与「运行体检」重复的旧「权限与后台设置」页（写死 realme UI 6.0、还把 App 叫 ntfy 的静态说明），首页状态卡和帮助里的入口都改到「运行体检」
 - 版本号的真相源改为 git tag：CI 用 `-PbellnoteVersionName=<tag>` 注入，包里的号不再靠人手抄
 - `versionCode` 改为按 `major*10000 + minor*100 + patch` 推导（3.12 → 31200），不再人肉 +1
 - release 构建开启 R8（`isMinifyEnabled` + `shrinkResources`），包体更小
