@@ -161,4 +161,28 @@ class VisionExtractorTest {
         assertTrue("应说明每件不同的事各一条", prompt.contains("每件不同的事"))
         assertTrue("不应再要求只整理最该做的那一条", !prompt.contains("最该做的那件事"))
     }
+
+    @Test
+    fun `标题里的日期前缀会被清掉`() {
+        assertTrue(VisionExtractor.cleanTitle("11-12 20:30 物理课") == "物理课")
+        assertTrue(VisionExtractor.cleanTitle("标题：交作业") == "交作业")
+        assertTrue(VisionExtractor.cleanTitle("明天 交作业。") == "交作业")
+    }
+
+    @Test
+    fun `算成去年的日期会补一年`() {
+        val now = 1_800_000_000_000L
+        val spec = com.bellnote.data.TodoSpec("化学课", now - 300L * 24 * 3600 * 1000, 90)
+        val fixed = VisionExtractor.repair(spec, now)
+        assertTrue("应修正到将来，实际：" + fixed.startMillis, fixed.startMillis > now)
+    }
+
+    @Test
+    fun `过去的时间会被推到明天`() {
+        val now = 1_800_000_000_000L
+        val spec = com.bellnote.data.TodoSpec("交作业", now - 5L * 24 * 3600 * 1000, 60)
+        val fixed = VisionExtractor.repair(spec, now)
+        assertTrue("应推到将来", fixed.startMillis > now)
+        assertTrue("应标注不确定", fixed.note?.contains("明天") == true)
+    }
 }

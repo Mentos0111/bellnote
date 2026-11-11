@@ -56,12 +56,16 @@ object VisionExtractor {
                 「收同学A的课堂笔记照片，看两色标记和错题有没有做」→「检查同学A笔记」
                 「明天下午两点半到四点上化学课，讲勒夏特列原理」→「化学课：勒夏特列」
                 「记得周五之前把物理卷子的错题本补完，要拍照发我」→「补物理错题本」
+              · 标题里不要带日期、时间、星期、括号说明；这些信息放 note。
             · time："yyyy-MM-dd HH:mm"，这条待办该做的时间，**必须晚于上面的「现在」**。
               · 有明确截止时间（「截止 11-29 22:00」「周五之前交」）→ time 直接用这个截止时间，
                 给了具体时刻就用那个时刻，不要自己往前挪。
               · 给的是周期 / 区间（「11-16 至 11-29」）→ 用开始那天的 09:00，结束日期写进 note。
               · 只写到「11 月中旬 / 月底」这种粗粒度 → 用该旬第一天 09:00。
               · 完全看不出日期 → 用 24 小时之后。
+              · 截图里已经写明了日期数字（如 11-12、11月12日），**照抄那一年的月日**，只需补全年份；
+                不要把它换算成星期再倒推（换算最容易差一天甚至差一年）。
+              · 绝对不要输出早于「现在」的时间；算出来是过去，就说明你算错了，重算。
             · duration：整数分钟，尽量从截图推断：
               「2 小时 / 两小时」→120，「半小时」→30，「90 分钟」→90，「一节课」→45；
               如果给的是时间段（如 14:30-16:00），算两端差值；
@@ -176,15 +180,54 @@ object VisionExtractor {
             .mapKeys { it.key.trim().lowercase(java.util.Locale.CHINA) }
         if (fields.isEmpty()) return null
         if (!fields.keys.any { it in TITLE_KEYS || it in TIME_KEYS }) return null
-        return tidy(TodoParser.fromFields(fields, now).spec)
+        return repair(tidy(TodoParser.fromFields(fields, now).spec), now)
     }
+
+    /**
+     * 模型最常犯的两类错，这里兜住：
+     * ① 年份算错（把今年写成去年，或凭空编一个年份）→ 如果差一年后变成将来时间，就补一年；
+     * ② 给了过去的时间 → 顺延到 24 小时后，并在备注里标一句，让你一眼看出「这条不太确定」。
+     */
+    internal fun repair(spec: TodoSpec, now: Long): TodoSpec {
+        var start = spec.startMillis
+        var note = spec.note
+        val hour = 60 * 60 * 1000L
+        val day = 24 * hour
+        val year = 365L * day
+
+        // 刚过去不久（一小时内到两个月内）→ 多半是日期读错了，放到明天更合理
+        val past = now - start
+        if (past in hour..(60 * day)) {
+            start = now + day
+            note = appendNote(note, "（读出来的时间已经过了，先放到明天，点进去改）")
+        } else if (start < now - hour) {
+            // 差得更远：先试「补一年」，补完是将来就说明模型少算了一年
+            val plusYear = start + year
+            if (plusYear > now) {
+                start = plusYear
+                note = appendNote(note, "（年份按今年修正）")
+            } else {
+                start = now + day
+                note = appendNote(note, "（时间算不准，先放到明天，点进去改）")
+            }
+        }
+        // 远期离谱（比如写成了三年后）→ 拉回一个月内，避免日历里出现怪事件
+        if (start > now + 2 * year) {
+            start = now + day
+            note = appendNote(note, "（时间明显不合理，已先放到明天）")
+        }
+        return spec.copy(startMillis = start, note = note)
+    }
+
+    private fun appendNote(note: String?, extra: String): String =
+        if (note.isNullOrBlank()) extra else "$note\n$extra"
 
     /**
      * 模型偶尔还是会给很长的标题或离谱的时长，这里做一层兜底：
      * 标题超长就截断、多出来的挪进备注；时长不在合理区间就按 60 分钟。
      */
     fun tidy(spec: TodoSpec): TodoSpec {
-        val rawTitle = spec.title.trim().replace(Regex("\\s+"), " ")
+        val rawTitle = cleanTitle(spec.title)
         var title = rawTitle
         var note = normalizeNote(spec.note)
 
@@ -201,6 +244,19 @@ object VisionExtractor {
             durationMinutes = duration,
             note = note
         )
+    }
+
+    /** 标题里混进日期/时间/「标题：」这类前缀时清掉——日历列表里只看得到前十个字。 */
+    internal fun cleanTitle(raw: String): String {
+        var t = raw.trim().replace(Regex("\\s+"), " ")
+        t = t.replace(Regex("^(标题|待办|事项|事件)\\s*[:：]\\s*"), "")
+        // 开头的日期 / 时间片段，例如「11-12 20:30 」「11月12日 」
+        t = t.replace(
+            Regex("^(\\d{1,2}[-/月]\\d{1,2}日?|[今明后]天|周[一二三四五六日])(\\s*\\d{1,2}[:：]\\d{2})?\\s*"),
+            ""
+        )
+        t = t.trim().trimEnd('。', '，', ',', '.', '；', ';', '：', ':')
+        return t.ifBlank { raw.trim() }
     }
 
     /** 模型有时把换行写成字面 `\n`（反斜杠 + n），统一还原成真正的换行。 */
