@@ -64,21 +64,21 @@
             <TextView
                 style="@style/FormLabel"
                 android:layout_marginTop="4dp"
-                android:text="@string/label_model" />
-
-            <EditText
-                android:id="@+id/etModel"
-                style="@style/FormInput"
-                android:inputType="text" />
-
-            <TextView
-                style="@style/FormLabel"
                 android:text="@string/label_api_key" />
 
             <EditText
                 android:id="@+id/etApiKey"
                 style="@style/FormInput"
                 android:inputType="textPassword" />
+
+            <TextView
+                style="@style/FormLabel"
+                android:text="@string/label_model" />
+
+            <EditText
+                android:id="@+id/etModel"
+                style="@style/FormInput"
+                android:inputType="text" />
 
             <CheckBox
                 android:id="@+id/cbShotWatch"
@@ -137,36 +137,6 @@
                 style="@style/BtnTonal"
                 android:layout_marginTop="4dp"
                 android:text="@string/btn_tile_guide" />
-
-            <LinearLayout
-                style="@style/SettingsSubHead">
-
-                <TextView
-                    style="@style/SectionSubLabel"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="0dp"
-                    android:layout_weight="1"
-                    android:text="系统权限" />
-
-                <ImageButton
-                    android:id="@+id/btnHelpA11y"
-                    style="@style/SettingsHelpButton"
-                    android:contentDescription="看说明"
-                    android:src="@drawable/ic_nav_help" />
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/btnNotifAccess"
-                style="@style/BtnTonal"
-                android:layout_marginTop="4dp"
-                android:text="@string/perm_notification" />
-
-            <Button
-                android:id="@+id/btnOpenA11y"
-                style="@style/BtnTonal"
-                android:layout_marginTop="10dp"
-                android:text="@string/btn_open_a11y" />
 
             <Button
                 android:id="@+id/btnNtfy"
@@ -235,6 +205,12 @@
                 android:layout_marginTop="10dp"
                 android:text="@string/btn_create_calendar" />
 
+            <Button
+                android:id="@+id/btnCalendarPerm"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="@string/perm_calendar" />
+
             <TextView
                 style="@style/SectionSubLabel"
                 android:text="@string/label_remind" />
@@ -294,20 +270,49 @@
                 android:layout_marginTop="10dp"
                 android:text="@string/btn_reconcile_now" />
 
-            <Button
-                android:id="@+id/btnCalendarPerm"
-                style="@style/BtnTonal"
-                android:layout_marginTop="14dp"
-                android:text="@string/perm_calendar" />
+        </LinearLayout>
+
+        <!-- ================= 备份 ================= -->
+        <LinearLayout
+            android:id="@+id/headBackup"
+            style="@style/SettingsGroupHead">
 
             <TextView
-                style="@style/SectionSubLabel"
+                style="@style/SectionLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="0dp"
+                android:layout_weight="1"
                 android:text="备份" />
+
+            <ImageButton
+                android:id="@+id/btnHelpBackup"
+                style="@style/SettingsHelpButton"
+                android:contentDescription="看说明"
+                android:src="@drawable/ic_nav_help" />
+
+            <ImageView
+                android:id="@+id/arrowBackup"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="6dp"
+                android:contentDescription="展开或收起"
+                android:src="@drawable/ic_chevron_right"
+                android:tint="?attr/bnTextSecondary" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/groupBackup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <Button
                 android:id="@+id/btnExportIcs"
                 style="@style/BtnTonal"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="6dp"
                 android:text="@string/btn_export_ics" />
 
             <Button
@@ -416,11 +421,35 @@
                 android:layout_marginTop="6dp"
                 android:text="运行体检" />
 
+            <LinearLayout
+                style="@style/SettingsSubHead">
+
+                <TextView
+                    style="@style/SectionSubLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="0dp"
+                    android:layout_weight="1"
+                    android:text="系统权限" />
+
+                <ImageButton
+                    android:id="@+id/btnHelpA11y"
+                    style="@style/SettingsHelpButton"
+                    android:contentDescription="看说明"
+                    android:src="@drawable/ic_nav_help" />
+            </LinearLayout>
+
             <Button
-                android:id="@+id/btnAbout"
+                android:id="@+id/btnNotifAccess"
                 style="@style/BtnTonal"
-                android:layout_marginTop="6dp"
-                android:text="@string/about_entry" />
+                android:layout_marginTop="4dp"
+                android:text="@string/perm_notification" />
+
+            <Button
+                android:id="@+id/btnOpenA11y"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="@string/btn_open_a11y" />
 
             <Button
                 android:id="@+id/btnCrashLog"
@@ -433,6 +462,12 @@
                 style="@style/BtnTonal"
                 android:layout_marginTop="10dp"
                 android:text="@string/perm_app_detail" />
+
+            <Button
+                android:id="@+id/btnAbout"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="@string/about_entry" />
         </LinearLayout>
 
         <Button
