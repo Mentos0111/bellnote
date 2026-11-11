@@ -18,6 +18,7 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bellnote.util.ThemeManager
 import com.bellnote.R
 import com.bellnote.data.CalendarRepository
 import com.bellnote.data.MANUAL_DEFAULT_DURATION_MINUTES
@@ -63,6 +64,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeManager.apply(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         DeviceVendor.log(this)
@@ -260,6 +262,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (ThemeManager.refreshIfNeeded(this)) {
+            recreate()
+            return
+        }
         // 相册权限给过了就顺手挂上截图监听（没权限时内部直接返回）
         ScreenshotWatcher.ensureStarted(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&

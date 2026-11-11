@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
@@ -14,6 +15,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.bellnote.util.ThemeManager
 import com.bellnote.R
 import com.bellnote.data.CalendarRepository
 import com.bellnote.data.Prefs
@@ -80,6 +82,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeManager.apply(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
         enableHomeUp()
@@ -98,6 +101,7 @@ class SettingsActivity : AppCompatActivity() {
         cbShotWatch = findViewById(R.id.cbShotWatch)
         btnMediaPerm = findViewById(R.id.btnMediaPerm)
         etNtfyTopic = findViewById(R.id.etNtfyTopic)
+        setupThemeSpinner()
         tvIgnored = findViewById(R.id.tvIgnored)
 
         etRemind.setText(Prefs.remindMinutes(this).ifEmpty { listOf(1440, 60) }.joinToString(","))
@@ -173,6 +177,35 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         loadCalendars()
+    }
+
+    /** 配色主题：选中即生效，直接 recreate 让整页换成新调色板。 */
+    private fun setupThemeSpinner() {
+        val spinner = findViewById<Spinner>(R.id.spTheme)
+        val palettes = ThemeManager.palettes
+        spinner.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            palettes.map { it.label }
+        ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+        val current = Prefs.theme(this)
+        spinner.setSelection(palettes.indexOfFirst { it.id == current }.coerceAtLeast(0))
+        var initial = true
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                if (initial) {
+                    initial = false
+                    return
+                }
+                val picked = palettes.getOrNull(position) ?: return
+                if (picked.id == Prefs.theme(this@SettingsActivity)) return
+                Prefs.setTheme(this@SettingsActivity, picked.id)
+                toast("已换成「${picked.label}」")
+                recreate()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
     }
 
     /** 间隔做成选项，避免手输数字；当前值不在列表里时补进去，不动用户已有设置。 */

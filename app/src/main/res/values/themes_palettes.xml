@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="ThemeOverlay.Bellnote.Teal" parent="">
+        <item name="bnPrimary">#FF0E7C6B</item>
+        <item name="bnPrimaryDark">#FF0A5A4D</item>
+        <item name="bnOnPrimary">#FFFFFFFF</item>
+        <item name="bnAccent">#FFF59E0B</item>
+        <item name="bnWindowBg">#FFF6F9F8</item>
+        <item name="bnSurface">#FFFFFFFF</item>
+        <item name="bnCard">#FFFFFFFF</item>
+        <item name="bnCardStroke">#FFE6EDEB</item>
+        <item name="bnDivider">#FFEDF2F0</item>
+        <item name="bnTextPrimary">#FF0F1A17</item>
+        <item name="bnTextSecondary">#FF6B7B76</item>
+        <item name="bnChipBg">#FFECF6F3</item>
+        <item name="bnIconBg">#FFF1F5F4</item>
+        <item name="bnDanger">#FFC94848</item>
+        <item name="bnNavBg">#FFFFFFFF</item>
+        <item name="bnRipple">#140E7C6B</item>
+    </style>
+
+    <style name="ThemeOverlay.Bellnote.Indigo" parent="">
+        <item name="bnPrimary">#FF2F55C9</item>
+        <item name="bnPrimaryDark">#FF1E3A8C</item>
+        <item name="bnOnPrimary">#FFFFFFFF</item>
+        <item name="bnAccent">#FFE0A100</item>
+        <item name="bnWindowBg">#FFF6F8FD</item>
+        <item name="bnSurface">#FFFFFFFF</item>
+        <item name="bnCard">#FFFFFFFF</item>
+        <item name="bnCardStroke">#FFE4E9F5</item>
+        <item name="bnDivider">#FFEBEFF8</item>
+        <item name="bnTextPrimary">#FF111A2E</item>
+        <item name="bnTextSecondary">#FF6A7590</item>
+        <item name="bnChipBg">#FFEDF1FC</item>
+        <item name="bnIconBg">#FFF1F4FB</item>
+        <item name="bnDanger">#FFC94848</item>
+        <item name="bnNavBg">#FFFFFFFF</item>
+        <item name="bnRipple">#142F55C9</item>
+    </style>
+
+    <style name="ThemeOverlay.Bellnote.Sand" parent="">
+        <item name="bnPrimary">#FFB2603A</item>
+        <item name="bnPrimaryDark">#FF8A4527</item>
+        <item name="bnOnPrimary">#FFFFFFFF</item>
+        <item name="bnAccent">#FF3F7D6E</item>
+        <item name="bnWindowBg">#FFFBF6F0</item>
+        <item name="bnSurface">#FFFFFCF8</item>
+        <item name="bnCard">#FFFFFDFA</item>
+        <item name="bnCardStroke">#FFEFE3D6</item>
+        <item name="bnDivider">#FFF3E9DE</item>
+        <item name="bnTextPrimary">#FF2A1F16</item>
+        <item name="bnTextSecondary">#FF7C6A5B</item>
+        <item name="bnChipBg">#FFF7EADF</item>
+        <item name="bnIconBg">#FFF5EDE4</item>
+        <item name="bnDanger">#FFC0503F</item>
+        <item name="bnNavBg">#FFFFFCF8</item>
+        <item name="bnRipple">#14B2603A</item>
+    </style>
+
+    <style name="ThemeOverlay.Bellnote.Ink" parent="">
+        <item name="bnPrimary">#FF1F2321</item>
+        <item name="bnPrimaryDark">#FF0E1110</item>
+        <item name="bnOnPrimary">#FFFFFFFF</item>
+        <item name="bnAccent">#FF9A7B2E</item>
+        <item name="bnWindowBg">#FFF7F7F6</item>
+        <item name="bnSurface">#FFFFFFFF</item>
+        <item name="bnCard">#FFFFFFFF</item>
+        <item name="bnCardStroke">#FFE5E6E5</item>
+        <item name="bnDivider">#FFEDEEED</item>
+        <item name="bnTextPrimary">#FF15181A</item>
+        <item name="bnTextSecondary">#FF6D7375</item>
+        <item name="bnChipBg">#FFF0F1F0</item>
+        <item name="bnIconBg">#FFF2F3F2</item>
+        <item name="bnDanger">#FFB03A3A</item>
+        <item name="bnNavBg">#FFFFFFFF</item>
+        <item name="bnRipple">#141F2321</item>
+    </style>
+
+</resources>

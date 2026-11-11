@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="bnPrimary" format="color" />
+    <attr name="bnPrimaryDark" format="color" />
+    <attr name="bnOnPrimary" format="color" />
+    <attr name="bnAccent" format="color" />
+    <attr name="bnWindowBg" format="color" />
+    <attr name="bnSurface" format="color" />
+    <attr name="bnCard" format="color" />
+    <attr name="bnCardStroke" format="color" />
+    <attr name="bnDivider" format="color" />
+    <attr name="bnTextPrimary" format="color" />
+    <attr name="bnTextSecondary" format="color" />
+    <attr name="bnChipBg" format="color" />
+    <attr name="bnIconBg" format="color" />
+    <attr name="bnDanger" format="color" />
+    <attr name="bnNavBg" format="color" />
+    <attr name="bnRipple" format="color" />
+</resources>

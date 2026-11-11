@@ -44,6 +44,7 @@ object Prefs {
     private const val KEY_CATCHUP_AT = "catchup_last_at"
     private const val KEY_CATCHUP_SUMMARY = "catchup_last_summary"
     private const val KEY_LISTENER_AT = "listener_connected_at"
+    private const val KEY_THEME = "theme_palette"
 
     /** 存「被忽略的通知」用的分隔符：\u0001 分条、\u0002 分字段，正常正文里不会出现。 */
     private const val ENTRY_SEP = "\u0001"
@@ -261,6 +262,16 @@ object Prefs {
 
     fun clearIgnoredNotices(context: Context) {
         sp(context).edit().remove(KEY_IGNORED).apply()
+    }
+
+    // ---------------- 外观主题 ----------------
+
+    /** 配色主题 id：teal / indigo / sand / ink（默认青绿）。 */
+    fun theme(context: Context): String =
+        sp(context).getString(KEY_THEME, "teal").orEmpty().ifBlank { "teal" }
+
+    fun setTheme(context: Context, id: String) {
+        sp(context).edit().putString(KEY_THEME, id).apply()
     }
 
     // ---------------- 监听健康 ----------------

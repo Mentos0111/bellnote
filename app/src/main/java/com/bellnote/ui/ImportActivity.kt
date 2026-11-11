@@ -17,6 +17,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.IntentCompat
+import com.bellnote.util.ThemeManager
 import com.bellnote.R
 import com.bellnote.ai.VisionExtractor
 import com.bellnote.data.CalendarRepository
@@ -91,6 +92,7 @@ class ImportActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeManager.apply(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_import)
         enableHomeUp()

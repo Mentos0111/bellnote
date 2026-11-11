@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bellnote.util.ThemeManager
 import com.bellnote.R
 import com.bellnote.data.DiffItem
 import com.bellnote.data.ReconcileReport
@@ -39,6 +40,7 @@ class ReconcileActivity : AppCompatActivity() {
     private var busy = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeManager.apply(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reconcile)
         enableHomeUp()
