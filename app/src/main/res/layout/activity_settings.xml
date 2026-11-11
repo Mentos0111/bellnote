@@ -411,6 +411,12 @@
             android:visibility="gone">
 
             <Button
+                android:id="@+id/btnHealth"
+                style="@style/BtnTonal"
+                android:layout_marginTop="6dp"
+                android:text="运行体检" />
+
+            <Button
                 android:id="@+id/btnAbout"
                 style="@style/BtnTonal"
                 android:layout_marginTop="6dp"

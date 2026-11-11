@@ -90,45 +90,6 @@
                 android:textSize="12sp" />
         </LinearLayout>
 
-        <!-- 后台存活：跟系统开关有关，放在体检页而不是日历设置里 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/bg_card"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="后台与自启动"
-                android:textColor="?attr/bnTextPrimary"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvBackgroundHint"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:lineSpacingExtra="3dp"
-                android:textColor="?attr/bnTextSecondary"
-                android:textSize="12sp" />
-
-            <Button
-                android:id="@+id/btnHealthBattery"
-                style="@style/BtnTonal"
-                android:layout_marginTop="10dp"
-                android:text="@string/perm_battery" />
-
-            <Button
-                android:id="@+id/btnHealthAutostart"
-                style="@style/BtnTonal"
-                android:layout_marginTop="8dp"
-                android:text="@string/perm_autostart" />
-        </LinearLayout>
-
         <Button
             android:id="@+id/btnRecheck"
             style="@style/BtnPrimary"
