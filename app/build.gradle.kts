@@ -75,6 +75,9 @@ android {
         release {
             // R8：删未用代码 + 删未用资源。manifest 里声明的四大组件 R8 会自动保留；
             // 全项目没有反射（零 Class.forName），所以只需要少量 keep 规则。
+            // 本地救数据用：-PbellnoteDebuggable=true 出一个可 run-as 的正式签名包，
+            // 恢复完数据再用正常 release 包覆盖安装（同签名，数据保留）。
+            isDebuggable = (project.findProperty("bellnoteDebuggable") == "true")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
