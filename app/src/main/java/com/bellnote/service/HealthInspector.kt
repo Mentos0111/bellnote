@@ -36,7 +36,7 @@ object HealthInspector {
             items.add(
                 HealthCheck.Item(
                     "notification_access", "通知权限", HealthCheck.Status.BAD,
-                    "没开通知使用权：ntfy 的通知读不到，推送进不了日历",
+                    "没开通知使用权：第三方推送读不到，进不了日历",
                     HealthCheck.Action.NOTIFICATION_ACCESS
                 )
             )
@@ -44,7 +44,7 @@ object HealthInspector {
             items.add(
                 HealthCheck.Item(
                     "notification_access", "通知权限", HealthCheck.Status.OK,
-                    "已授权，ntfy 的通知能被读取", HealthCheck.Action.NOTIFICATION_ACCESS
+                    "已授权，第三方推送能被读取", HealthCheck.Action.NOTIFICATION_ACCESS
                 )
             )
         }
@@ -170,7 +170,7 @@ object HealthInspector {
             items.add(
                 HealthCheck.Item(
                     "catchup", "补查", HealthCheck.Status.WARN,
-                    "没填 ntfy 主题：ntfy App 不弹通知时就收不到消息了",
+                    "没填 ntfy 主题：第三方 App 不弹通知时就收不到消息了",
                     HealthCheck.Action.SETTINGS
                 )
             )

@@ -411,7 +411,7 @@ class SettingsActivity : AppCompatActivity() {
     private fun catchUpNow() {
         Prefs.setNtfyTopic(this, etNtfyTopic.text.toString())
         if (Prefs.ntfyTopic(this).isBlank()) {
-            toast("先填 ntfy 主题（例如 todo-xxxx），再点补查")
+            toast("先在「第三方通知」里填 ntfy 主题（例如 todo-xxxx），再点补查")
             return
         }
         val button = findViewById<Button>(R.id.btnCatchUpNow)

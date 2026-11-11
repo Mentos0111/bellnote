@@ -13,121 +13,14 @@
         android:paddingTop="8dp"
         android:paddingBottom="28dp">
 
-        <!-- 外观 -->
-        <TextView
-            style="@style/SectionLabel"
-            android:layout_marginTop="8dp"
-            android:text="外观" />
-
+                <!-- ===== 输入渠道 ===== -->
         <TextView
             style="@style/FormLabel"
-            android:layout_marginTop="0dp"
-            android:text="配色主题" />
+            android:text="输入渠道" />
 
-        <Spinner
-            android:id="@+id/spTheme"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_input"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp" />
-
+<!-- ===== 识别模型 ===== -->
         <TextView
-            style="@style/HintText"
-            android:layout_marginTop="6dp"
-            android:text="@string/hint_theme" />
-
-        <TextView
-            style="@style/FormLabel"
-            android:layout_marginTop="14dp"
-            android:text="明暗" />
-
-        <Spinner
-            android:id="@+id/spThemeMode"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_input"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp" />
-
-        <TextView
-            style="@style/HintText"
-            android:layout_marginTop="6dp"
-            android:text="@string/hint_theme_mode" />
-
-        <!-- ===== 目标日历 ===== -->
-        <TextView
-            style="@style/SectionLabel"
-            android:layout_marginTop="10dp"
-            android:text="日历" />
-
-        <Spinner
-            android:id="@+id/spCalendar"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:background="@drawable/bg_input"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp" />
-
-        <TextView
-            android:id="@+id/tvCalendarHint"
-            style="@style/HintText"
-            android:layout_marginTop="6dp" />
-
-        <Button
-            android:id="@+id/btnCreateCalendar"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/btn_create_calendar" />
-
-        <!-- ===== 提醒 ===== -->
-        <TextView
-            style="@style/FormLabel"
-            android:text="@string/label_remind" />
-
-        <EditText
-            android:id="@+id/etRemind"
-            style="@style/FormInput"
-            android:hint="1440,60"
-            android:inputType="text" />
-
-        <!-- ===== 一句话 / 侧边栏 ===== -->
-        <TextView
-            style="@style/SectionLabel"
-            android:text="ntfy 补查" />
-
-        <TextView
-            style="@style/FormLabel"
-            android:layout_marginTop="0dp"
-            android:text="@string/label_ntfy_topic" />
-
-        <EditText
-            android:id="@+id/etNtfyTopic"
-            style="@style/FormInput"
-            android:hint="todo-xxxxxxxxxxxx"
-            android:inputType="text" />
-
-        <TextView
-            android:id="@+id/tvNtfyHint"
-            style="@style/HintText"
-            android:layout_marginTop="6dp"
-            android:text="@string/hint_ntfy_topic" />
-
-        <Button
-            android:id="@+id/btnCatchUpNow"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/btn_catch_up_now" />
-
-        <Button
-            android:id="@+id/btnSendTest"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/btn_send_test" />
-
-        <!-- ===== 识别模型 ===== -->
-        <TextView
-            style="@style/SectionLabel"
+            style="@style/SectionSubLabel"
             android:text="截图识别" />
 
         <TextView
@@ -152,7 +45,7 @@
 
         <TextView
             android:id="@+id/tvModelHint"
-            style="@style/HintText"
+            style="@style/FormLabel"
             android:layout_marginTop="6dp"
             android:text="@string/model_hint" />
 
@@ -165,7 +58,7 @@
 
         <TextView
             android:id="@+id/tvShotWatchHint"
-            style="@style/HintText"
+            style="@style/FormLabel"
             android:text="@string/shot_watch_hint" />
 
         <Button
@@ -174,10 +67,52 @@
             android:layout_marginTop="10dp"
             android:text="@string/btn_grant_media" />
 
+        <!-- ===== 一句话 / 侧边栏 ===== -->
+        <TextView
+            style="@style/SectionSubLabel"
+            android:text="第三方通知（ntfy）" />
+
+        <TextView
+            style="@style/FormLabel"
+            android:layout_marginTop="0dp"
+            android:text="@string/label_ntfy_topic" />
+
+        <EditText
+            android:id="@+id/etNtfyTopic"
+            style="@style/FormInput"
+            android:hint="todo-xxxxxxxxxxxx"
+            android:inputType="text" />
+
+        <TextView
+            android:id="@+id/tvNtfyHint"
+            style="@style/FormLabel"
+            android:layout_marginTop="6dp"
+            android:text="@string/hint_ntfy_topic" />
+
+        <Button
+            android:id="@+id/btnCatchUpNow"
+            style="@style/BtnTonal"
+            android:layout_marginTop="10dp"
+            android:text="@string/btn_catch_up_now" />
+
+        <Button
+            android:id="@+id/btnSendTest"
+            style="@style/BtnTonal"
+            android:layout_marginTop="10dp"
+            android:text="@string/btn_send_test" />
+
+        <TextView
+            style="@style/SectionSubLabel"
+            android:text="其他 App 的通知" />
+
+        <TextView
+            style="@style/HintText"
+            android:text="@string/hint_other_sources" />
+
         <!-- ===== 推送行为 ===== -->
         <TextView
-            style="@style/SectionLabel"
-            android:text="推送行为" />
+            style="@style/SectionSubLabel"
+            android:text="推送怎么处理" />
 
         <CheckBox
             android:id="@+id/cbAutoImport"
@@ -193,12 +128,71 @@
 
         <TextView
             android:id="@+id/tvStrictHint"
-            style="@style/HintText"
+            style="@style/FormLabel"
             android:text="@string/hint_strict_parse" />
+
+        <!-- ===== 被忽略的推送 ===== -->
+        <TextView
+            style="@style/SectionSubLabel"
+            android:text="没写进日历的推送" />
+
+        <TextView
+            android:id="@+id/tvIgnored"
+            style="@style/FormLabel"
+            android:background="@drawable/bg_input"
+            android:padding="12dp"
+            android:text="@string/hint_ignored_empty" />
+
+        <Button
+            android:id="@+id/btnClearIgnored"
+            style="@style/BtnTonal"
+            android:layout_marginTop="10dp"
+            android:text="@string/btn_clear_ignored" />
+
+                <!-- ===== 日历与同步 ===== -->
+        <TextView
+            style="@style/FormLabel"
+            android:text="日历与同步" />
+
+<!-- ===== 目标日历 ===== -->
+        <TextView
+            style="@style/SectionSubLabel"
+            android:layout_marginTop="10dp"
+            android:text="目标日历" />
+
+        <Spinner
+            android:id="@+id/spCalendar"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="@drawable/bg_input"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp" />
+
+        <TextView
+            android:id="@+id/tvCalendarHint"
+            style="@style/FormLabel"
+            android:layout_marginTop="6dp" />
+
+        <Button
+            android:id="@+id/btnCreateCalendar"
+            style="@style/BtnTonal"
+            android:layout_marginTop="10dp"
+            android:text="@string/btn_create_calendar" />
+
+        <!-- ===== 提醒 ===== -->
+        <TextView
+            style="@style/FormLabel"
+            android:text="@string/label_remind" />
+
+        <EditText
+            android:id="@+id/etRemind"
+            style="@style/FormInput"
+            android:hint="1440,60"
+            android:inputType="text" />
 
         <!-- ===== 对账 ===== -->
         <TextView
-            style="@style/SectionLabel"
+            style="@style/SectionSubLabel"
             android:text="@string/title_reconcile" />
 
         <CheckBox
@@ -233,7 +227,7 @@
 
         <!-- ===== 备份 ===== -->
         <TextView
-            style="@style/SectionLabel"
+            style="@style/SectionSubLabel"
             android:text="备份" />
 
         <Button
@@ -247,40 +241,61 @@
             android:layout_marginTop="10dp"
             android:text="@string/btn_backup_ledger" />
 
-        <!-- ===== 被忽略的推送 ===== -->
+                <!-- ===== 外观 ===== -->
         <TextView
-            style="@style/SectionLabel"
-            android:text="@string/label_ignored" />
+            style="@style/FormLabel"
+            android:text="外观" />
+
+<!-- 外观 -->
+        <TextView
+            style="@style/FormLabel"
+            android:layout_marginTop="8dp"
+            android:text="外观" />
 
         <TextView
-            android:id="@+id/tvIgnored"
-            style="@style/HintText"
+            style="@style/FormLabel"
+            android:layout_marginTop="0dp"
+            android:text="配色主题" />
+
+        <Spinner
+            android:id="@+id/spTheme"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
             android:background="@drawable/bg_input"
-            android:padding="12dp"
-            android:text="@string/hint_ignored_empty" />
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp" />
 
-        <Button
-            android:id="@+id/btnClearIgnored"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/btn_clear_ignored" />
-
-        <Button
-            android:id="@+id/btnCrashLog"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/btn_crash_log" />
-
-        <!-- ===== 保存 ===== -->
-        <Button
-            android:id="@+id/btnSaveSettings"
-            style="@style/BtnPrimary"
-            android:layout_marginTop="26dp"
-            android:text="@string/btn_save_settings" />
-
-        <!-- ===== 关于 ===== -->
         <TextView
-            style="@style/SectionLabel"
+            style="@style/FormLabel"
+            android:layout_marginTop="6dp"
+            android:text="@string/hint_theme" />
+
+        <TextView
+            style="@style/FormLabel"
+            android:layout_marginTop="14dp"
+            android:text="明暗" />
+
+        <Spinner
+            android:id="@+id/spThemeMode"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_input"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp" />
+
+        <TextView
+            style="@style/FormLabel"
+            android:layout_marginTop="6dp"
+            android:text="@string/hint_theme_mode" />
+
+                <!-- ===== 诊断与帮助 ===== -->
+        <TextView
+            style="@style/FormLabel"
+            android:text="诊断与帮助" />
+
+<!-- ===== 关于 ===== -->
+        <TextView
+            style="@style/SectionSubLabel"
             android:text="关于" />
 
         <Button
@@ -291,7 +306,7 @@
         <!-- ===== 权限与后台 ===== -->
 
         <TextView
-            style="@style/SectionLabel"
+            style="@style/SectionSubLabel"
             android:text="@string/title_permission" />
 
         <Button
@@ -305,7 +320,7 @@
 
         <TextView
             android:id="@+id/tvA11yHint"
-            style="@style/HintText"
+            style="@style/FormLabel"
             android:text="@string/a11y_hint" />
 
         <Button
@@ -320,7 +335,7 @@
 
         <TextView
             android:id="@+id/tvSidebarEntryHint"
-            style="@style/HintText"
+            style="@style/FormLabel"
             android:text="@string/sidebar_entry_hint" />
 
         <Button
@@ -363,6 +378,19 @@
             android:id="@+id/btnAppDetail"
             style="@style/BtnTonal"
             android:layout_marginTop="10dp"
-            android:text="@string/perm_app_detail" />
+            android:text="@string/perm_app_detail" />        <Button
+            android:id="@+id/btnCrashLog"
+            style="@style/BtnTonal"
+            android:layout_marginTop="10dp"
+            android:text="@string/btn_crash_log" />
+
+<!-- ===== 保存 ===== -->
+        <Button
+            android:id="@+id/btnSaveSettings"
+            style="@style/BtnPrimary"
+            android:layout_marginTop="26dp"
+            android:text="@string/btn_save_settings" />
+
+        
     </LinearLayout>
 </ScrollView>

@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">Bellnote</string>
 
-    <string name="main_empty">暂无待办\n收到 ntfy 通知或手动添加后会出现在这里</string>
+    <string name="main_empty">暂无待办\n收到推送或手动添加后会出现在这里</string>
     <string name="btn_add_manual">手动添加</string>
     <string name="btn_import_shot">截图识别</string>
     <string name="btn_settings">设置</string>
@@ -29,12 +29,12 @@
     <string name="label_api_key">DeepSeek API Key</string>
     <string name="label_model">视觉模型</string>
     <string name="model_hint">平台目前支持：deepseek-flash / deepseek-v4-pro。填错时识别会提示可用名称。</string>
-    <string name="label_auto_import">自动把 ntfy 通知写入日历</string>
+    <string name="label_auto_import">自动把第三方推送写入日历</string>
     <string name="label_strict_parse">只收带时间的待办（推荐）</string>
-    <string name="hint_strict_parse">不开这个的话，认不出「标题 / 时间」的 ntfy 消息也会按「当前时间 +1 小时」塞进日历，很容易堆一堆没用的条目。</string>
+    <string name="hint_strict_parse">不开这个的话，认不出「标题 / 时间」的推送消息也会按「当前时间 +1 小时」塞进日历，很容易堆一堆没用的条目。</string>
     <string name="btn_save_settings">保存设置</string>
 
-    <string name="perm_notification">通知使用权（读取 ntfy 通知）</string>
+    <string name="perm_notification">通知使用权（读取第三方推送）</string>
     <string name="perm_calendar">日历读写权限</string>
     <string name="perm_autostart">自启动管理（realme）</string>
     <string name="perm_battery">电池 / 后台耗电白名单</string>
@@ -77,8 +77,9 @@
     <string name="btn_grant_media">允许读取相册</string>
     <string name="shot_saved">设置已保存</string>
 
-    <string name="label_ntfy_topic">ntfy 主题（填了才开启补查）</string>
+    <string name="label_ntfy_topic">ntfy 主题（第三方推送的补查地址）</string>
     <string name="hint_ntfy_topic">ntfy App 没弹通知、被系统冻结或被关掉时，消息会丢。填上主题后，App 每次启动和定时对账时会直接从 ntfy 服务器补查最近 2 小时的消息，规则与通知完全一致。留空 = 只靠通知。</string>
+    <string name="hint_other_sources">微信 / QQ / 钉钉：暂不支持。以后会加「只读哪些 App 的通知」白名单，届时在这里勾选。</string>
     <string name="btn_catch_up_now">立即补查一次</string>
     <string name="btn_send_test">发一条测试推送（10 分钟后）</string>
     <string name="btn_export_ics">导出 .ics（日历备份）</string>
@@ -149,7 +150,7 @@
     <string name="onboarding_2_hint">以后随时点首页标题旁的状态灯，它会告诉你哪一项还没开。</string>
     <string name="onboarding_3_title">可以开始了</string>
     <string name="onboarding_3_body">首页上方输入一句话，右边两个按钮分别是「发送」和「截屏识别」。</string>
-    <string name="onboarding_3_tip1">· 想让手机不弹通知也不漏：设置里填 ntfy 主题，App 会自己补查</string>
+    <string name="onboarding_3_tip1">· 想让手机不弹通知也不漏：设置 → 输入渠道里填第三方推送的 ntfy 主题</string>
     <string name="onboarding_3_tip2">· 想在任何 App 里点一下截屏：把「Bellnote 截屏记」加进系统侧边栏</string>
     <string name="onboarding_skip">跳过</string>
     <string name="onboarding_next">下一步</string>
