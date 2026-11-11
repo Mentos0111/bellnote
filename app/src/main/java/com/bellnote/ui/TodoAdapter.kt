@@ -90,7 +90,7 @@ class TodoAdapter(
         holder.title.text = item.title
         val repeatSuffix = if (item.repeat == RepeatRule.NONE) "" else " · ${item.repeat.label}"
         holder.time.text =
-            "${TimeFormat.full(item.startMillis)} · ${item.durationMinutes} 分钟$repeatSuffix"
+            "${TimeFormat.compact(item.startMillis)} · ${item.durationMinutes} 分$repeatSuffix"
         val note = item.note
         if (note.isNullOrBlank()) {
             holder.note.visibility = View.GONE
