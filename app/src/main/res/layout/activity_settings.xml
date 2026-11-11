@@ -300,36 +300,6 @@
                 android:layout_marginTop="14dp"
                 android:text="@string/perm_calendar" />
 
-            <LinearLayout
-                style="@style/SettingsSubHead">
-
-                <TextView
-                    style="@style/SectionSubLabel"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="0dp"
-                    android:layout_weight="1"
-                    android:text="后台不被杀" />
-
-                <ImageButton
-                    android:id="@+id/btnHelpBackground"
-                    style="@style/SettingsHelpButton"
-                    android:contentDescription="看说明"
-                    android:src="@drawable/ic_nav_help" />
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/btnBattery"
-                style="@style/BtnTonal"
-                android:layout_marginTop="4dp"
-                android:text="@string/perm_battery" />
-
-            <Button
-                android:id="@+id/btnAutostart"
-                style="@style/BtnTonal"
-                android:layout_marginTop="10dp"
-                android:text="@string/perm_autostart" />
-
             <TextView
                 style="@style/SectionSubLabel"
                 android:text="备份" />

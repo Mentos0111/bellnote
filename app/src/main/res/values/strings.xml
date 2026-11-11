@@ -36,7 +36,7 @@
 
     <string name="perm_notification">通知使用权（读取第三方推送）</string>
     <string name="perm_calendar">日历读写权限</string>
-    <string name="perm_autostart">自启动管理（realme）</string>
+    <string name="perm_autostart">自启动管理</string>
     <string name="perm_battery">电池 / 后台耗电白名单</string>
     <string name="perm_app_detail">应用详情页</string>
 

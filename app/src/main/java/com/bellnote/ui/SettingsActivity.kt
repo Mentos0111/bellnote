@@ -164,12 +164,6 @@ class SettingsActivity : AppCompatActivity() {
                 arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR)
             )
         }
-        findViewById<Button>(R.id.btnAutostart).setOnClickListener {
-            if (!SystemPages.openAutostart(this)) toast("打不开自启动页面，请手动到 设置→应用→自启动管理")
-        }
-        findViewById<Button>(R.id.btnBattery).setOnClickListener {
-            if (!SystemPages.openBattery(this)) toast("打不开电池页面，请手动到 设置→电池→应用耗电管理")
-        }
         findViewById<Button>(R.id.btnAppDetail).setOnClickListener {
             SystemPages.openAppDetails(this)
         }
@@ -292,9 +286,6 @@ class SettingsActivity : AppCompatActivity() {
             "· 通知开关：控制对账发现问题时要不要弹提醒。\n" +
             "· 立即对账：不看间隔，马上跑一次。")
 
-        help(R.id.btnHelpBackground, "后台不被杀", "国产 ROM 会冻结后台，冻结后推送和定时任务都会停。\n\n" +
-            "需要同时放开「电池 / 后台耗电白名单」和「自启动」两项；这两项系统不开放读取，" +
-            "这里只能帮你跳到对应的系统页面。")
 
         help(R.id.btnHelpTheme, "外观", "两套开关互不影响：\n\n" +
             "· 配色主题：青绿 / 靛蓝 / 暖沙 / 墨黑四套调色板。\n" +
