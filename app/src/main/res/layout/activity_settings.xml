@@ -265,19 +265,10 @@
             style="@style/SectionLabel"
             android:text="关于" />
 
-        <TextView
-            android:id="@+id/tvAboutVersion"
-            style="@style/HintText"
-            android:background="@drawable/bg_input"
-            android:lineSpacingExtra="6dp"
-            android:padding="14dp"
-            android:text="版本" />
-
         <Button
-            android:id="@+id/btnMailDev"
+            android:id="@+id/btnAbout"
             style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/btn_mail_dev" />
+            android:text="@string/about_entry" />
 
         <!-- ===== 权限与后台 ===== -->
 

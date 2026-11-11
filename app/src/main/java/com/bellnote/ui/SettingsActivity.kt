@@ -119,7 +119,9 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnExportIcs).setOnClickListener { exportIcs() }
         findViewById<Button>(R.id.btnBackupLedger).setOnClickListener { backupLedger() }
         findViewById<Button>(R.id.btnCrashLog).setOnClickListener { showCrashLog() }
-        findViewById<Button>(R.id.btnMailDev).setOnClickListener { mailDeveloper() }
+        findViewById<Button>(R.id.btnAbout).setOnClickListener {
+            startActivity(Intent(this, AboutActivity::class.java))
+        }
         findViewById<Button>(R.id.btnClearIgnored).setOnClickListener {
             Prefs.clearIgnoredNotices(this)
             renderIgnored()
@@ -127,7 +129,6 @@ class SettingsActivity : AppCompatActivity() {
         }
         renderIgnored()
         setupIntervalSpinner()
-        findViewById<TextView>(R.id.tvAboutVersion).text = aboutText()
 
         findViewById<Button>(R.id.btnReconcileNow).setOnClickListener {
             startActivity(Intent(this, ReconcileActivity::class.java))
@@ -260,44 +261,7 @@ class SettingsActivity : AppCompatActivity() {
         }.start()
     }
 
-    /** 「关于」卡：版本 + 构建号 + 开发者 + 邮箱。 */
-    private fun aboutText(): String = buildString {
-        append(versionLabel())
-        append("\n开发者：")
-        append(getString(R.string.dev_name))
-        append("（")
-        append(getString(R.string.dev_mail))
-        append("）")
-        append("\n")
-        append(com.bellnote.util.DeviceVendor.current().label)
-        append(" · Android ")
-        append(android.os.Build.VERSION.RELEASE)
-    }
 
-    private fun mailDeveloper() {
-        val intent = android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
-            data = android.net.Uri.parse("mailto:" + getString(R.string.dev_mail))
-            putExtra(
-                android.content.Intent.EXTRA_SUBJECT,
-                "Bellnote 反馈（${com.bellnote.util.ThemeManager.labelOf(Prefs.theme(this@SettingsActivity))}）"
-            )
-            putExtra(
-                android.content.Intent.EXTRA_TEXT,
-                "\n\n——\n" + versionLabel() + "\n" +
-                    com.bellnote.util.DeviceVendor.current().label + " Android " + android.os.Build.VERSION.RELEASE
-            )
-        }
-        try {
-            startActivity(intent)
-        } catch (e: Exception) {
-            // 没装邮件 App 就直接把地址复制到剪贴板
-            val clipboard = getSystemService(android.content.ClipboardManager::class.java)
-            clipboard?.setPrimaryClip(
-                android.content.ClipData.newPlainText("email", getString(R.string.dev_mail))
-            )
-            toast("没装邮件 App，地址已复制：${getString(R.string.dev_mail)}")
-        }
-    }
 
     private fun versionLabel(): String = try {
         val info = packageManager.getPackageInfo(packageName, 0)

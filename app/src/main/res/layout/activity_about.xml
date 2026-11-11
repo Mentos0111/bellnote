@@ -1,0 +1,164 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/bnWindowBg"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="28dp"
+        android:paddingBottom="28dp">
+
+        <!-- 应用标识 -->
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_gravity="center_horizontal"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/ic_launcher" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:gravity="center"
+            android:text="@string/app_name"
+            android:textColor="?attr/bnTextPrimary"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvAboutVersion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:textColor="?attr/bnTextSecondary"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:letterSpacing="0.02"
+            android:text="@string/about_tagline"
+            android:textColor="?attr/bnTextSecondary"
+            android:textSize="12sp" />
+
+        <!-- 信息表：标签左、值右，行间细线 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:paddingLeft="18dp"
+            android:paddingRight="18dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp">
+
+            <LinearLayout style="@style/AboutRow">
+                <TextView
+                    style="@style/AboutKey"
+                    android:text="@string/about_key_version" />
+                <TextView
+                    android:id="@+id/rowVersion"
+                    style="@style/AboutValue" />
+            </LinearLayout>
+
+            <View style="@style/AboutDivider" />
+
+            <LinearLayout style="@style/AboutRow">
+                <TextView
+                    style="@style/AboutKey"
+                    android:text="@string/about_key_developer" />
+                <TextView
+                    android:id="@+id/rowDeveloper"
+                    style="@style/AboutValue" />
+            </LinearLayout>
+
+            <View style="@style/AboutDivider" />
+
+            <LinearLayout
+                android:id="@+id/rowMail"
+                style="@style/AboutRow"
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true">
+                <TextView
+                    style="@style/AboutKey"
+                    android:text="@string/about_key_mail" />
+                <TextView
+                    android:id="@+id/rowEmail"
+                    style="@style/AboutValue"
+                    android:textColor="?attr/bnPrimary" />
+            </LinearLayout>
+
+            <View style="@style/AboutDivider" />
+
+            <LinearLayout
+                android:id="@+id/rowGithub"
+                style="@style/AboutRow"
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true">
+                <TextView
+                    style="@style/AboutKey"
+                    android:text="@string/about_key_home" />
+                <TextView
+                    android:id="@+id/rowRepo"
+                    style="@style/AboutValue"
+                    android:textColor="?attr/bnPrimary" />
+            </LinearLayout>
+
+            <View style="@style/AboutDivider" />
+
+            <LinearLayout style="@style/AboutRow">
+                <TextView
+                    style="@style/AboutKey"
+                    android:text="@string/about_key_license" />
+                <TextView
+                    android:id="@+id/rowLicense"
+                    style="@style/AboutValue" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 隐私说明 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:lineSpacingExtra="5dp"
+            android:text="@string/about_privacy"
+            android:textColor="?attr/bnTextSecondary"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/btnMailDev"
+            style="@style/BtnTonal"
+            android:layout_marginTop="18dp"
+            android:text="@string/about_action_mail" />
+
+        <Button
+            android:id="@+id/btnOpenRepo"
+            style="@style/BtnTonal"
+            android:layout_marginTop="10dp"
+            android:text="@string/about_action_repo" />
+
+        <TextView
+            android:id="@+id/tvCopyright"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
+            android:gravity="center"
+            android:letterSpacing="0.02"
+            android:textColor="?attr/bnTextSecondary"
+            android:textSize="11sp" />
+    </LinearLayout>
+</ScrollView>

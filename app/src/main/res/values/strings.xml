@@ -127,4 +127,14 @@
     <string name="dev_name">Mentos</string>
     <string name="dev_mail">1904656703@qq.com</string>
     <string name="quick_go_desc">把这一句记成待办</string>
+    <string name="about_tagline">截图、一句话，就能记进日历</string>
+    <string name="about_key_version">版本</string>
+    <string name="about_key_developer">开发者</string>
+    <string name="about_key_mail">联系邮箱</string>
+    <string name="about_key_home">项目主页</string>
+    <string name="about_key_license">开源协议</string>
+    <string name="about_action_mail">给开发者写信</string>
+    <string name="about_action_repo">在 GitHub 上查看</string>
+    <string name="about_privacy">隐私说明：所有待办、账本和截图识别结果都只存在这台手机上。只有你在 App 里主动点「识别」时，图片才会发送到 DeepSeek 用于提取日程；不收集设备信息，也不含任何统计 SDK。</string>
+    <string name="about_entry">关于 Bellnote</string>
 </resources>

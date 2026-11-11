@@ -11,8 +11,8 @@ android {
         applicationId = "com.bellnote"
         minSdk = 26
         targetSdk = 34
-        versionCode = 38
-        versionName = "3.7"
+        versionCode = 39
+        versionName = "3.8"
     }
 
     signingConfigs {
