@@ -298,14 +298,14 @@ class OnboardingActivity : AppCompatActivity() {
         setState(R.id.permMediaState, Permissions.hasMediaImages(this))
 
         findViewById<TextView>(R.id.permAutostartState).apply {
-            text = "去开启 ›"
-            setTextColor(themeColor(R.attr.bnTextSecondary))
+            text = "未开启"
+            setTextColor(themeColor(R.attr.bnDanger))
         }
     }
 
     private fun setState(viewId: Int, ok: Boolean) {
         val view = findViewById<TextView>(viewId)
-        view.text = if (ok) "已开启" else "去开启 ›"
+        view.text = if (ok) "已开启" else "未开启"
         view.setTextColor(themeColor(if (ok) R.attr.bnPrimary else R.attr.bnDanger))
     }
 
