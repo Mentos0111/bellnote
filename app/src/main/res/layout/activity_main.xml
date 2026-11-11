@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/drawer"
     android:layout_width="match_parent"
@@ -9,10 +9,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp">
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp">
 
-        <!-- 顶栏：☰ + 标题 + 机型 -->
+        <!-- 顶栏 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="56dp"
@@ -21,22 +21,17 @@
 
             <TextView
                 android:id="@+id/btnMenu"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:gravity="center"
                 android:text="☰"
-                android:textColor="@color/text_primary"
-                android:textSize="19sp" />
+                android:textColor="@color/text_secondary"
+                android:textSize="18sp" />
 
-            <TextView
+            <View
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_weight="1"
-                android:text="@string/app_name"
-                android:textColor="@color/text_primary"
-                android:textSize="21sp"
-                android:textStyle="bold" />
+                android:layout_height="1dp"
+                android:layout_weight="1" />
 
             <TextView
                 android:id="@+id/tvVendorHint"
@@ -46,10 +41,29 @@
                 android:textSize="11sp" />
         </LinearLayout>
 
+        <!-- 日期 + 标题（editorial 式的大字层次） -->
+        <TextView
+            android:id="@+id/tvDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:letterSpacing="0.04"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="@string/app_name"
+            android:textColor="@color/text_primary"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
         <!-- 一句话记一条 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -69,51 +83,50 @@
                 android:textColorHint="@color/text_secondary"
                 android:textSize="15sp" />
 
-            <Button
+            <TextView
                 android:id="@+id/btnQuickGo"
-                style="@style/BtnTonal"
-                android:layout_width="62dp"
+                android:layout_width="52dp"
                 android:layout_height="52dp"
-                android:layout_marginStart="8dp"
-                android:minWidth="0dp"
-                android:paddingLeft="0dp"
-                android:paddingRight="0dp"
-                android:text="@string/quick_go"
-                android:textSize="15sp" />
+                android:layout_marginStart="10dp"
+                android:background="@drawable/bg_circle_primary"
+                android:gravity="center"
+                android:text="→"
+                android:textColor="@color/text_on_primary"
+                android:textSize="20sp" />
         </LinearLayout>
 
         <Button
             android:id="@+id/btnShotBig"
             style="@style/BtnPrimary"
             android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:layout_marginTop="10dp"
+            android:layout_height="62dp"
+            android:layout_marginTop="14dp"
             android:text="@string/btn_shot_big"
-            android:textSize="18sp" />
+            android:textSize="17sp" />
 
-        <!-- 状态卡 -->
+        <!-- 状态 -->
         <LinearLayout
             android:id="@+id/statusCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="14dp"
             android:background="@drawable/bg_card"
             android:clickable="true"
             android:focusable="true"
             android:orientation="horizontal"
-            android:padding="16dp">
+            android:padding="18dp">
 
             <View
                 android:id="@+id/statusDot"
-                android:layout_width="8dp"
-                android:layout_height="8dp"
-                android:layout_marginTop="6dp"
+                android:layout_width="6dp"
+                android:layout_height="6dp"
+                android:layout_marginTop="8dp"
                 android:background="@drawable/dot_ok" />
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="12dp"
                 android:layout_weight="1"
                 android:orientation="vertical">
 
@@ -130,8 +143,8 @@
                     android:id="@+id/statusDetail"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:lineSpacingExtra="3dp"
+                    android:layout_marginTop="8dp"
+                    android:lineSpacingExtra="5dp"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -154,41 +167,43 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:clipToPadding="false"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp" />
+            android:paddingTop="8dp"
+            android:paddingBottom="16dp" />
     </LinearLayout>
 
-    <!-- 侧边抽屉 -->
+    <!-- 侧边抽屉：7 个入口 + 图标块，靠细线分组 -->
     <ScrollView
-        android:layout_width="280dp"
+        android:layout_width="286dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:background="@color/nav_bg">
+        android:background="@color/nav_bg"
+        android:elevation="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingTop="28dp"
+            android:paddingLeft="14dp"
+            android:paddingRight="14dp"
+            android:paddingTop="38dp"
             android:paddingBottom="24dp">
 
+            <!-- 品牌块：没有底色，只有字 -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingLeft="22dp"
-                android:paddingRight="22dp"
+                android:paddingLeft="8dp"
                 android:text="@string/app_name"
-                android:textColor="@color/primary"
-                android:textSize="20sp"
+                android:textColor="@color/text_primary"
+                android:textSize="22sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingLeft="22dp"
-                android:paddingRight="22dp"
-                android:paddingTop="2dp"
-                android:paddingBottom="14dp"
+                android:letterSpacing="0.04"
+                android:paddingLeft="8dp"
+                android:paddingTop="4dp"
                 android:text="@string/nav_subtitle"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
@@ -196,71 +211,112 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginBottom="8dp"
+                android:layout_marginTop="18dp"
+                android:layout_marginBottom="6dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
                 android:background="@color/divider" />
 
             <TextView
+                style="@style/NavSection"
+                android:text="@string/nav_section_new" />
+
+            <LinearLayout
                 android:id="@+id/navAddManual"
-                style="@style/NavItem"
-                android:text="@string/nav_add_manual" />
+                style="@style/NavRow">
+                <ImageView
+                    style="@style/NavIcon"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_nav_plus" />
+                <TextView
+                    style="@style/NavLabel"
+                    android:text="@string/nav_add_manual" />
+            </LinearLayout>
 
-            <TextView
+            <LinearLayout
                 android:id="@+id/navQuick"
-                style="@style/NavItem"
-                android:text="@string/nav_quick" />
+                style="@style/NavRow">
+                <ImageView
+                    style="@style/NavIcon"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_nav_quick" />
+                <TextView
+                    style="@style/NavLabel"
+                    android:text="@string/nav_quick" />
+            </LinearLayout>
 
-            <TextView
+            <LinearLayout
                 android:id="@+id/navCamera"
-                style="@style/NavItem"
-                android:text="@string/nav_camera" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                android:layout_marginLeft="22dp"
-                android:layout_marginRight="22dp"
-                android:background="@color/divider" />
+                style="@style/NavRow">
+                <ImageView
+                    style="@style/NavIcon"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_nav_camera" />
+                <TextView
+                    style="@style/NavLabel"
+                    android:text="@string/nav_camera" />
+            </LinearLayout>
 
             <TextView
+                style="@style/NavSection"
+                android:text="@string/nav_section_manage" />
+
+            <LinearLayout
                 android:id="@+id/navAllEvents"
-                style="@style/NavItem"
-                android:text="@string/nav_all_events" />
+                style="@style/NavRow">
+                <ImageView
+                    style="@style/NavIcon"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_nav_list" />
+                <TextView
+                    style="@style/NavLabel"
+                    android:text="@string/nav_all_events" />
+            </LinearLayout>
 
-            <TextView
+            <LinearLayout
                 android:id="@+id/navReconcile"
-                style="@style/NavItem"
-                android:text="@string/nav_reconcile" />
+                style="@style/NavRow">
+                <ImageView
+                    style="@style/NavIcon"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_nav_check" />
+                <TextView
+                    style="@style/NavLabel"
+                    android:text="@string/nav_reconcile" />
+            </LinearLayout>
 
-            <TextView
+            <LinearLayout
                 android:id="@+id/navSettings"
-                style="@style/NavItem"
-                android:text="@string/nav_settings" />
+                style="@style/NavRow">
+                <ImageView
+                    style="@style/NavIcon"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_nav_gear" />
+                <TextView
+                    style="@style/NavLabel"
+                    android:text="@string/nav_settings" />
+            </LinearLayout>
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                android:layout_marginLeft="22dp"
-                android:layout_marginRight="22dp"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="6dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
                 android:background="@color/divider" />
 
-            <TextView
-                android:id="@+id/navPermission"
-                style="@style/NavItem"
-                android:text="@string/nav_permission" />
-
-            <TextView
-                android:id="@+id/navSidebar"
-                style="@style/NavItem"
-                android:text="@string/nav_sidebar" />
-
-            <TextView
-                android:id="@+id/navTile"
-                style="@style/NavItem"
-                android:text="@string/nav_tile" />
+            <LinearLayout
+                android:id="@+id/navHelp"
+                style="@style/NavRow">
+                <ImageView
+                    style="@style/NavIcon"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_nav_help" />
+                <TextView
+                    style="@style/NavLabel"
+                    android:text="@string/nav_help" />
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 </androidx.drawerlayout.widget.DrawerLayout>

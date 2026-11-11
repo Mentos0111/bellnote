@@ -95,10 +95,10 @@
 
     <!-- 侧边抽屉 -->
     <string name="nav_title">Bellnote</string>
-    <string name="nav_subtitle">截图 · 一句话 · 侧边栏，怎么快怎么来</string>
-    <string name="nav_add_manual">手动添加（自己填时间）</string>
-    <string name="nav_quick">一句话记一条</string>
-    <string name="nav_camera">拍照建待办</string>
+    <string name="nav_subtitle">截图 · 一句话 · 侧边栏</string>
+    <string name="nav_add_manual">新建待办</string>
+    <string name="nav_quick">记一条</string>
+    <string name="nav_camera">拍照识别</string>
     <string name="nav_all_events">全部日程</string>
     <string name="nav_reconcile">对账</string>
     <string name="nav_settings">设置</string>
@@ -118,4 +118,8 @@
     <string name="label_ignored">最近没写进日历的推送</string>
     <string name="hint_ignored_empty">暂时没有（没认出时间、缺权限、写日历失败的都会记在这里）</string>
     <string name="btn_clear_ignored">清空这个列表</string>
+    <string name="nav_section_new">新建</string>
+    <string name="nav_section_manage">管理</string>
+    <string name="nav_help">帮助与引导</string>
+    <string name="hint_note">补充说明（可留空）</string>
 </resources>

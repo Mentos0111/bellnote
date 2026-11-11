@@ -16,7 +16,7 @@
         <!-- ===== 目标日历 ===== -->
         <TextView
             style="@style/SectionLabel"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:text="日历" />
 
         <Spinner
@@ -35,7 +35,7 @@
         <Button
             android:id="@+id/btnCreateCalendar"
             style="@style/BtnTonal"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:text="@string/btn_create_calendar" />
 
         <!-- ===== 提醒 ===== -->
@@ -74,13 +74,13 @@
         <Button
             android:id="@+id/btnCatchUpNow"
             style="@style/BtnTonal"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:text="@string/btn_catch_up_now" />
 
         <Button
             android:id="@+id/btnSendTest"
             style="@style/BtnTonal"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:text="@string/btn_send_test" />
 
         <!-- ===== 识别模型 ===== -->
@@ -129,7 +129,7 @@
         <Button
             android:id="@+id/btnMediaPerm"
             style="@style/BtnTonal"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:text="@string/btn_grant_media" />
 
         <!-- ===== 推送行为 ===== -->
@@ -186,7 +186,7 @@
         <Button
             android:id="@+id/btnReconcileNow"
             style="@style/BtnTonal"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:text="@string/btn_reconcile_now" />
 
         <!-- ===== 备份 ===== -->
@@ -202,7 +202,7 @@
         <Button
             android:id="@+id/btnBackupLedger"
             style="@style/BtnTonal"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:text="@string/btn_backup_ledger" />
 
         <!-- ===== 被忽略的推送 ===== -->
@@ -220,13 +220,13 @@
         <Button
             android:id="@+id/btnClearIgnored"
             style="@style/BtnTonal"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:text="@string/btn_clear_ignored" />
 
         <Button
             android:id="@+id/btnCrashLog"
             style="@style/BtnTonal"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:text="@string/btn_crash_log" />
 
         <!-- ===== 保存 ===== -->
@@ -258,43 +258,43 @@
         <Button
             android:id="@+id/btnOpenA11y"
             style="@style/BtnTonal"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:text="@string/btn_open_a11y" />
 
         <Button
             android:id="@+id/btnSidebarGuide"
             style="@style/BtnTonal"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:text="@string/btn_sidebar_guide" />
 
         <Button
             android:id="@+id/btnTileGuide"
             style="@style/BtnTonal"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:text="@string/btn_tile_guide" />
 
         <Button
             android:id="@+id/btnCalendarPerm"
             style="@style/BtnTonal"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:text="@string/perm_calendar" />
 
         <Button
             android:id="@+id/btnAutostart"
             style="@style/BtnTonal"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:text="@string/perm_autostart" />
 
         <Button
             android:id="@+id/btnBattery"
             style="@style/BtnTonal"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:text="@string/perm_battery" />
 
         <Button
             android:id="@+id/btnAppDetail"
             style="@style/BtnTonal"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:text="@string/perm_app_detail" />
 
         <TextView

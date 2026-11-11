@@ -1,25 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 主色：稳住青绿，饱和度比旧版低一点，暗色下也不刺眼 -->
+    <!-- 主色只用在一个地方：主要动作 + 关键数字 -->
     <color name="primary">#FF0E7C6B</color>
     <color name="primary_dark">#FF0A5A4D</color>
-    <color name="primary_light">#FFE6F4F1</color>
+    <color name="primary_light">#FFECF6F3</color>
     <color name="accent">#FFF59E0B</color>
 
-    <!-- 表面与分隔 -->
-    <color name="window_bg">#FFF4F7F7</color>
+    <!-- 表面：纸感底色，卡片靠一根细线分层，不靠渐变 -->
+    <color name="window_bg">#FFF6F9F8</color>
     <color name="surface">#FFFFFFFF</color>
     <color name="card_bg">#FFFFFFFF</color>
-    <color name="card_stroke">#FFE2E8E7</color>
-    <color name="divider">#FFEDF1F0</color>
+    <color name="card_alt">#FFFFFFFF</color>
+    <color name="card_stroke">#FFE6EDEB</color>
+    <color name="divider">#FFEDF2F0</color>
+    <color name="icon_bg">#FFF1F5F4</color>
 
-    <!-- 文字 -->
-    <color name="text_primary">#FF10201D</color>
-    <color name="text_secondary">#FF6B7A75</color>
+    <color name="text_primary">#FF0F1A17</color>
+    <color name="text_secondary">#FF6B7B76</color>
     <color name="text_on_primary">#FFFFFFFF</color>
 
-    <color name="chip_bg">#FFE8F4F1</color>
-    <color name="danger">#FFD64545</color>
+    <color name="chip_bg">#FFECF6F3</color>
+    <color name="danger">#FFC94848</color>
     <color name="nav_bg">#FFFFFFFF</color>
-    <color name="ripple">#220E7C6B</color>
+    <color name="nav_header_start">#FFFFFFFF</color>
+    <color name="ripple">#140E7C6B</color>
 </resources>
