@@ -139,7 +139,7 @@
                 android:id="@+id/btnOnbCreateCalendar"
                 style="@style/BtnTonal"
                 android:layout_marginTop="10dp"
-                android:text="没有可写的日历？建一个本地的" />
+                android:text="创建本地日历" />
 
             <EditText
                 android:id="@+id/etOnbApiKey"

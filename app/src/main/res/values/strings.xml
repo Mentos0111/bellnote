@@ -24,7 +24,7 @@
     <string name="btn_delete">删除这条待办</string>
 
     <string name="label_calendar">目标日历</string>
-    <string name="btn_create_calendar">创建本地日历（列表为空时点这里）</string>
+    <string name="btn_create_calendar">创建本地日历</string>
     <string name="label_remind">提醒（分钟，逗号分隔，最多 3 条）</string>
     <string name="label_api_key">DeepSeek API Key</string>
     <string name="label_model">视觉模型</string>
@@ -32,16 +32,16 @@
     <string name="label_auto_import">自动把第三方推送写入日历</string>
     <string name="label_strict_parse">只收带时间的待办（推荐）</string>
     <string name="hint_strict_parse">不开这个的话，认不出「标题 / 时间」的推送消息也会按「当前时间 +1 小时」塞进日历，很容易堆一堆没用的条目。</string>
-    <string name="btn_save_settings">保存设置</string>
+    <string name="btn_save_settings">保存</string>
 
-    <string name="perm_notification">通知使用权（读取第三方推送）</string>
+    <string name="perm_notification">通知使用权</string>
     <string name="perm_calendar">日历读写权限</string>
     <string name="perm_autostart">自启动管理</string>
-    <string name="perm_battery">电池 / 后台耗电白名单</string>
-    <string name="perm_app_detail">应用详情页</string>
+    <string name="perm_battery">电池白名单</string>
+    <string name="perm_app_detail">应用详情</string>
 
     <string name="btn_pick_image">选择截图</string>
-    <string name="btn_recognize">调用 DeepSeek 识别</string>
+    <string name="btn_recognize">识别这张图</string>
     <string name="btn_restore_last">用上次的识别结果</string>
     <string name="import_hint">从相册选择 QQ / 微信的作业截图，识别后可在编辑页确认再保存。</string>
 
@@ -51,11 +51,11 @@
     <string name="btn_reconcile_fill">补齐缺失</string>
     <string name="btn_reconcile_clean">清理多余</string>
     <string name="btn_reconcile_fix">修正不一致</string>
-    <string name="btn_reconcile_purge">清掉已删（日历里已被删掉的，从清单移除）</string>
+    <string name="btn_reconcile_purge">清掉已删</string>
     <string name="label_reconcile_enabled">定时对账（本地清单 vs 手机日历）</string>
     <string name="label_reconcile_interval">对账间隔</string>
     <string name="label_reconcile_notify">有差异时发通知</string>
-    <string name="btn_reconcile_now">立即对账一次</string>
+    <string name="btn_reconcile_now">立即对账</string>
     <string name="btn_shot_big">截图建待办</string>
     <string name="btn_all_events">全部日程</string>
     <string name="title_all_events">全部日程</string>
@@ -80,11 +80,11 @@
     <string name="label_push_topic">ntfy 主题</string>
     <string name="hint_push_topic">ntfy App 没弹通知、被系统冻结或被关掉时消息会丢。填上主题后，每次启动和定时对账时 Bellnote 会直接去 ntfy 服务器补查最近 2 小时的消息，规则与通知一致。留空 = 只靠通知。</string>
     <string name="hint_other_sources">微信 / QQ / 钉钉：暂不支持。以后会加「只读哪些 App 的通知」白名单，届时在这里勾选。</string>
-    <string name="btn_catch_up_now">立即补查一次</string>
-    <string name="btn_send_test">发一条测试推送（10 分钟后）</string>
-    <string name="btn_export_ics">导出 .ics（日历备份）</string>
-    <string name="btn_backup_ledger">备份账本（JSON）</string>
-    <string name="btn_crash_log">查看最近的崩溃日志</string>
+    <string name="btn_catch_up_now">立即补查</string>
+    <string name="btn_send_test">发测试推送</string>
+    <string name="btn_export_ics">导出 .ics</string>
+    <string name="btn_backup_ledger">备份账本</string>
+    <string name="btn_crash_log">崩溃日志</string>
 
     <!-- 一句话记 -->
     <string name="quick_hint">记一条待办…</string>
@@ -110,13 +110,13 @@
     <string name="a11y_title">截屏服务（无障碍）</string>
     <string name="a11y_label">Bellnote 截屏识别</string>
     <string name="a11y_hint">只用来截当前屏幕，不读输入内容。开了之后，从系统侧边栏点「Bellnote 截屏记」就能直接截屏识别。</string>
-    <string name="btn_open_a11y">去开截屏服务</string>
-    <string name="btn_sidebar_guide">看怎么加进侧边栏</string>
-    <string name="btn_tile_guide">怎么把磁贴加到通知栏</string>
+    <string name="btn_open_a11y">开启截屏服务</string>
+    <string name="btn_sidebar_guide">加入侧边栏</string>
+    <string name="btn_tile_guide">添加通知栏磁贴</string>
     <string name="tile_guide">下拉通知栏 → 点「编辑」（铅笔）→ 找到「记一条」拖上去</string>
     <string name="label_ignored">最近没写进日历的推送</string>
     <string name="hint_ignored_empty">暂时没有（没认出时间、缺权限、写日历失败的都会记在这里）</string>
-    <string name="btn_clear_ignored">清空这个列表</string>
+    <string name="btn_clear_ignored">清空列表</string>
     <string name="nav_section_new">新建</string>
     <string name="nav_section_manage">管理</string>
     <string name="nav_help">帮助与引导</string>
@@ -157,8 +157,8 @@
     <string name="onboarding_start">开始使用</string>
     <string name="sidebar_entry_title">侧边栏入口</string>
     <string name="sidebar_entry_hint">系统侧边栏添加 App 时，只认带桌面图标的。需要添加时把下面这个开关打开，桌面会出现「Bellnote 截屏记」，加进侧边栏后再关掉——已经加进侧边栏的入口不受影响。</string>
-    <string name="sidebar_entry_show">临时显示桌面入口（加进侧边栏用）</string>
-    <string name="sidebar_entry_hide">桌面入口显示中 · 点这里隐藏</string>
+    <string name="sidebar_entry_show">显示桌面入口</string>
+    <string name="sidebar_entry_hide">隐藏桌面入口</string>
     <string name="sidebar_entry_on_toast">已显示，去桌面长按/侧边栏里添加吧</string>
     <string name="sidebar_entry_off_toast">已隐藏，桌面图标已移除</string>
 </resources>
