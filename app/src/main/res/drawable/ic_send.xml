@@ -4,11 +4,16 @@
     android:viewportWidth="24"
     android:viewportHeight="24"
     android:tint="?attr/bnOnPrimary">
+    <!-- 一支斜着的笔：上端笔杆、下端笔尖，表示「记一条」 -->
     <path
-        android:pathData="M3.2,19.8 L21.0,12 L3.2,4.2 L3.2,9.9 L14.2,12 L3.2,14.1 Z"
+        android:pathData="M4.2,19.8 L4.9,16.4 L15.9,5.4 A2.1,2.1 0 0 1 18.9,8.4 L7.9,19.4 Z"
         android:fillColor="#FF000000"
         android:strokeColor="#FF000000"
-        android:strokeWidth="1.5"
-        android:strokeLineJoin="round"
+        android:strokeWidth="0.9"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M3.2,20.8 L6.0,20.1"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.6"
         android:strokeLineCap="round" />
 </vector>
