@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Bellnote</string>
 
@@ -86,7 +86,7 @@
     <string name="btn_crash_log">查看最近的崩溃日志</string>
 
     <!-- 一句话记 -->
-    <string name="quick_hint">一句话记：明天三点开会</string>
+    <string name="quick_hint">记一条待办…</string>
     <string name="quick_go">记</string>
     <string name="quick_empty">先写一句要记的事</string>
 
