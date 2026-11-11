@@ -22,11 +22,13 @@ import com.bellnote.util.ThemeManager
 import com.bellnote.R
 import com.bellnote.data.CalendarRepository
 import com.bellnote.data.MANUAL_DEFAULT_DURATION_MINUTES
+import com.bellnote.data.HealthCheck
 import com.bellnote.data.Prefs
 import com.bellnote.data.TodoItem
 import com.bellnote.data.TodoSpec
 import com.bellnote.data.TodoStore
 import com.bellnote.parser.QuickParse
+import com.bellnote.service.HealthInspector
 import com.bellnote.service.NtfyFetcher
 import com.bellnote.service.ReconcileRunner
 import com.bellnote.service.ScreenshotWatcher
@@ -90,11 +92,13 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.btnShotBig).setOnClickListener {
             startActivity(Intent(this, ImportActivity::class.java))
         }
+        findViewById<TextView>(R.id.tvVersionTop).text = versionLabel()
+        findViewById<View>(R.id.healthChip).setOnClickListener {
+            startActivity(Intent(this, HealthActivity::class.java))
+        }
         findViewById<View>(R.id.statusCard).setOnClickListener {
             startActivity(Intent(this, PermissionGuideActivity::class.java))
         }
-        findViewById<TextView>(R.id.tvVendorHint).text =
-            "${DeviceVendor.current().label} · Android ${Build.VERSION.RELEASE}"
         findViewById<TextView>(R.id.tvDate).text = TimeFormat.todayLine(System.currentTimeMillis())
     }
 
@@ -250,6 +254,41 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun versionLabel(): String = try {
+        "v" + packageManager.getPackageInfo(packageName, 0).versionName
+    } catch (e: Exception) {
+        ""
+    }
+
+    /** 标题右侧那颗灯：只读缓存结果，过期了才后台重算。 */
+    private fun renderHealth() {
+        val items = HealthInspector.cached(this)
+        val chip = findViewById<TextView>(R.id.healthChip)
+        val worst = HealthCheck.indicator(items)
+        if (worst == null) {
+            chip.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.dot_warn, 0, 0, 0)
+            chip.text = "检测中"
+            return
+        }
+        val dot = when (worst.status) {
+            HealthCheck.Status.BAD -> R.drawable.dot_bad
+            HealthCheck.Status.WARN -> R.drawable.dot_warn
+            HealthCheck.Status.UNKNOWN -> R.drawable.dot_warn
+            HealthCheck.Status.OK -> R.drawable.dot_ok
+        }
+        chip.setCompoundDrawablesRelativeWithIntrinsicBounds(dot, 0, 0, 0)
+        chip.text = if (worst.status == HealthCheck.Status.OK) "正常" else worst.label
+    }
+
+    private fun refreshHealthIfStale() {
+        renderHealth()
+        val gap = System.currentTimeMillis() - HealthInspector.cachedAt(this)
+        if (gap in 0 until 5 * 60_000L) return
+        HealthInspector.refreshInBackground(this) {
+            if (!isFinishing) renderHealth()
+        }
+    }
+
     /** 子页面用 CLEAR_TOP 回到这里时会走 onNewIntent，顺手刷新一下列表。 */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -262,6 +301,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        refreshHealthIfStale()
         if (ThemeManager.refreshIfNeeded(this)) {
             recreate()
             return
