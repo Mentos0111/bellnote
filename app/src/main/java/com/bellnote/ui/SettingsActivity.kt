@@ -15,6 +15,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.bellnote.util.SidebarEntry
 import com.bellnote.util.ThemeManager
 import com.bellnote.R
 import com.bellnote.data.CalendarRepository
@@ -148,6 +149,14 @@ class SettingsActivity : AppCompatActivity() {
                 toast("打不开无障碍页面，请手动到 设置→无障碍→Bellnote 截屏")
             }
         }
+        findViewById<Button>(R.id.btnSidebarEntry).setOnClickListener {
+            val now = SidebarEntry.isEnabled(this)
+            val next = SidebarEntry.setEnabled(this, !now)
+            renderSidebarEntry()
+            toast(getString(if (next) R.string.sidebar_entry_on_toast else R.string.sidebar_entry_off_toast))
+        }
+        renderSidebarEntry()
+
         findViewById<Button>(R.id.btnSidebarGuide).setOnClickListener {
             androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle(getString(R.string.sidebar_howto_title))
@@ -262,6 +271,15 @@ class SettingsActivity : AppCompatActivity() {
     }
 
 
+
+
+    /** 桌面入口开关的文案跟着实际状态走。 */
+    private fun renderSidebarEntry() {
+        val shown = SidebarEntry.isEnabled(this)
+        findViewById<Button>(R.id.btnSidebarEntry).text = getString(
+            if (shown) R.string.sidebar_entry_hide else R.string.sidebar_entry_show
+        )
+    }
 
     private fun versionLabel(): String = try {
         val info = packageManager.getPackageInfo(packageName, 0)

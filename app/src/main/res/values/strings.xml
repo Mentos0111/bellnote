@@ -155,4 +155,10 @@
     <string name="onboarding_skip">跳过</string>
     <string name="onboarding_next">下一步</string>
     <string name="onboarding_start">开始使用</string>
+    <string name="sidebar_entry_title">侧边栏入口</string>
+    <string name="sidebar_entry_hint">系统侧边栏添加 App 时，只认带桌面图标的。需要添加时把下面这个开关打开，桌面会出现「Bellnote 截屏记」，加进侧边栏后再关掉——已经加进侧边栏的入口不受影响。</string>
+    <string name="sidebar_entry_show">桌面入口：已隐藏 · 点这里显示</string>
+    <string name="sidebar_entry_hide">桌面入口：已显示 · 点这里隐藏</string>
+    <string name="sidebar_entry_on_toast">已显示，去桌面长按/侧边栏里添加吧</string>
+    <string name="sidebar_entry_off_toast">已隐藏，桌面图标已移除</string>
 </resources>
