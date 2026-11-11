@@ -345,7 +345,12 @@ class MainActivity : AppCompatActivity() {
             } else {
                 val catchAt = Prefs.lastCatchUpAt(this)
                 val catchSummary = Prefs.lastCatchUpSummary(this)
-                if (catchAt > 0) "补查：$catchSummary" else "补查：开了，还没跑过"
+                when {
+                    catchAt <= 0 -> "补查：开了，还没跑过"
+                    // summary 本身已经带「补查：」前缀，别再叠一层
+                    catchSummary.startsWith("补查") -> catchSummary
+                    else -> "补查：$catchSummary"
+                }
             }
             val ignored = Prefs.ignoredNotices(this).size
             val ignoredLine = if (ignored > 0) {

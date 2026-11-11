@@ -19,20 +19,39 @@ import java.io.File
  * 用法：在别的 App 页面里划出侧边栏，点它 → 这里截下当前屏幕（本页是透明的，不挡内容）
  * → 把图交给截图识别页自动开始识别 → 出待办给你确认。
  *
- * 前提是开了无障碍服务（系统侧边栏没法塞自定义动作，只能靠这个入口去截）。
- * 没开无障碍就退化成「告诉你怎么开 / 先手动截个图」。
+ * 前提是开了无障碍服务。没开（或开关被系统重置）就告诉用户去哪儿开。
  */
 class SidebarCaptureActivity : AppCompatActivity() {
 
+    private val tag = "SidebarCapture"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (!ScreenCaptureService.isConnected()) {
+        val connected = ScreenCaptureService.isConnected()
+        val enabled = ScreenCaptureService.isEnabledInSettings(this)
+        Log.i(tag, "onCreate connected=$connected enabledInSettings=$enabled")
+        if (!connected && !enabled) {
             askToEnable()
             return
         }
-        Toast.makeText(this, "正在截图…", Toast.LENGTH_SHORT).show()
-        ScreenCaptureService.capture { bitmap ->
-            runOnUiThread { handleBitmap(bitmap) }
+        // 开关开着但进程刚起来还没绑上：等一会儿再截，别一上来就把用户支到设置页
+        ScreenCaptureService.awaitConnection(2500L) { ready ->
+            runOnUiThread {
+                Log.i(tag, "awaitConnection ready=$ready")
+                if (!ready) {
+                    Toast.makeText(
+                        this,
+                        "截屏服务还没连上：去设置里把「Bellnote 截屏」关一下再打开",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    finish()
+                    return@runOnUiThread
+                }
+                Toast.makeText(this, "正在截图…", Toast.LENGTH_SHORT).show()
+                ScreenCaptureService.capture { bitmap ->
+                    runOnUiThread { handleBitmap(bitmap) }
+                }
+            }
         }
     }
 
@@ -48,6 +67,7 @@ class SidebarCaptureActivity : AppCompatActivity() {
             finish()
             return
         }
+        Log.i(tag, "截图已保存 $uri，转识别页")
         startActivity(ImportActivity.intentForScreenshot(this, uri, auto = true))
         finish()
     }
@@ -58,7 +78,7 @@ class SidebarCaptureActivity : AppCompatActivity() {
         file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
         FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
     } catch (e: Exception) {
-        Log.w("SidebarCapture", "保存截图失败", e)
+        Log.w(tag, "保存截图失败", e)
         null
     }
 
@@ -75,11 +95,10 @@ class SidebarCaptureActivity : AppCompatActivity() {
                 finish()
             }
             .setNeutralButton("先手动截图") { _, _ ->
-                // 退路：用户自己截屏（三指下滑 / 侧边栏的「截屏」），稍后 Bellnote 会弹「识别这张截图？」
                 Toast.makeText(this, "截图后 Bellnote 会弹「识别这张截图？」", Toast.LENGTH_LONG).show()
                 finish()
             }
-            .setNegativeButton("算了", null)
+            .setNegativeButton("算了") { _, _ -> finish() }
             .setOnDismissListener { if (!isFinishing) finish() }
             .show()
     }
