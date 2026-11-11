@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 间距标尺：所有布局都用这几个，别再写 14dp / 16dp 混着来 -->
+    <dimen name="space_xs">6dp</dimen>
+    <dimen name="space_sm">10dp</dimen>
+    <dimen name="space_md">16dp</dimen>
+    <dimen name="space_lg">22dp</dimen>
+    <dimen name="space_xl">30dp</dimen>
+
+    <dimen name="card_radius">18dp</dimen>
+    <dimen name="page_padding">18dp</dimen>
+    <dimen name="control_height">54dp</dimen>
+
+    <!-- 立体感：卡片和按钮的抬升高度 -->
+    <dimen name="elevation_card">2dp</dimen>
+    <dimen name="elevation_button">3dp</dimen>
+    <dimen name="elevation_drawer">12dp</dimen>
+</resources>

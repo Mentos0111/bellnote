@@ -93,6 +93,7 @@ class MainActivity : AppCompatActivity() {
         }
         findViewById<TextView>(R.id.tvVendorHint).text =
             "${DeviceVendor.current().label} · Android ${Build.VERSION.RELEASE}"
+        findViewById<TextView>(R.id.tvDate).text = TimeFormat.todayLine(System.currentTimeMillis())
     }
 
     /** 首页顶部「一句话记」：敲完回车 / 点「记」→ 本地解析 → 填好编辑页给你确认。 */
@@ -177,22 +178,35 @@ class MainActivity : AppCompatActivity() {
             closeDrawer()
             startActivity(Intent(this, SettingsActivity::class.java))
         }
-        findViewById<View>(R.id.navPermission).setOnClickListener {
+        findViewById<View>(R.id.navHelp).setOnClickListener {
             closeDrawer()
-            startActivity(Intent(this, PermissionGuideActivity::class.java))
+            showHelp()
         }
-        findViewById<View>(R.id.navSidebar).setOnClickListener {
-            closeDrawer()
-            showSidebarGuide()
-        }
-        findViewById<View>(R.id.navTile).setOnClickListener {
-            closeDrawer()
-            AlertDialog.Builder(this)
-                .setTitle(getString(R.string.nav_tile))
-                .setMessage(getString(R.string.tile_guide))
-                .setPositiveButton("知道了", null)
-                .show()
-        }
+    }
+
+    /** 说明类的东西都收在这里，抽屉里只留 7 个真入口。 */
+    private fun showHelp() {
+        val items = arrayOf(
+            getString(R.string.nav_sidebar),
+            getString(R.string.nav_tile),
+            getString(R.string.nav_permission)
+        )
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.nav_help))
+            .setItems(items) { _, which ->
+                when (which) {
+                    0 -> showSidebarGuide()
+                    1 -> AlertDialog.Builder(this)
+                        .setTitle(getString(R.string.nav_tile))
+                        .setMessage(getString(R.string.tile_guide))
+                        .setPositiveButton("知道了", null)
+                        .show()
+
+                    else -> startActivity(Intent(this, PermissionGuideActivity::class.java))
+                }
+            }
+            .setNegativeButton("关闭", null)
+            .show()
     }
 
     private fun closeDrawer() {

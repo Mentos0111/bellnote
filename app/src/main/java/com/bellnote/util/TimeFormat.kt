@@ -35,4 +35,12 @@ object TimeFormat {
     }
 
     private val DAY = DateTimeFormatter.ofPattern("M 月 d 日 E", java.util.Locale.CHINA)
+    private val MONTH_DAY_WEEK = DateTimeFormatter.ofPattern("M 月 d 日 EEEE", java.util.Locale.CHINA)
+
+    /** 首页顶部那行日期：11 月 12 日 周四（今天会加「今天 ·」前缀）。 */
+    fun todayLine(millis: Long, zone: ZoneId = ZoneId.systemDefault()): String {
+        val date = Instant.ofEpochMilli(millis).atZone(zone).toLocalDate()
+        val text = date.format(MONTH_DAY_WEEK)
+        return if (date == java.time.LocalDate.now()) "今天 · $text" else text
+    }
 }

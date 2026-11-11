@@ -9,46 +9,57 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
         android:paddingTop="8dp"
-        android:paddingBottom="24dp">
+        android:paddingBottom="28dp">
 
-        <TextView
-            style="@style/FormLabel"
-            android:layout_marginTop="8dp"
-            android:text="@string/label_title" />
-
+        <!-- 标题：不画框，直接当大标题输入 -->
         <EditText
             android:id="@+id/etTitle"
-            style="@style/FormInput"
-            android:hint="数学作业"
-            android:inputType="text" />
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:hint="@string/label_title"
+            android:inputType="text"
+            android:paddingTop="10dp"
+            android:paddingBottom="12dp"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary"
+            android:textSize="24sp"
+            android:textStyle="bold" />
 
-        <TextView
-            style="@style/FormLabel"
-            android:text="@string/label_time" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/divider" />
 
-        <!-- 时间：一块「卡片」，点左边选日期、点右边选时间 -->
+        <!-- 时间：一张卡，大字时间 + 两个动作 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:background="@drawable/bg_card"
             android:orientation="vertical"
-            android:padding="14dp">
+            android:padding="20dp">
+
+            <TextView
+                style="@style/FieldCaption"
+                android:text="@string/label_time" />
 
             <TextView
                 android:id="@+id/tvWhen"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/primary"
-                android:textSize="20sp"
+                android:layout_marginTop="6dp"
+                android:textColor="@color/text_primary"
+                android:textSize="22sp"
                 android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="16dp"
                 android:orientation="horizontal">
 
                 <Button
@@ -62,51 +73,106 @@
                     android:id="@+id/btnTime"
                     style="@style/BtnTonal"
                     android:layout_width="0dp"
-                    android:layout_marginStart="10dp"
+                    android:layout_marginStart="12dp"
                     android:layout_weight="1"
                     android:text="@string/btn_pick_time" />
             </LinearLayout>
         </LinearLayout>
 
-        <TextView
-            style="@style/FormLabel"
-            android:text="@string/label_duration" />
-
-        <EditText
-            android:id="@+id/etDuration"
-            style="@style/FormInput"
-            android:inputType="number"
-            android:text="60" />
-
-        <TextView
-            style="@style/FormLabel"
-            android:text="@string/label_repeat" />
-
-        <Spinner
-            android:id="@+id/spRepeat"
+        <!-- 时长 + 重复：一行两列，中间一根细线 -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="2dp"
-            android:background="@drawable/bg_input"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp" />
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_card"
+            android:orientation="horizontal"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp">
 
-        <TextView
-            style="@style/FormLabel"
-            android:text="@string/label_note" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-        <EditText
-            android:id="@+id/etNote"
-            style="@style/FormInput"
-            android:gravity="top"
-            android:hint="第三章习题"
-            android:inputType="textMultiLine"
-            android:minLines="3" />
+                <TextView
+                    style="@style/FieldCaption"
+                    android:text="@string/label_duration" />
+
+                <EditText
+                    android:id="@+id/etDuration"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    android:inputType="number"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="0dp"
+                    android:text="60"
+                    android:textColor="@color/text_primary"
+                    android:textSize="18sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:background="@color/divider" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/FieldCaption"
+                    android:text="@string/label_repeat" />
+
+                <Spinner
+                    android:id="@+id/spRepeat"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="0dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 备注 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                style="@style/FieldCaption"
+                android:text="@string/label_note" />
+
+            <EditText
+                android:id="@+id/etNote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="@null"
+                android:gravity="top"
+                android:hint="@string/hint_note"
+                android:inputType="textMultiLine"
+                android:lineSpacingExtra="4dp"
+                android:minLines="4"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_secondary"
+                android:textSize="15sp" />
+        </LinearLayout>
 
         <Button
             android:id="@+id/btnSave"
             style="@style/BtnPrimary"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="26dp"
             android:text="@string/btn_save" />
 
         <Button
