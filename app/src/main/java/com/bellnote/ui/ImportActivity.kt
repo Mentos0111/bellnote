@@ -201,6 +201,7 @@ class ImportActivity : AppCompatActivity() {
             return
         }
 
+        btnRecognize.text = "识别这张图"
         btnRecognize.isEnabled = false
         btnPick.isEnabled = false
         btnRestore.visibility = View.GONE
@@ -241,6 +242,9 @@ class ImportActivity : AppCompatActivity() {
         val specs = outcome.specs
         if (specs.isEmpty()) {
             tvStatus.text = "识别失败：${outcome.error}"
+            btnRecognize.text = "重试识别"
+            // 图还在，直接再点一次就行，不用重新选图
+            btnRecognize.isEnabled = imageUri != null
             return
         }
         lastRaw = outcome.raw
@@ -328,12 +332,41 @@ class ImportActivity : AppCompatActivity() {
 
     // ---------------- 批量写入 ----------------
 
-    /** 一张截图识别出多条时，逐条勾选要写哪些，避免「要么全写要么只写一条」。 */
+    /**
+     * 一张截图识别出多条时，逐条勾选要写哪些。
+     * 勾选前先跟日历里已有的比一遍：同标题同时间的标成「已存在」并默认不勾 ——
+     * 同一张截图重复识别时，最容易把待办写成两份。
+     */
     private fun confirmBatch(specs: List<TodoSpec>) {
-        val labels = specs.map {
-            "${it.title}｜${TimeFormat.monthDay(it.startMillis)} · ${it.durationMinutes} 分钟"
+        tvStatus.text = "正在核对是否重复…"
+        Thread {
+            val repo = CalendarRepository(this)
+            val duplicate = BooleanArray(specs.size)
+            for (i in specs.indices) {
+                duplicate[i] = try {
+                    repo.findOwnEvents(specs[i].title, specs[i].startMillis).isNotEmpty()
+                } catch (e: Exception) {
+                    false
+                }
+            }
+            ui.post {
+                if (isFinishing || isDestroyed) return@post
+                showBatchDialog(specs, duplicate)
+            }
+        }.start()
+    }
+
+    private fun showBatchDialog(specs: List<TodoSpec>, duplicate: BooleanArray) {
+        if (duplicate.all { it }) {
+            tvStatus.text = "这几条日历里都有了，没有重复写入"
+            toast("这几条日历里都有了")
+            return
+        }
+        val labels = specs.mapIndexed { index, spec ->
+            val suffix = if (duplicate[index]) "（已在日历里）" else ""
+            "${spec.title}｜${TimeFormat.monthDay(spec.startMillis)} · ${spec.durationMinutes} 分钟$suffix"
         }.toTypedArray()
-        val checked = BooleanArray(specs.size) { true }
+        val checked = BooleanArray(specs.size) { !duplicate[it] }
         AlertDialog.Builder(this)
             .setTitle("识别到 ${specs.size} 条待办")
             .setMultiChoiceItems(labels, checked) { _, which, isChecked -> checked[which] = isChecked }
