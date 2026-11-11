@@ -6,7 +6,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
@@ -14,7 +14,6 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
-import kotlin.math.abs
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.bellnote.R
@@ -25,19 +24,18 @@ import com.bellnote.util.DeviceVendor
 import com.bellnote.util.Permissions
 import com.bellnote.util.SystemPages
 import com.bellnote.util.ThemeManager
+import kotlin.math.abs
 
 /**
- * 首次安装的引导，三页：
- * 1) 记法（一句话 / 截图 / 分享）
- * 2) 首次配置：目标日历 + 识别 Key
- * 3) 要开的开关
+ * 首次安装的引导，五页：
+ * 1) 记法  2) 日历  3) 截图识别（可选）  4) 开关  5) 外观
  *
- * 翻页是整层平移 + 缩放淡入，像卡片推过去；进度条当期拉长成一条。
+ * 可以左右滑动，也可以点「下一步」；换配色会重建页面，用 savedInstanceState 记住停在第几页。
  */
 class OnboardingActivity : AppCompatActivity() {
 
     private var step = 0
-    private lateinit var deck: FrameLayout
+    private lateinit var deck: SwipeDeck
     private lateinit var steps: List<View>
     private lateinit var dots: List<View>
     private lateinit var btnNext: Button
@@ -48,14 +46,12 @@ class OnboardingActivity : AppCompatActivity() {
 
     private lateinit var spCalendar: Spinner
     private lateinit var tvCalendarHint: TextView
+    private lateinit var etApiKey: EditText
+    private lateinit var etModel: EditText
 
     private val requestCalendar = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { loadCalendars() }
-
-    private val requestNotifications = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { refreshPermissionRows() }
 
     private val requestMedia = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -65,28 +61,43 @@ class OnboardingActivity : AppCompatActivity() {
         ThemeManager.apply(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_onboarding)
+        step = savedInstanceState?.getInt("step", 0) ?: 0
 
         deck = findViewById(R.id.deck)
-        steps = listOf(findViewById(R.id.step1), findViewById(R.id.step2), findViewById(R.id.step3))
-        dots = listOf(findViewById(R.id.dot1), findViewById(R.id.dot2), findViewById(R.id.dot3))
+        steps = listOf(
+            findViewById(R.id.step1),
+            findViewById(R.id.step2),
+            findViewById(R.id.step3),
+            findViewById(R.id.step4),
+            findViewById(R.id.step5)
+        )
+        dots = listOf(
+            findViewById(R.id.dot1),
+            findViewById(R.id.dot2),
+            findViewById(R.id.dot3),
+            findViewById(R.id.dot4),
+            findViewById(R.id.dot5)
+        )
         btnNext = findViewById(R.id.btnNext)
 
         spCalendar = findViewById(R.id.spOnbCalendar)
         tvCalendarHint = findViewById(R.id.tvOnbCalendarHint)
+        etApiKey = findViewById(R.id.etOnbApiKey)
+        etModel = findViewById(R.id.etOnbModel)
+
+        etApiKey.setText(Prefs.apiKey(this))
+        etModel.setText(Prefs.model(this))
 
         btnNext.setOnClickListener {
-            if (step < steps.lastIndex) goTo(step + 1) else {
-                persistConfig()
-                finishOnboarding()
-            }
+            if (step < steps.lastIndex) goTo(step + 1) else finishOnboarding()
         }
 
         findViewById<View>(R.id.btnHelpCalendar).setOnClickListener { showCalendarHelp() }
-        spCalendar.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+
+        spCalendar.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 if (suppressSelect) return
                 if (position == calendars.size) {
-                    // 最后一项是「新建日历」
                     suppressSelect = true
                     spCalendar.setSelection(0)
                     suppressSelect = false
@@ -94,7 +105,7 @@ class OnboardingActivity : AppCompatActivity() {
                 }
             }
 
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
 
         findViewById<LinearLayout>(R.id.permNotification).setOnClickListener {
@@ -129,17 +140,38 @@ class OnboardingActivity : AppCompatActivity() {
             }
         }
 
-        // 初始只显示第 1 页，其余两页先挪到右边待命
-        steps.forEachIndexed { index, view ->
-            view.visibility = if (index == 0) View.VISIBLE else View.GONE
-            view.translationX = 0f
-        }
         setupSwipe()
+
+        // 初始状态：只显示当前页
+        steps.forEachIndexed { index, view ->
+            if (index == step) {
+                view.visibility = View.VISIBLE
+                view.alpha = 1f
+                view.translationX = 0f
+                view.scaleX = 1f
+                view.scaleY = 1f
+            } else {
+                view.visibility = View.GONE
+            }
+        }
         renderDots()
         refreshPermissionRows()
         loadCalendars()
+        if (savedInstanceState == null && step == 0) playIntro()
+    }
 
-        // 首屏：整体从下方轻轻浮起
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt("step", step)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshPermissionRows()
+        if (step == 3) loadCalendars()
+    }
+
+    private fun playIntro() {
         val d = resources.displayMetrics.density
         steps[0].apply {
             alpha = 0f
@@ -155,115 +187,8 @@ class OnboardingActivity : AppCompatActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        refreshPermissionRows()
-        if (step == 1) loadCalendars()
-    }
+    // ---------------- 翻页 ----------------
 
-
-    /** 手指左右拖：跟手位移，松手按距离决定翻页还是弹回。 */
-    private fun setupSwipe() {
-        val slop = android.view.ViewConfiguration.get(this).scaledTouchSlop
-        var downX = 0f
-        var dragging = false
-
-        deck.setOnTouchListener { _, ev ->
-            when (ev.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    downX = ev.rawX
-                    dragging = false
-                }
-
-                MotionEvent.ACTION_MOVE -> {
-                    val dx = ev.rawX - downX
-                    if (!dragging && abs(dx) > slop) dragging = true
-                    if (dragging) dragTo(dx)
-                }
-
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    if (dragging) {
-                        val dx = ev.rawX - downX
-                        val width = deck.width.toFloat().takeIf { it > 0f } ?: return@setOnTouchListener true
-                        val target = if (dx < 0) step + 1 else step - 1
-                        if (abs(dx) > width * 0.22f && target in steps.indices) {
-                            settleTo(target)
-                        } else {
-                            snapBack()
-                        }
-                    }
-                    dragging = false
-                }
-            }
-            true
-        }
-    }
-
-    /** 拖动过程中的实时位移。 */
-    private fun dragTo(dx: Float) {
-        val width = deck.width.toFloat().takeIf { it > 0f } ?: return
-        val cur = steps[step]
-        cur.translationX = dx
-        cur.alpha = 1f - (abs(dx) / width) * 0.5f
-
-        val target = if (dx < 0) step + 1 else step - 1
-        if (target in steps.indices) {
-            val nxt = steps[target]
-            nxt.visibility = View.VISIBLE
-            val base = if (dx < 0) width else -width
-            nxt.translationX = base + dx * 0.55f
-            nxt.alpha = (abs(dx) / width) * 0.9f
-            nxt.scaleX = 1f
-            nxt.scaleY = 1f
-        }
-    }
-
-    /** 松手后翻页：当前页滑出去，目标页归位。 */
-    private fun settleTo(target: Int) {
-        val width = deck.width.toFloat().takeIf { it > 0f } ?: return
-        val dir = if (target > step) 1 else -1
-        val cur = steps[step]
-        val nxt = steps[target]
-
-        nxt.visibility = View.VISIBLE
-        nxt.animate().translationX(0f).alpha(1f).setDuration(200L)
-            .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
-
-        cur.animate().translationX(-dir * width).alpha(0f).setDuration(200L)
-            .setInterpolator(android.view.animation.DecelerateInterpolator())
-            .withEndAction {
-                cur.visibility = View.GONE
-                resetView(cur)
-            }.start()
-
-        step = target
-        popHero(target)
-        renderDots()
-        btnNext.text = if (step == steps.lastIndex) "开始使用" else "下一步"
-        if (step == 1) loadCalendars()
-    }
-
-    /** 松手但没滑够：两边都弹回原位。 */
-    private fun snapBack() {
-        val cur = steps[step]
-        cur.animate().translationX(0f).alpha(1f).setDuration(180L).start()
-        val other = if (cur.translationX < 0) step + 1 else step - 1
-        if (other in steps.indices) {
-            val nxt = steps[other]
-            val width = deck.width.toFloat().takeIf { it > 0f } ?: return
-            nxt.animate().translationX(if (cur.translationX < 0) width else -width).alpha(0f)
-                .setDuration(180L).withEndAction { nxt.visibility = View.GONE }.start()
-        }
-    }
-
-    private fun resetView(view: View) {
-        view.translationX = 0f
-        view.alpha = 1f
-        view.scaleX = 1f
-        view.scaleY = 1f
-    }
-
-    /** 卡片式翻页：旧页往左退、缩小淡掉；新页从右侧带着 1.04 的缩放滑进来。 */
     private fun goTo(target: Int) {
         if (target == step || target !in steps.indices) return
         val width = deck.width.takeIf { it > 0 } ?: resources.displayMetrics.widthPixels
@@ -271,6 +196,10 @@ class OnboardingActivity : AppCompatActivity() {
         val dir = if (forward) 1 else -1
         val old = steps[step]
         val next = steps[target]
+
+        heroOf(target).translationX = dir * width * 0.18f
+        heroOf(target).animate().translationX(0f).setDuration(360L)
+            .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
 
         old.animate()
             .translationX(-dir * width * 0.35f)
@@ -280,18 +209,9 @@ class OnboardingActivity : AppCompatActivity() {
             .setInterpolator(android.view.animation.AccelerateInterpolator())
             .withEndAction {
                 old.visibility = View.GONE
-                old.translationX = 0f
-                old.alpha = 1f
-                old.scaleX = 1f
-                old.scaleY = 1f
+                resetView(old)
             }
             .start()
-
-        // 主视觉比页面慢半拍，做一点点视差
-        val hero = heroOf(target)
-        hero.translationX = dir * width * 0.18f
-        hero.animate().translationX(0f).setDuration(360L)
-            .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
 
         next.visibility = View.VISIBLE
         next.translationX = dir * width * 0.45f
@@ -299,23 +219,27 @@ class OnboardingActivity : AppCompatActivity() {
         next.scaleX = 1.04f
         next.scaleY = 1.04f
         next.animate()
-            .translationX(0f)
-            .alpha(1f)
-            .scaleX(1f).scaleY(1f)
+            .translationX(0f).alpha(1f).scaleX(1f).scaleY(1f)
             .setDuration(300L)
             .setInterpolator(android.view.animation.DecelerateInterpolator())
             .start()
 
+        afterPageChanged(target)
+        popHero(target)
+    }
+
+    private fun afterPageChanged(target: Int) {
         step = target
-        popHero(step)
-        if (step == 1) loadCalendars()
         renderDots()
         btnNext.text = if (step == steps.lastIndex) "开始使用" else "下一步"
+        if (step == 3) loadCalendars()
     }
 
     private fun heroOf(index: Int): View = when (index) {
         1 -> findViewById(R.id.hero2)
         2 -> findViewById(R.id.hero3)
+        3 -> findViewById(R.id.hero4)
+        4 -> findViewById(R.id.hero5)
         else -> findViewById(R.id.hero1)
     }
 
@@ -330,21 +254,97 @@ class OnboardingActivity : AppCompatActivity() {
             .start()
     }
 
-    /** 进度条：当期那颗从圆点拉成一小条。 */
-    private fun renderDots() {
-        val d = resources.displayMetrics.density
-        dots.forEachIndexed { index, dot ->
-            val active = index == step
-            dot.setBackgroundResource(if (index <= step) R.drawable.bg_dot_active else R.drawable.bg_dot_idle)
-            dot.alpha = if (index <= step) 1f else 0.35f
-            (dot.layoutParams as LinearLayout.LayoutParams).width =
-                ((if (active) 18 else 6) * d).toInt()
-            dot.layoutParams = dot.layoutParams
-            dot.animate().alpha(if (index <= step) 1f else 0.35f).setDuration(180L).start()
+    /** 手指左右拖：SwipeDeck 负责判断是不是横向划，这里只管跟随和落点。 */
+    private fun setupSwipe() {
+        deck.onDrag = { dx -> dragTo(dx) }
+        deck.onRelease = { dx ->
+            val width = deck.width.toFloat().takeIf { it > 0f }
+            if (width != null) {
+                val target = if (dx < 0) step + 1 else step - 1
+                if (abs(dx) > width * 0.22f && target in steps.indices) settleTo(target)
+                else snapBack()
+            }
         }
     }
 
-    /** 手机为什么有好几个日历、怎样让待办走系统日历的提醒。 */
+    private fun dragTo(dx: Float) {
+        val width = deck.width.toFloat().takeIf { it > 0f } ?: return
+        val cur = steps[step]
+        cur.translationX = dx
+        cur.alpha = 1f - (abs(dx) / width) * 0.5f
+
+        val target = if (dx < 0) step + 1 else step - 1
+        if (target in steps.indices) {
+            val nxt = steps[target]
+            nxt.visibility = View.VISIBLE
+            nxt.translationX = (if (dx < 0) width else -width) + dx * 0.55f
+            nxt.alpha = (abs(dx) / width) * 0.9f
+            nxt.scaleX = 1f
+            nxt.scaleY = 1f
+        }
+    }
+
+    private fun settleTo(target: Int) {
+        val width = deck.width.toFloat().takeIf { it > 0f } ?: return
+        val dir = if (target > step) 1 else -1
+        val cur = steps[step]
+        val nxt = steps[target]
+
+        nxt.visibility = View.VISIBLE
+        nxt.animate().translationX(0f).alpha(1f).setDuration(200L)
+            .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
+        cur.animate().translationX(-dir * width).alpha(0f).setDuration(200L)
+            .setInterpolator(android.view.animation.DecelerateInterpolator())
+            .withEndAction {
+                cur.visibility = View.GONE
+                resetView(cur)
+            }.start()
+
+        afterPageChanged(target)
+        popHero(target)
+    }
+
+    private fun snapBack() {
+        val cur = steps[step]
+        val width = deck.width.toFloat().takeIf { it > 0f } ?: return
+        cur.animate().translationX(0f).alpha(1f).setDuration(180L).start()
+        val other = if (cur.translationX < 0) step + 1 else step - 1
+        if (other in steps.indices) {
+            val nxt = steps[other]
+            nxt.animate().translationX(if (cur.translationX < 0) width else -width).alpha(0f)
+                .setDuration(180L).withEndAction { nxt.visibility = View.GONE }.start()
+        }
+    }
+
+    private fun resetView(view: View) {
+        view.translationX = 0f
+        view.alpha = 1f
+        view.scaleX = 1f
+        view.scaleY = 1f
+    }
+
+    private fun renderDots() {
+        val d = resources.displayMetrics.density
+        dots.forEachIndexed { index, dot ->
+            dot.setBackgroundResource(if (index <= step) R.drawable.bg_dot_active else R.drawable.bg_dot_idle)
+            dot.alpha = if (index <= step) 1f else 0.35f
+            (dot.layoutParams as LinearLayout.LayoutParams).width =
+                ((if (index == step) 18 else 6) * d).toInt()
+            dot.layoutParams = dot.layoutParams
+        }
+    }
+
+    // ---------------- 配置与权限 ----------------
+
+    private fun persistConfig() {
+        val index = spCalendar.selectedItemPosition
+        if (index in calendars.indices) Prefs.setCalendarId(this, calendars[index].id)
+        val key = etApiKey.text.toString().trim()
+        if (key.isNotEmpty()) Prefs.setApiKey(this, key)
+        val model = etModel.text.toString().trim()
+        if (model.isNotEmpty()) Prefs.setModel(this, model)
+    }
+
     private fun showCalendarHelp() {
         androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("日历不止一个？")
@@ -352,17 +352,12 @@ class OnboardingActivity : AppCompatActivity() {
                 "手机里的日历可以有很多份：本地日历、各个邮箱账号同步来的日历、别的 App 自己建的日历。" +
                     "它们互相独立，Bellnote 只往你选中的那一份里写。\n\n" +
                     "想让待办出现在系统日历里、靠系统日历弹提醒：\n" +
-                    "1. 选一个系统日历 App 会显示的日历（没账号时用下面列表最后的「新建本地日历」，建一个「待办」）；\n" +
+                    "1. 选一个系统日历 App 会显示的日历（没账号时用列表最后的「＋ 新建本地日历…」）；\n" +
                     "2. 在系统日历 App 里确认这个日历是勾选显示的，并且允许它发通知；\n" +
-                    "3. Bellnote 里的提醒时间（默认提前 24 小时 / 1 小时）会一起写进事件，系统日历到点弹提醒。"
+                    "3. Bellnote 里的提醒时间会一起写进事件，系统日历到点弹提醒。"
             )
             .setPositiveButton("知道了", null)
             .show()
-    }
-
-    private fun persistConfig() {
-        val index = spCalendar.selectedItemPosition
-        if (index in calendars.indices) Prefs.setCalendarId(this, calendars[index].id)
     }
 
     private fun loadCalendars() {
@@ -381,16 +376,16 @@ class OnboardingActivity : AppCompatActivity() {
                 val names = if (list.isEmpty()) mutableListOf("（没有可写日历）")
                 else list.map { it.displayName + if (it.accountName.isBlank()) "" else "（${it.accountName}）" }.toMutableList()
                 names.add("＋ 新建本地日历…")
+                suppressSelect = true
                 spCalendar.adapter = ArrayAdapter(
                     this, android.R.layout.simple_spinner_item, names
                 ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
                 val saved = Prefs.calendarId(this)
                 val index = list.indexOfFirst { it.id == saved }
-                suppressSelect = true
                 if (index >= 0) spCalendar.setSelection(index)
                 suppressSelect = false
                 tvCalendarHint.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
-                tvCalendarHint.text = "没有可写日历，点下面那个按钮建一个"
+                tvCalendarHint.text = "没有可写日历，选最后一项建一个"
             }
         }.start()
     }
@@ -441,6 +436,7 @@ class OnboardingActivity : AppCompatActivity() {
     }
 
     private fun finishOnboarding() {
+        persistConfig()
         Prefs.setOnboardingDone(this, true)
         startActivity(
             Intent(this, MainActivity::class.java)

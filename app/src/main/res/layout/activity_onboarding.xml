@@ -4,15 +4,15 @@
     android:layout_height="match_parent"
     android:background="?attr/bnWindowBg">
 
-    <!-- 顶部一层很淡的底色渐晕，换页时交叉淡入 -->
+    <!-- 顶部一层很淡的底色渐晕 -->
     <View
         android:id="@+id/ambient"
         android:layout_width="match_parent"
         android:layout_height="440dp"
         android:background="@drawable/bg_ambient" />
 
-    <!-- 三页并排放在一个 deck 里，翻页整层平移，做出真正的滑动感 -->
-    <FrameLayout
+    <!-- 五页并排放在一个 deck 里，翻页整层平移 -->
+    <com.bellnote.ui.SwipeDeck
         android:id="@+id/deck"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -53,7 +53,6 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:letterSpacing="0.01"
                 android:text="记一条，只要一步"
                 android:textColor="?attr/bnTextPrimary"
                 android:textSize="28sp"
@@ -67,14 +66,9 @@
                 android:text="一句话、一张截图、一次分享，都能变成日历里的待办。"
                 android:textColor="?attr/bnTextSecondary"
                 android:textSize="14sp" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
         </LinearLayout>
 
-        <!-- 2 首次配置 -->
+        <!-- 2 权限 -->
         <LinearLayout
             android:id="@+id/step2"
             android:layout_width="match_parent"
@@ -88,8 +82,7 @@
             <FrameLayout
                 android:layout_width="112dp"
                 android:layout_height="112dp"
-                android:layout_marginBottom="14dp"
-                android:clipChildren="false">
+                android:layout_marginBottom="14dp">
 
                 <View
                     android:layout_width="112dp"
@@ -98,85 +91,6 @@
 
                 <ImageView
                     android:id="@+id/hero2"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_gravity="center"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_scene_calendar" />
-            </FrameLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="写进哪个日历"
-                    android:textColor="?attr/bnTextPrimary"
-                    android:textSize="28sp"
-                    android:textStyle="bold" />
-
-                <ImageButton
-                    android:id="@+id/btnHelpCalendar"
-                    style="@style/SettingsHelpButton"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:contentDescription="看说明"
-                    android:src="@drawable/ic_nav_help" />
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="选一次就行，之后随时能改。"
-                android:textColor="?attr/bnTextSecondary"
-                android:textSize="14sp" />
-
-            <Spinner
-                android:id="@+id/spOnbCalendar"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginTop="20dp"
-                android:background="@drawable/bg_input"
-                android:paddingLeft="14dp"
-                android:paddingRight="14dp" />
-
-            <TextView
-                android:id="@+id/tvOnbCalendarHint"
-                style="@style/HintText"
-                android:visibility="gone" />
-
-        </LinearLayout>
-
-        <!-- 3 开关 -->
-        <LinearLayout
-            android:id="@+id/step3"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:paddingLeft="28dp"
-            android:paddingRight="28dp"
-            android:paddingTop="56dp"
-            android:paddingBottom="104dp">
-
-            <FrameLayout
-                android:layout_width="112dp"
-                android:layout_height="112dp"
-                android:layout_marginBottom="14dp"
-                android:clipChildren="false">
-
-                <View
-                    android:layout_width="112dp"
-                    android:layout_height="112dp"
-                    android:background="@drawable/bg_hero_ring" />
-
-                <ImageView
-                    android:id="@+id/hero3"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:layout_gravity="center"
@@ -288,9 +202,206 @@
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
-    </FrameLayout>
 
-    <!-- 底部：进度条 + 按钮 -->
+        <!-- 3 配置 -->
+        <LinearLayout
+            android:id="@+id/step3"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingLeft="28dp"
+            android:paddingRight="28dp"
+            android:paddingTop="56dp"
+            android:paddingBottom="104dp">
+
+            <FrameLayout
+                android:layout_width="112dp"
+                android:layout_height="112dp"
+                android:layout_marginBottom="14dp">
+
+                <View
+                    android:layout_width="112dp"
+                    android:layout_height="112dp"
+                    android:background="@drawable/bg_hero_ring" />
+
+                <ImageView
+                    android:id="@+id/hero3"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_screenshot"
+                    android:tint="?attr/bnPrimary" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="截图识别（可选）"
+                android:textColor="?attr/bnTextPrimary"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:lineSpacingExtra="4dp"
+                android:text="不配也能用一句话记；配了才能把截图里的字读成待办。"
+                android:textColor="?attr/bnTextSecondary"
+                android:textSize="14sp" />
+
+            <TextView
+                style="@style/FormLabel"
+                android:text="DeepSeek API Key" />
+
+            <EditText
+                android:id="@+id/etOnbApiKey"
+                style="@style/FormInput"
+                android:hint="sk-…"
+                android:inputType="textPassword" />
+
+            <TextView
+                style="@style/FormLabel"
+                android:text="视觉模型" />
+
+            <EditText
+                android:id="@+id/etOnbModel"
+                style="@style/FormInput"
+                android:inputType="text" />
+        </LinearLayout>
+
+        <!-- 4 日历 -->
+        <LinearLayout
+            android:id="@+id/step4"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingLeft="28dp"
+            android:paddingRight="28dp"
+            android:paddingTop="56dp"
+            android:paddingBottom="104dp">
+
+            <FrameLayout
+                android:layout_width="112dp"
+                android:layout_height="112dp"
+                android:layout_marginBottom="14dp">
+
+                <View
+                    android:layout_width="112dp"
+                    android:layout_height="112dp"
+                    android:background="@drawable/bg_hero_ring" />
+
+                <ImageView
+                    android:id="@+id/hero4"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_scene_calendar" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="写进哪个日历"
+                    android:textColor="?attr/bnTextPrimary"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/btnHelpCalendar"
+                    style="@style/SettingsHelpButton"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:contentDescription="看说明"
+                    android:src="@drawable/ic_nav_help" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="选一次就行，之后随时能改。"
+                android:textColor="?attr/bnTextSecondary"
+                android:textSize="14sp" />
+
+            <Spinner
+                android:id="@+id/spOnbCalendar"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/bg_input"
+                android:paddingLeft="14dp"
+                android:paddingRight="14dp" />
+
+            <TextView
+                android:id="@+id/tvOnbCalendarHint"
+                style="@style/HintText"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- 5 结束 -->
+        <LinearLayout
+            android:id="@+id/step5"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:paddingLeft="28dp"
+            android:paddingRight="28dp"
+            android:paddingTop="56dp"
+            android:paddingBottom="104dp">
+
+            <FrameLayout
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:clipChildren="false">
+
+                <View
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:background="@drawable/bg_hero_ring" />
+
+                <ImageView
+                    android:id="@+id/hero5"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_nav_check"
+                    android:tint="?attr/bnPrimary" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="可以开始用了"
+                android:textColor="?attr/bnTextPrimary"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="5dp"
+                android:text="首页顶部敲一句就能记；哪天觉得不对劲，点标题下两颗灯做个体检。"
+                android:textColor="?attr/bnTextSecondary"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+    </com.bellnote.ui.SwipeDeck>
+
+    <!-- 底部：进度点 + 下一步 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -303,6 +414,7 @@
         android:paddingBottom="22dp">
 
         <LinearLayout
+            android:id="@+id/dotsBar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -325,6 +437,18 @@
                 android:id="@+id/dot3"
                 android:layout_width="6dp"
                 android:layout_height="6dp"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_dot_idle" />
+            <View
+                android:id="@+id/dot4"
+                android:layout_width="6dp"
+                android:layout_height="6dp"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_dot_idle" />
+            <View
+                android:id="@+id/dot5"
+                android:layout_width="6dp"
+                android:layout_height="6dp"
                 android:background="@drawable/bg_dot_idle" />
         </LinearLayout>
 
@@ -333,7 +457,6 @@
             style="@style/BtnPrimary"
             android:layout_width="wrap_content"
             android:layout_height="44dp"
-            android:layout_marginStart="10dp"
             android:minWidth="0dp"
             android:paddingLeft="22dp"
             android:paddingRight="22dp"
