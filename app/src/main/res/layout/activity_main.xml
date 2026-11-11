@@ -12,10 +12,21 @@
         android:paddingLeft="20dp"
         android:paddingRight="20dp">
 
-        <!-- 顶栏 -->
+        <!-- 日期：最上面一行，居中 -->
+        <TextView
+            android:id="@+id/tvDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:letterSpacing="0.12"
+            android:textColor="?attr/bnTextSecondary"
+            android:textSize="11sp" />
+
+        <!-- 顶栏：☰ 在左，品牌名和版本号在右 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="52dp"
+            android:layout_height="44dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -34,47 +45,38 @@
                 android:layout_weight="1" />
 
             <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/app_name"
+                android:textColor="?attr/bnTextPrimary"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <TextView
                 android:id="@+id/tvVersionTop"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
                 android:textColor="?attr/bnTextSecondary"
                 android:textSize="11sp" />
         </LinearLayout>
 
-        <!-- 日期 + 标题（editorial 式的大字层次） -->
-        <TextView
-            android:id="@+id/tvDate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:letterSpacing="0.04"
-            android:textColor="?attr/bnTextSecondary"
-            android:textSize="12sp" />
-
-        <!-- 头部面板：标题 + 两颗灯 + 一句话记，收在一张卡里 -->
+        <!-- 头部面板：两颗灯 + 一句话记 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/bg_card"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_hero"
             android:orientation="vertical"
             android:paddingLeft="18dp"
             android:paddingTop="16dp"
             android:paddingRight="18dp"
             android:paddingBottom="18dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/app_name"
-                android:textColor="?attr/bnTextPrimary"
-                android:textSize="26sp"
-                android:textStyle="bold" />
-
             <!-- 两颗指示灯：体检结果 + 配置状态，点了都进「运行体检」 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -126,7 +128,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="16dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -162,7 +164,7 @@
                     android:layout_width="46dp"
                     android:layout_height="46dp"
                     android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_icon"
+                    android:background="@drawable/bg_icon_circle"
                     android:contentDescription="@string/btn_shot_big"
                     android:padding="11dp"
                     android:scaleType="fitCenter"
