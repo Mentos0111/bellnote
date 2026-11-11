@@ -5,9 +5,11 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
@@ -23,19 +25,18 @@ import com.bellnote.util.SystemPages
 import com.bellnote.util.ThemeManager
 
 /**
- * 首次安装的引导：四页。
- * 1) 三种记法（一句话 / 截图 / 分享·侧边栏）
- * 2) 首次配置：选目标日历 + 填识别用的 Key（都可跳过）
- * 3) 要开的开关（通知、日历、电池、自启动、相册）
- * 4) 外观与运行体检
+ * 首次安装的引导，三页：
+ * 1) 记法（一句话 / 截图 / 分享）
+ * 2) 首次配置：目标日历 + 识别 Key
+ * 3) 要开的开关
  *
- * 页面之间做横向滑入淡出；只在第一次打开时出现，「跳过」也算看过。
- * 设置 → 诊断与帮助 → 再看一次新手引导 可以重看。
+ * 翻页是整层平移 + 缩放淡入，像卡片推过去；进度条当期拉长成一条。
  */
 class OnboardingActivity : AppCompatActivity() {
 
     private var step = 0
-    private lateinit var stepViews: List<View>
+    private lateinit var deck: FrameLayout
+    private lateinit var steps: List<View>
     private lateinit var dots: List<View>
     private lateinit var btnNext: Button
     private lateinit var btnSkip: Button
@@ -64,18 +65,9 @@ class OnboardingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_onboarding)
 
-        stepViews = listOf(
-            findViewById(R.id.step1),
-            findViewById(R.id.step2),
-            findViewById(R.id.step3),
-            findViewById(R.id.step4)
-        )
-        dots = listOf(
-            findViewById(R.id.dot1),
-            findViewById(R.id.dot2),
-            findViewById(R.id.dot3),
-            findViewById(R.id.dot4)
-        )
+        deck = findViewById(R.id.deck)
+        steps = listOf(findViewById(R.id.step1), findViewById(R.id.step2), findViewById(R.id.step3))
+        dots = listOf(findViewById(R.id.dot1), findViewById(R.id.dot2), findViewById(R.id.dot3))
         btnNext = findViewById(R.id.btnNext)
         btnSkip = findViewById(R.id.btnSkip)
 
@@ -85,9 +77,7 @@ class OnboardingActivity : AppCompatActivity() {
         etApiKey.setText(Prefs.apiKey(this))
 
         btnNext.setOnClickListener {
-            if (step < stepViews.lastIndex) {
-                goTo(step + 1)
-            } else {
+            if (step < steps.lastIndex) goTo(step + 1) else {
                 persistConfig()
                 finishOnboarding()
             }
@@ -131,20 +121,28 @@ class OnboardingActivity : AppCompatActivity() {
             }
         }
 
-        render(animate = false)
+        // 初始只显示第 1 页，其余两页先挪到右边待命
+        steps.forEachIndexed { index, view ->
+            view.visibility = if (index == 0) View.VISIBLE else View.GONE
+            view.translationX = 0f
+        }
+        renderDots()
         refreshPermissionRows()
         loadCalendars()
 
-        // 首屏内容轻轻浮上来，别硬邦邦地出现
-        stepViews[0].apply {
+        // 首屏：整体从下方轻轻浮起
+        val d = resources.displayMetrics.density
+        steps[0].apply {
             alpha = 0f
-            translationY = 24f * resources.displayMetrics.density
-            animate().alpha(1f).translationY(0f).setDuration(320L).start()
+            translationY = 26f * d
+            animate().alpha(1f).translationY(0f).setDuration(360L)
+                .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
         }
-        dots.forEachIndexed { index, dot ->
-            dot.alpha = if (index == 0) 1f else 0.4f
-            dot.scaleX = if (index == 0) 1.25f else 1f
-            dot.scaleY = dot.scaleX
+        findViewById<View>(R.id.hero1).apply {
+            scaleX = 0.8f
+            scaleY = 0.8f
+            animate().scaleX(1f).scaleY(1f).setStartDelay(120L).setDuration(420L)
+                .setInterpolator(android.view.animation.OvershootInterpolator(1.4f)).start()
         }
     }
 
@@ -154,58 +152,68 @@ class OnboardingActivity : AppCompatActivity() {
         if (step == 1) loadCalendars()
     }
 
-    /** 翻页：老页面往左滑出并淡掉，新页面从右边滑进来。 */
+    /** 卡片式翻页：旧页往左退、缩小淡掉；新页从右侧带着 1.04 的缩放滑进来。 */
     private fun goTo(target: Int) {
-        if (target == step || target !in stepViews.indices) return
+        if (target == step || target !in steps.indices) return
+        val width = deck.width.takeIf { it > 0 } ?: resources.displayMetrics.widthPixels
         val forward = target > step
-        val old = stepViews[step]
-        val next = stepViews[target]
-        val shift = 48f * resources.displayMetrics.density
+        val dir = if (forward) 1 else -1
+        val old = steps[step]
+        val next = steps[target]
 
-        next.visibility = View.VISIBLE
-        next.alpha = 0f
-        next.translationX = if (forward) shift else -shift
-        next.animate().alpha(1f).translationX(0f)
+        old.animate()
+            .translationX(-dir * width * 0.35f)
+            .alpha(0f)
+            .scaleX(0.94f).scaleY(0.94f)
             .setDuration(240L)
-            .setInterpolator(android.view.animation.DecelerateInterpolator())
-            .start()
-
-        old.animate().alpha(0f).translationX(if (forward) -shift else shift)
-            .setDuration(180L)
+            .setInterpolator(android.view.animation.AccelerateInterpolator())
             .withEndAction {
                 old.visibility = View.GONE
-                old.alpha = 1f
                 old.translationX = 0f
+                old.alpha = 1f
+                old.scaleX = 1f
+                old.scaleY = 1f
             }
+            .start()
+
+        next.visibility = View.VISIBLE
+        next.translationX = dir * width * 0.45f
+        next.alpha = 0f
+        next.scaleX = 1.04f
+        next.scaleY = 1.04f
+        next.animate()
+            .translationX(0f)
+            .alpha(1f)
+            .scaleX(1f).scaleY(1f)
+            .setDuration(300L)
+            .setInterpolator(android.view.animation.DecelerateInterpolator())
             .start()
 
         step = target
         if (step == 1) loadCalendars()
-        render(animate = true)
+        renderDots()
+        btnNext.text = if (step == steps.lastIndex) "开始使用" else "下一步"
+        btnSkip.animate().alpha(if (step == steps.lastIndex) 0f else 1f).setDuration(150L).start()
+        btnSkip.isEnabled = step != steps.lastIndex
     }
 
-    private fun render(animate: Boolean) {
-        if (!animate) {
-            stepViews.forEachIndexed { index, view ->
-                view.visibility = if (index == step) View.VISIBLE else View.GONE
-            }
-        }
+    /** 进度条：当期那颗从圆点拉成一小条。 */
+    private fun renderDots() {
+        val d = resources.displayMetrics.density
         dots.forEachIndexed { index, dot ->
-            val active = index <= step
-            dot.setBackgroundResource(if (active) R.drawable.dot_ok else R.drawable.dot_idle)
-            dot.animate().alpha(if (active) 1f else 0.4f).setDuration(180L).start()
-            val scale = if (index == step) 1.35f else 1f
-            dot.animate().scaleX(scale).scaleY(scale).setDuration(180L).start()
+            val active = index == step
+            dot.setBackgroundResource(if (index <= step) R.drawable.bg_dot_active else R.drawable.bg_dot_idle)
+            dot.alpha = if (index <= step) 1f else 0.35f
+            (dot.layoutParams as LinearLayout.LayoutParams).width =
+                ((if (active) 18 else 6) * d).toInt()
+            dot.layoutParams = dot.layoutParams
+            dot.animate().alpha(if (index <= step) 1f else 0.35f).setDuration(180L).start()
         }
-        btnNext.text = if (step == stepViews.lastIndex) "开始使用" else "下一步"
-        btnSkip.visibility = if (step == stepViews.lastIndex) View.GONE else View.VISIBLE
     }
 
     private fun persistConfig() {
         val index = spCalendar.selectedItemPosition
-        if (index in calendars.indices) {
-            Prefs.setCalendarId(this, calendars[index].id)
-        }
+        if (index in calendars.indices) Prefs.setCalendarId(this, calendars[index].id)
         val key = etApiKey.text.toString().trim()
         if (key.isNotEmpty()) Prefs.setApiKey(this, key)
     }
@@ -213,9 +221,10 @@ class OnboardingActivity : AppCompatActivity() {
     private fun loadCalendars() {
         if (!Permissions.hasCalendar(this)) {
             spCalendar.adapter = ArrayAdapter(
-                this, android.R.layout.simple_spinner_item, listOf("（先授权日历权限）")
+                this, android.R.layout.simple_spinner_item, listOf("（还没给日历权限）")
             )
-            tvCalendarHint.text = "下面第 3 步里点「日历读写」也能授权"
+            tvCalendarHint.visibility = View.VISIBLE
+            tvCalendarHint.text = "下一步里点「日历读写」授权后，这里会自动列出来"
             return
         }
         Thread {
@@ -223,18 +232,15 @@ class OnboardingActivity : AppCompatActivity() {
             runOnUiThread {
                 calendars = list
                 val names = if (list.isEmpty()) listOf("（没有可写日历）")
-                else list.map { "${it.displayName}" + if (it.accountName.isBlank()) "" else "（${it.accountName}）" }
+                else list.map { it.displayName + if (it.accountName.isBlank()) "" else "（${it.accountName}）" }
                 spCalendar.adapter = ArrayAdapter(
                     this, android.R.layout.simple_spinner_item, names
                 ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
                 val saved = Prefs.calendarId(this)
                 val index = list.indexOfFirst { it.id == saved }
                 if (index >= 0) spCalendar.setSelection(index)
-                tvCalendarHint.text = if (list.isEmpty()) {
-                    "没有可写日历：点下面「创建本地日历」"
-                } else {
-                    "共 ${list.size} 个可写日历，待办写到选中的这个"
-                }
+                tvCalendarHint.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+                tvCalendarHint.text = "没有可写日历，点下面那个按钮建一个"
             }
         }.start()
     }
