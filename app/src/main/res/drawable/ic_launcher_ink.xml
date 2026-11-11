@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- v3.11：同一套「纸 + 标记」语法，只做版式精修（不新增元素）
+     1) 白纸 26..82（比 3.10 更大，四周留白更薄）
+     2) 页眉 12 高、上圆角，与纸同宽
+     3) 内容（橙块 + 两条线）垂直居中于页眉以下的区域
+     4) 底色 #1F2321（压深一档，让白纸更跳） -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 底 -->
+    <path
+        android:fillColor="#1F2321"
+        android:pathData="M14,0H94A14,14 0,0 1,108 14V94A14,14 0,0 1,94 108H14A14,14 0,0 1,0 94V14A14,14 0,0 1,14 0Z" />
+
+    <!-- 白纸 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30.5,26H76.5A4.5,4.5 0,0 1,81 30.5V77.5A4.5,4.5 0,0 1,76.5 82H30.5A4.5,4.5 0,0 1,26 77.5V30.5A4.5,4.5 0,0 1,30.5 26Z" />
+
+    <!-- 页眉 -->
+    <path
+        android:fillColor="#121615"
+        android:pathData="M30.5,26H76.5A4.5,4.5 0,0 1,81 30.5V38H26V30.5A4.5,4.5 0,0 1,30.5 26Z" />
+
+    <!-- 橙色块：被标记的那一件事 -->
+    <path
+        android:fillColor="#D9B65A"
+        android:pathData="M39.4,52H48.6A2.4,2.4 0,0 1,51 54.4V63.6A2.4,2.4 0,0 1,48.6 66H39.4A2.4,2.4 0,0 1,37 63.6V54.4A2.4,2.4 0,0 1,39.4 52Z" />
+
+    <!-- 两条待办线 -->
+    <path
+        android:fillColor="#121615"
+        android:pathData="M58.7,51H69.3A3.2,3.2 0,0 1,72.5 54.2V54.3A3.2,3.2 0,0 1,69.3 57.5H58.7A3.2,3.2 0,0 1,55.5 54.3V54.2A3.2,3.2 0,0 1,58.7 51Z" />
+    <path
+        android:fillColor="#121615"
+        android:pathData="M58.7,60.5H69.3A3.2,3.2 0,0 1,72.5 63.7V63.8A3.2,3.2 0,0 1,69.3 67H58.7A3.2,3.2 0,0 1,55.5 63.8V63.7A3.2,3.2 0,0 1,58.7 60.5Z" />
+</vector>

@@ -198,6 +198,7 @@ class SettingsActivity : AppCompatActivity() {
                 val picked = palettes.getOrNull(position) ?: return
                 if (picked.id == Prefs.theme(this@SettingsActivity)) return
                 Prefs.setTheme(this@SettingsActivity, picked.id)
+                ThemeManager.applyLauncherIcon(this@SettingsActivity)
                 toast("已换成「${picked.label}」")
                 recreate()
             }
