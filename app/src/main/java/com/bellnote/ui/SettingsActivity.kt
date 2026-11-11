@@ -103,6 +103,7 @@ class SettingsActivity : AppCompatActivity() {
         btnMediaPerm = findViewById(R.id.btnMediaPerm)
         etNtfyTopic = findViewById(R.id.etNtfyTopic)
         setupThemeSpinner()
+        setupThemeModeSpinner()
         tvIgnored = findViewById(R.id.tvIgnored)
 
         etRemind.setText(Prefs.remindMinutes(this).ifEmpty { listOf(1440, 60) }.joinToString(","))
@@ -213,6 +214,35 @@ class SettingsActivity : AppCompatActivity() {
                 Prefs.setTheme(this@SettingsActivity, picked.id)
                 toast("已换成「${picked.label}」")
                 recreate()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
+    }
+
+    /** 明暗：跟随系统 / 浅色 / 深色。选中即生效，AppCompat 会自己重建页面。 */
+    private fun setupThemeModeSpinner() {
+        val spinner = findViewById<Spinner>(R.id.spThemeMode)
+        val modes = ThemeManager.nightModes
+        spinner.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            modes.map { it.label }
+        ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+        val current = Prefs.themeMode(this)
+        spinner.setSelection(modes.indexOfFirst { it.id == current }.coerceAtLeast(0))
+        var initial = true
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                if (initial) {
+                    initial = false
+                    return
+                }
+                val picked = modes.getOrNull(position) ?: return
+                if (picked.id == Prefs.themeMode(this@SettingsActivity)) return
+                Prefs.setThemeMode(this@SettingsActivity, picked.id)
+                ThemeManager.applyNightMode(this@SettingsActivity)
+                toast("外观：${picked.label}")
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit
