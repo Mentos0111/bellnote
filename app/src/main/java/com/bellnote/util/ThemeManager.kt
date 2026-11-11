@@ -23,7 +23,7 @@ object ThemeManager {
         Palette("indigo", "靛蓝"),
         Palette("sand", "暖沙"),
         Palette("ink", "墨黑"),
-        Palette("pink", "粉色")
+        Palette("pink", "胭脂")
     )
 
     fun labelOf(id: String): String =
