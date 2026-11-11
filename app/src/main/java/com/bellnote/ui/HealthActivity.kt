@@ -64,7 +64,7 @@ class HealthActivity : AppCompatActivity() {
         summaryDot.setBackgroundResource(dotOf(worst?.status ?: HealthCheck.Status.UNKNOWN))
         summaryTitle.text = when (worst?.status) {
             HealthCheck.Status.BAD -> "有 ${HealthCheck.pending(items).size} 项需要处理"
-            HealthCheck.Status.WARN -> "基本可用，${HealthCheck.pending(items).size} 项建议看一下"
+            HealthCheck.Status.WARN -> "一切可用，${HealthCheck.pending(items).size} 项可优化"
             else -> "一切正常"
         }
         summaryDetail.text = worst?.let { "${it.label}：${it.detail}" } ?: "所有检查项都通过"
@@ -103,7 +103,7 @@ class HealthActivity : AppCompatActivity() {
 
     private fun statusText(status: HealthCheck.Status): String = when (status) {
         HealthCheck.Status.OK -> "正常"
-        HealthCheck.Status.WARN -> "建议处理"
+        HealthCheck.Status.WARN -> "可优化"
         HealthCheck.Status.BAD -> "需要处理"
         HealthCheck.Status.UNKNOWN -> "无法判定"
     }

@@ -43,7 +43,7 @@ class HealthCheckTest {
             item(HealthCheck.Status.BAD, "通知权限")
         )
         assertEquals(2, HealthCheck.pending(items).size)
-        assertEquals("2 项需要看一下", HealthCheck.summary(items))
+        assertEquals("2 项可优化", HealthCheck.summary(items))
     }
 
     @Test
