@@ -7,6 +7,12 @@
         <item name="android:windowBackground">?attr/bnWindowBg</item>
         <item name="android:statusBarColor">?attr/bnPrimaryDark</item>
         <item name="android:navigationBarColor">?attr/bnWindowBg</item>
+        <!-- Android 12+ 的系统开屏：和我们的开屏同一个底色，图标底也做成底色，避免白色方块 -->
+        <item name="android:windowSplashScreenBackground">?attr/bnWindowBg</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_blank</item>
+        <item name="android:windowSplashScreenAnimationDuration">0</item>
+
         <item name="android:windowAnimationStyle">@style/BellnoteWindowAnim</item>
         <item name="bnPrimary">@color/primary</item>
         <item name="bnPrimaryDark">@color/primary_dark</item>
@@ -42,6 +48,12 @@
         <item name="android:windowBackground">?attr/bnWindowBg</item>
         <item name="android:statusBarColor">?attr/bnPrimaryDark</item>
         <item name="android:navigationBarColor">?attr/bnWindowBg</item>
+        <!-- Android 12+ 的系统开屏：和我们的开屏同一个底色，图标底也做成底色，避免白色方块 -->
+        <item name="android:windowSplashScreenBackground">?attr/bnWindowBg</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_blank</item>
+        <item name="android:windowSplashScreenAnimationDuration">0</item>
+
         <item name="android:windowAnimationStyle">@style/BellnoteWindowAnim</item>
         <item name="bnPrimary">@color/primary</item>
         <item name="bnPrimaryDark">@color/primary_dark</item>
