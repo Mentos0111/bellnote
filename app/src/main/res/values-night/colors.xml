@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 暗色：青绿提亮、卡片比背景亮一档，保证层次不乱 -->
+    <color name="primary">#FF2FBF9F</color>
+    <color name="primary_dark">#FF0B3A33</color>
+    <color name="primary_light">#FF14322C</color>
+    <color name="accent">#FFF7B23B</color>
+
+    <color name="window_bg">#FF101614</color>
+    <color name="surface">#FF1A211F</color>
+    <color name="card_bg">#FF1C2422</color>
+    <color name="card_stroke">#FF2B3633</color>
+    <color name="divider">#FF242E2C</color>
+
+    <color name="text_primary">#FFE8F1EE</color>
+    <color name="text_secondary">#FF97A8A2</color>
+    <color name="text_on_primary">#FF04211C</color>
+
+    <color name="chip_bg">#FF17332D</color>
+    <color name="danger">#FFFF7B7B</color>
+    <color name="nav_bg">#FF1A211F</color>
+    <color name="ripple">#33E8F1EE</color>
+</resources>

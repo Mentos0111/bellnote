@@ -25,6 +25,7 @@
             android:scaleType="fitCenter" />
 
         <Button
+            style="@style/BtnTonal"
             android:id="@+id/btnPick"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -32,6 +33,7 @@
             android:text="@string/btn_pick_image" />
 
         <Button
+            style="@style/BtnTonal"
             android:id="@+id/btnRecognize"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -47,6 +49,7 @@
             android:visibility="gone" />
 
         <Button
+            style="@style/BtnTonal"
             android:id="@+id/btnRestore"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

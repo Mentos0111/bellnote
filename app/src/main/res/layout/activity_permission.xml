@@ -23,6 +23,7 @@
             android:textSize="14sp" />
 
         <Button
+            style="@style/BtnTonal"
             android:id="@+id/btnNotifAccess"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -36,6 +37,7 @@
             android:textSize="14sp" />
 
         <Button
+            style="@style/BtnTonal"
             android:id="@+id/btnCalendarPerm"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -49,6 +51,7 @@
             android:textSize="14sp" />
 
         <Button
+            style="@style/BtnTonal"
             android:id="@+id/btnAutostart"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -62,12 +65,14 @@
             android:textSize="14sp" />
 
         <Button
+            style="@style/BtnTonal"
             android:id="@+id/btnBattery"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/perm_open" />
 
         <Button
+            style="@style/BtnTonal"
             android:id="@+id/btnAppDetail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
