@@ -37,6 +37,21 @@ object Prefs {
     private const val KEY_RECONCILE_LAST_SUMMARY = "reconcile_last_summary"
     private const val KEY_BASELINE_DONE = "reconcile_baseline_done"
 
+    private const val KEY_IGNORED = "ignored_notices"
+    private const val KEY_NTFY_TOPIC = "ntfy_topic"
+    private const val KEY_NTFY_SERVER = "ntfy_server"
+    private const val KEY_NTFY_SINCE = "ntfy_since"
+    private const val KEY_CATCHUP_AT = "catchup_last_at"
+    private const val KEY_CATCHUP_SUMMARY = "catchup_last_summary"
+
+    /** 存「被忽略的通知」用的分隔符：\u0001 分条、\u0002 分字段，正常正文里不会出现。 */
+    private const val ENTRY_SEP = "\u0001"
+    private const val FIELD_SEP = "\u0002"
+
+    const val DEFAULT_NTFY_SERVER = "https://ntfy.sh"
+    const val MAX_IGNORED = 10
+
+
     const val DEFAULT_RECONCILE_INTERVAL = 30
     const val MIN_RECONCILE_INTERVAL = 15
 
@@ -165,6 +180,86 @@ object Prefs {
         if (last == signature && now - lastAt < 60_000L) return false
         p.edit().putString(KEY_LAST_SIG, signature).putLong(KEY_LAST_AT, now).apply()
         return true
+    }
+
+    // ---------------- ntfy 补查 ----------------
+
+    /**
+     * ntfy 主题。填了才开启补查：App 起来 / 定时对账时直接拉服务器缓存，
+     * 不再只靠「ntfy App 会不会弹通知」这一条命脉。留空 = 保持旧行为。
+     */
+    fun ntfyTopic(context: Context): String = sp(context).getString(KEY_NTFY_TOPIC, "").orEmpty().trim()
+
+    fun setNtfyTopic(context: Context, topic: String) {
+        sp(context).edit().putString(KEY_NTFY_TOPIC, topic.trim()).apply()
+    }
+
+    fun ntfyServer(context: Context): String =
+        sp(context).getString(KEY_NTFY_SERVER, DEFAULT_NTFY_SERVER).orEmpty()
+            .trim().ifBlank { DEFAULT_NTFY_SERVER }.trimEnd('/')
+
+    fun setNtfyServer(context: Context, server: String) {
+        sp(context).edit().putString(KEY_NTFY_SERVER, server.trim()).apply()
+    }
+
+    /** 上次补查到的消息时间（epoch 秒），作为下次的 since。 */
+    fun ntfySince(context: Context): Long = sp(context).getLong(KEY_NTFY_SINCE, 0L)
+
+    fun setNtfySince(context: Context, seconds: Long) {
+        sp(context).edit().putLong(KEY_NTFY_SINCE, seconds).apply()
+    }
+
+    fun lastCatchUpAt(context: Context): Long = sp(context).getLong(KEY_CATCHUP_AT, 0L)
+
+    fun setLastCatchUpAt(context: Context, at: Long) {
+        sp(context).edit().putLong(KEY_CATCHUP_AT, at).apply()
+    }
+
+    fun lastCatchUpSummary(context: Context): String =
+        sp(context).getString(KEY_CATCHUP_SUMMARY, "").orEmpty()
+
+    fun setLastCatchUpSummary(context: Context, summary: String) {
+        sp(context).edit().putString(KEY_CATCHUP_SUMMARY, summary).apply()
+    }
+
+    // ---------------- 被忽略的推送（排查用） ----------------
+
+    data class IgnoredNotice(val at: Long, val reason: String, val text: String)
+
+    /**
+     * 最近被丢弃 / 写失败的通知。以前这类事只写 logcat，手机上一觉醒来什么都查不到；
+     * 现在留最近 [MAX_IGNORED] 条，设置页能直接看。
+     */
+    fun ignoredNotices(context: Context): List<IgnoredNotice> {
+        val raw = sp(context).getString(KEY_IGNORED, "").orEmpty()
+        if (raw.isBlank()) return emptyList()
+        return raw.split(ENTRY_SEP).mapNotNull { entry ->
+            val parts = entry.split(FIELD_SEP)
+            if (parts.size < 3) return@mapNotNull null
+            IgnoredNotice(
+                at = parts[0].toLongOrNull() ?: 0L,
+                reason = parts[1],
+                text = parts[2]
+            )
+        }
+    }
+
+    fun addIgnoredNotice(context: Context, reason: String, text: String) {
+        val oneLine = text
+            .replace('\n', ' ')
+            .replace(ENTRY_SEP, " ")
+            .replace(FIELD_SEP, " ")
+            .take(200)
+        val entry = listOf(System.currentTimeMillis().toString(), reason, oneLine).joinToString(FIELD_SEP)
+        val previous = sp(context).getString(KEY_IGNORED, "").orEmpty()
+            .split(ENTRY_SEP)
+            .filter { it.isNotBlank() }
+        val kept = (listOf(entry) + previous).take(MAX_IGNORED)
+        sp(context).edit().putString(KEY_IGNORED, kept.joinToString(ENTRY_SEP)).apply()
+    }
+
+    fun clearIgnoredNotices(context: Context) {
+        sp(context).edit().remove(KEY_IGNORED).apply()
     }
 
     // ---------------- 定时对账 ----------------

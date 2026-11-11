@@ -78,4 +78,12 @@
     <string name="shot_watch_label">截完图提醒我识别</string>
     <string name="shot_watch_hint">需要「读取相册」权限：没有权限时只保留分享和手动选图。</string>
     <string name="btn_grant_media">允许读取相册</string>
-    <string name="shot_saved">设置已保存</string></resources>
+    <string name="shot_saved">设置已保存</string>
+
+    <string name="label_ntfy_topic">ntfy 主题（填了才开启补查）</string>
+    <string name="hint_ntfy_topic">ntfy App 没弹通知、被系统冻结或被关掉时，消息会丢。填上主题后，App 每次启动和定时对账时会直接从 ntfy 服务器补查最近 2 小时的消息，规则与通知完全一致。留空 = 只靠通知。</string>
+    <string name="btn_catch_up_now">立即补查一次</string>
+    <string name="label_ignored">最近没写进日历的推送</string>
+    <string name="hint_ignored_empty">暂时没有（没认出时间、缺权限、写日历失败的都会记在这里）</string>
+    <string name="btn_clear_ignored">清空这个列表</string>
+</resources>

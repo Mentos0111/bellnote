@@ -40,6 +40,15 @@ object TodoParser {
 
     private val KV_LINE = Regex("^\\s*([^:：]{1,12})\\s*[:：]\\s*(.*)$")
 
+    /**
+     * 已知键名出现的位置就是字段边界。
+     * 通知层可能把正文换行压成空格（或「 · 」），那时逐行解析只能读到第一段「标题」，
+     * 时间就丢了 —— 严格模式会整条丢弃。切段后再逐行解析，换行在不在都能拆开。
+     */
+    private val KEY_BOUNDARY = Regex(
+        "(?=(?:${(KEY_TITLE + KEY_TIME + KEY_DURATION + KEY_NOTE + KEY_REPEAT).sortedByDescending { it.length }.joinToString("|")})\\s*[:：])"
+    )
+
     private val FULL_DATE_TIME = listOf(
         "yyyy-MM-dd HH:mm:ss",
         "yyyy-MM-dd HH:mm",
@@ -323,6 +332,17 @@ object TodoParser {
 
     private fun keyValueFields(text: String): Map<String, String> {
         if (text.isBlank()) return emptyMap()
+        return lineFields(text)
+    }
+
+    /**
+     * 正常情况一行一个字段。
+     * 通知层可能把正文换行压成空格（或「 · 」），那时整段只剩一行「标题：… 时间：… 备注：…」，
+     * 时间就丢了 —— 严格模式会整条丢弃。所以当一行的值里还塞着「还没解析到的别的键」时，
+     * 先按键名边界把这行切开再逐段解析。
+     * 只在缺字段时才切：正常正文的备注不会被误切（备注里出现「时间：」也不会盖掉真时间）。
+     */
+    private fun lineFields(text: String): LinkedHashMap<String, String> {
         val out = LinkedHashMap<String, String>()
         var lastKey: String? = null
         for (rawLine in text.split('\n')) {
@@ -330,16 +350,52 @@ object TodoParser {
             if (line.isEmpty()) continue
             val match = KV_LINE.find(line)
             val key = match?.groupValues?.get(1)?.trim()?.lowercase(Locale.CHINA)
-            if (match != null && key != null && key in ALL_KEYS) {
-                out[key] = match.groupValues[2].trim()
+            if (match == null || key == null || key !in ALL_KEYS) {
+                appendToLast(out, lastKey, line)
+                continue
+            }
+            val value = match.groupValues[2].trim()
+            val pieces = if (hasUnresolvedKey(value, out)) value.split(KEY_BOUNDARY) else listOf(value)
+            if (pieces.size == 1) {
+                out[key] = value
                 lastKey = key
-            } else if (lastKey != null) {
-                val previousKey = lastKey
-                val prev = out[previousKey]
-                out[previousKey] = if (prev.isNullOrBlank()) line else "$prev\n$line"
+                continue
+            }
+            // 压平后的续段：第一段是这一行自己的值，后面的每一段都是一整个字段
+            out[key] = cleanPiece(pieces.first())
+            lastKey = key
+            for (piece in pieces.drop(1)) {
+                val inner = KV_LINE.find(piece.trim())
+                val innerKey = inner?.groupValues?.get(1)?.trim()?.lowercase(Locale.CHINA)
+                if (inner != null && innerKey != null && innerKey in ALL_KEYS) {
+                    out[innerKey] = cleanPiece(inner.groupValues[2])
+                    lastKey = innerKey
+                } else {
+                    appendToLast(out, lastKey, cleanPiece(piece))
+                }
             }
         }
         return out
+    }
+
+    /** 压平后的碎片两头常挂着「 · 」这类分隔符，去掉再当成值。 */
+    private fun cleanPiece(raw: String): String =
+        raw.trim().trimEnd('·', '•', '・', '|', '，', ',', ';', '；').trim()
+
+    private fun appendToLast(out: MutableMap<String, String>, lastKey: String?, line: String) {
+        val previousKey = lastKey ?: return
+        val prev = out[previousKey]
+        out[previousKey] = if (prev.isNullOrBlank()) line else "$prev\n$line"
+    }
+
+    /** 这个值里是不是还藏着「一个我还没解析到的键：」。 */
+    private fun hasUnresolvedKey(value: String, out: Map<String, String>): Boolean {
+        if (!KEY_BOUNDARY.containsMatchIn(value)) return false
+        return value.split(KEY_BOUNDARY).drop(1).any { piece ->
+            val inner = KV_LINE.find(piece.trim())
+            val innerKey = inner?.groupValues?.get(1)?.trim()?.lowercase(Locale.CHINA)
+            innerKey != null && innerKey in ALL_KEYS && out[innerKey].isNullOrBlank()
+        }
     }
 
     /** 支持 2026-11-08 19:00 / 2026/11/8 19:00 / 11-08 19:00 / 19:00 / 毫秒时间戳 等写法。 */

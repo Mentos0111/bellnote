@@ -151,6 +151,52 @@
             android:layout_marginTop="6dp"
             android:text="@string/btn_reconcile_now" />
 
+        <TextView
+            style="@style/FormLabel"
+            android:layout_marginTop="20dp"
+            android:text="@string/label_ntfy_topic" />
+
+        <EditText
+            android:id="@+id/etNtfyTopic"
+            style="@style/FormInput"
+            android:hint="todo-xxxxxxxxxxxx"
+            android:inputType="text" />
+
+        <TextView
+            android:id="@+id/tvNtfyHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:text="@string/hint_ntfy_topic" />
+
+        <Button
+            android:id="@+id/btnCatchUpNow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/btn_catch_up_now" />
+
+        <TextView
+            style="@style/FormLabel"
+            android:layout_marginTop="20dp"
+            android:text="@string/label_ignored" />
+
+        <TextView
+            android:id="@+id/tvIgnored"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:text="@string/hint_ignored_empty" />
+
+        <Button
+            android:id="@+id/btnClearIgnored"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/btn_clear_ignored" />
+
         <Button
             android:id="@+id/btnSaveSettings"
             android:layout_width="match_parent"

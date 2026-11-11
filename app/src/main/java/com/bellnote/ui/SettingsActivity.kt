@@ -17,9 +17,11 @@ import androidx.appcompat.app.AppCompatActivity
 import com.bellnote.R
 import com.bellnote.data.CalendarRepository
 import com.bellnote.data.Prefs
+import com.bellnote.service.NtfyFetcher
 import com.bellnote.service.ReconcileScheduler
 import com.bellnote.service.ScreenshotWatcher
 import com.bellnote.util.Permissions
+import com.bellnote.util.TimeFormat
 import com.bellnote.util.enableHomeUp
 import com.bellnote.util.handleHomeUp
 import com.bellnote.util.SystemPages
@@ -41,6 +43,8 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var spReconcileInterval: Spinner
     private lateinit var cbShotWatch: CheckBox
     private lateinit var btnMediaPerm: Button
+    private lateinit var etNtfyTopic: EditText
+    private lateinit var tvIgnored: TextView
     private var intervalValues: List<Int> = emptyList()
 
     private val requestCalendar = registerForActivityResult(
@@ -76,6 +80,8 @@ class SettingsActivity : AppCompatActivity() {
         spReconcileInterval = findViewById(R.id.spReconcileInterval)
         cbShotWatch = findViewById(R.id.cbShotWatch)
         btnMediaPerm = findViewById(R.id.btnMediaPerm)
+        etNtfyTopic = findViewById(R.id.etNtfyTopic)
+        tvIgnored = findViewById(R.id.tvIgnored)
 
         etRemind.setText(Prefs.remindMinutes(this).ifEmpty { listOf(1440, 60) }.joinToString(","))
         etApiKey.setText(Prefs.apiKey(this))
@@ -85,7 +91,15 @@ class SettingsActivity : AppCompatActivity() {
         cbReconcile.isChecked = Prefs.reconcileEnabled(this)
         cbReconcileNotify.isChecked = Prefs.reconcileNotify(this)
         cbShotWatch.isChecked = Prefs.shotWatchEnabled(this)
+        etNtfyTopic.setText(Prefs.ntfyTopic(this))
         btnMediaPerm.setOnClickListener { requestMediaPermission() }
+        findViewById<Button>(R.id.btnCatchUpNow).setOnClickListener { catchUpNow() }
+        findViewById<Button>(R.id.btnClearIgnored).setOnClickListener {
+            Prefs.clearIgnoredNotices(this)
+            renderIgnored()
+            toast("已清空")
+        }
+        renderIgnored()
         setupIntervalSpinner()
         findViewById<TextView>(R.id.tvVersion).text = versionLabel()
 
@@ -219,6 +233,7 @@ class SettingsActivity : AppCompatActivity() {
         Prefs.setAutoImport(this, cbAutoImport.isChecked)
         Prefs.setStrictParse(this, cbStrictParse.isChecked)
         Prefs.setShotWatchEnabled(this, cbShotWatch.isChecked)
+        Prefs.setNtfyTopic(this, etNtfyTopic.text.toString())
         if (cbShotWatch.isChecked) ScreenshotWatcher.ensureStarted(this)
 
         val interval = intervalValues.getOrNull(spReconcileInterval.selectedItemPosition)
@@ -238,11 +253,54 @@ class SettingsActivity : AppCompatActivity() {
             "定时对账已关"
         }
         toast("设置已保存（提醒：${effective.joinToString(" / ")} 分钟前；$reconcileText）")
+        if (Prefs.ntfyTopic(this).isNotBlank()) NtfyFetcher.catchUpInBackground(this)
         finish()
     }
 
-    private fun requestMediaPermission() {
-        if (Permissions.hasMediaImages(this)) {
+    /** 把「最近没写进日历的推送」和上次补查结果摊在设置页，出问题不用连 adb 也能看。 */
+    private fun renderIgnored() {
+        val entries = Prefs.ignoredNotices(this)
+        val lastAt = Prefs.lastCatchUpAt(this)
+        val summary = Prefs.lastCatchUpSummary(this)
+        val builder = StringBuilder()
+        if (lastAt > 0L) {
+            builder.append("上次补查：${TimeFormat.full(lastAt)}")
+            if (summary.isNotBlank()) builder.append("　$summary")
+            builder.append("\n")
+        }
+        if (entries.isEmpty()) {
+            if (builder.isEmpty()) builder.append(getString(R.string.hint_ignored_empty))
+        } else {
+            builder.append("共 ${entries.size} 条（最新在上）：\n")
+            for (entry in entries) {
+                builder.append("· ${TimeFormat.monthDay(entry.at)}　${entry.reason}\n")
+                builder.append("　${entry.text}\n")
+            }
+        }
+        tvIgnored.text = builder.toString().trim()
+    }
+
+    /** 立即补查一次：先把输入框里的主题存下来，再联网拉，结果直接回显。 */
+    private fun catchUpNow() {
+        Prefs.setNtfyTopic(this, etNtfyTopic.text.toString())
+        if (Prefs.ntfyTopic(this).isBlank()) {
+            toast("先填 ntfy 主题（例如 todo-xxxx），再点补查")
+            return
+        }
+        val button = findViewById<Button>(R.id.btnCatchUpNow)
+        button.isEnabled = false
+        toast("正在补查…")
+        Thread {
+            val result = NtfyFetcher.catchUp(this)
+            runOnUiThread {
+                button.isEnabled = true
+                renderIgnored()
+                toast(result.summary())
+            }
+        }.start()
+    }
+
+    private fun requestMediaPermission() {        if (Permissions.hasMediaImages(this)) {
             toast(getString(R.string.shot_saved))
             return
         }
