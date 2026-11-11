@@ -105,13 +105,29 @@
                     android:src="@drawable/ic_scene_calendar" />
             </FrameLayout>
 
-            <TextView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="写进哪个日历"
-                android:textColor="?attr/bnTextPrimary"
-                android:textSize="28sp"
-                android:textStyle="bold" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="写进哪个日历"
+                    android:textColor="?attr/bnTextPrimary"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/btnHelpCalendar"
+                    style="@style/SettingsHelpButton"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:contentDescription="看说明"
+                    android:src="@drawable/ic_nav_help" />
+            </LinearLayout>
 
             <TextView
                 android:layout_width="match_parent"
@@ -135,17 +151,15 @@
                 style="@style/HintText"
                 android:visibility="gone" />
 
-            <Button
-                android:id="@+id/btnOnbCreateCalendar"
-                style="@style/BtnTonal"
-                android:layout_marginTop="10dp"
-                android:text="创建本地日历" />
+            <TextView
+                style="@style/FormLabel"
+                android:text="DeepSeek API Key（截图识别用）" />
 
             <EditText
                 android:id="@+id/etOnbApiKey"
                 style="@style/FormInput"
                 android:layout_marginTop="18dp"
-                android:hint="DeepSeek API Key（截图识别用，可跳过）"
+                android:hint="sk-…"
                 android:inputType="textPassword" />
         </LinearLayout>
 
