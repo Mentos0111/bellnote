@@ -23,6 +23,7 @@ import com.bellnote.service.NtfySender
 import com.bellnote.service.ReconcileScheduler
 import com.bellnote.service.ScreenshotWatcher
 import com.bellnote.util.CrashLog
+import com.bellnote.util.DeviceVendor
 import com.bellnote.util.IcsExport
 import com.bellnote.util.LedgerBackup
 import com.bellnote.util.Permissions
@@ -133,6 +134,27 @@ class SettingsActivity : AppCompatActivity() {
             if (!SystemPages.openNotificationAccess(this)) {
                 toast("打不开通知使用权页面，请手动到 设置→应用→特殊应用权限")
             }
+        }
+        findViewById<Button>(R.id.btnOpenA11y).setOnClickListener {
+            if (com.bellnote.service.ScreenCaptureService.isConnected()) {
+                toast("截屏服务已经开着")
+            } else if (!DeviceVendor.openAccessibility(this)) {
+                toast("打不开无障碍页面，请手动到 设置→无障碍→Bellnote 截屏")
+            }
+        }
+        findViewById<Button>(R.id.btnSidebarGuide).setOnClickListener {
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(getString(R.string.sidebar_howto_title))
+                .setMessage(DeviceVendor.sidebarGuide())
+                .setPositiveButton("知道了", null)
+                .show()
+        }
+        findViewById<Button>(R.id.btnTileGuide).setOnClickListener {
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(getString(R.string.nav_tile))
+                .setMessage(getString(R.string.tile_guide))
+                .setPositiveButton("知道了", null)
+                .show()
         }
         findViewById<Button>(R.id.btnCalendarPerm).setOnClickListener {
             if (Permissions.hasCalendar(this)) toast("日历权限已经有了")

@@ -27,6 +27,8 @@ class NtfyNotificationListener : NotificationListenerService() {
     override fun onListenerConnected() {
         super.onListenerConnected()
         Log.i(TAG, "onListenerConnected: 通知使用权已连接，包名=$packageName")
+        // 记一笔：授权开着但这个时间很久没更新，就说明服务被系统回收了（首页会提示重开）
+        Prefs.setListenerConnectedAt(applicationContext, System.currentTimeMillis())
         // 服务被系统回收后又连上时，通知栏里可能还挂着没处理过的 ntfy 通知 —— 先补一遍。
         try {
             val active = activeNotifications ?: emptyArray()

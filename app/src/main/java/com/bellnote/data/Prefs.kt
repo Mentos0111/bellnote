@@ -43,6 +43,7 @@ object Prefs {
     private const val KEY_NTFY_SINCE = "ntfy_since"
     private const val KEY_CATCHUP_AT = "catchup_last_at"
     private const val KEY_CATCHUP_SUMMARY = "catchup_last_summary"
+    private const val KEY_LISTENER_AT = "listener_connected_at"
 
     /** 存「被忽略的通知」用的分隔符：\u0001 分条、\u0002 分字段，正常正文里不会出现。 */
     private const val ENTRY_SEP = "\u0001"
@@ -260,6 +261,15 @@ object Prefs {
 
     fun clearIgnoredNotices(context: Context) {
         sp(context).edit().remove(KEY_IGNORED).apply()
+    }
+
+    // ---------------- 监听健康 ----------------
+
+    /** 通知监听最近一次连上的时间：用来判断「授权还在但服务被系统回收了」。 */
+    fun listenerConnectedAt(context: Context): Long = sp(context).getLong(KEY_LISTENER_AT, 0L)
+
+    fun setListenerConnectedAt(context: Context, at: Long) {
+        sp(context).edit().putLong(KEY_LISTENER_AT, at).apply()
     }
 
     // ---------------- 定时对账 ----------------

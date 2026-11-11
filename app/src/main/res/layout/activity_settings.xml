@@ -242,6 +242,36 @@
             android:layout_marginTop="8dp"
             android:text="@string/perm_notification" />
 
+        <TextView
+            style="@style/FormLabel"
+            android:text="@string/a11y_title" />
+
+        <TextView
+            android:id="@+id/tvA11yHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:text="@string/a11y_hint" />
+
+        <Button
+            android:id="@+id/btnOpenA11y"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_open_a11y" />
+
+        <Button
+            android:id="@+id/btnSidebarGuide"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_sidebar_guide" />
+
+        <Button
+            android:id="@+id/btnTileGuide"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_tile_guide" />
+
         <Button
             android:id="@+id/btnCalendarPerm"
             android:layout_width="match_parent"

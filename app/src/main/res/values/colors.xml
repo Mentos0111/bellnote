@@ -5,4 +5,6 @@
     <color name="accent">#FFEF8F32</color>
     <color name="card_bg">#14808080</color>
     <color name="text_secondary">#FF6B6B6B</color>
+    <color name="text_primary">#FF1F1F1F</color>
+    <color name="nav_bg">#FFFFFFFF</color>
 </resources>

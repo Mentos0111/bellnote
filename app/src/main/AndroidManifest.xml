@@ -82,6 +82,77 @@
             android:launchMode="singleTop"
             android:parentActivityName=".ui.MainActivity" />
 
+        <!-- 系统侧边栏（智能侧边栏）里添加的那个入口：点一下截当前屏幕并去识别 -->
+        <activity
+            android:name=".ui.SidebarCaptureActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:label="@string/sidebar_app_label"
+            android:launchMode="singleTop"
+            android:noHistory="true"
+            android:theme="@style/Theme.Bellnote.Transparent">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- 分享一段文字 / 选中文字 → 记一条 -->
+        <activity
+            android:name=".ui.QuickAddActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:noHistory="true"
+            android:theme="@style/Theme.Bellnote.Transparent">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
+        <!-- 截屏能力（无障碍服务）：只用来截当前屏幕 -->
+        <service
+            android:name=".service.ScreenCaptureService"
+            android:exported="true"
+            android:label="@string/a11y_title"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service" />
+        </service>
+
+        <!-- 通知栏磁贴：点一下回首页并聚焦「一句话记」 -->
+        <service
+            android:name=".service.QuickAddTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_launcher"
+            android:label="记一条"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!-- 给相机拍照和内部传图用 -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <receiver
             android:name=".service.ReconcileReceiver"
             android:exported="true">
