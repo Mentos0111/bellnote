@@ -240,29 +240,25 @@ class SettingsActivity : AppCompatActivity() {
 
 
 
-    /** 分级目录：四个分组标题点一下展开 / 收起，默认只展开「输入渠道」。 */
+    /** 分级目录：四个分组都是收起的，点标题才展开。 */
     private fun setupSections() {
-        val open = Prefs.settingsOpenSections(this)
-        bindSection("input", R.id.headInput, R.id.groupInput, R.id.arrowInput, open.contains("input"))
-        bindSection("calendar", R.id.headCalendar, R.id.groupCalendar, R.id.arrowCalendar, open.contains("calendar"))
-        bindSection("appearance", R.id.headAppearance, R.id.groupAppearance, R.id.arrowAppearance, open.contains("appearance"))
-        bindSection("diagnostics", R.id.headDiagnostics, R.id.groupDiagnostics, R.id.arrowDiagnostics, open.contains("diagnostics"))
+        // 每次打开都从全收起开始，不记住上次的展开状态
+        bindSection(R.id.headInput, R.id.groupInput, R.id.arrowInput)
+        bindSection(R.id.headCalendar, R.id.groupCalendar, R.id.arrowCalendar)
+        bindSection(R.id.headAppearance, R.id.groupAppearance, R.id.arrowAppearance)
+        bindSection(R.id.headDiagnostics, R.id.groupDiagnostics, R.id.arrowDiagnostics)
     }
 
-    /** 展开状态记在 Prefs 里：换主题重建页面后，还是用户上次留下的样子。 */
-    private fun bindSection(id: String, headId: Int, groupId: Int, arrowId: Int, startExpanded: Boolean) {
+    private fun bindSection(headId: Int, groupId: Int, arrowId: Int) {
         val group = findViewById<View>(groupId)
         val arrow = findViewById<android.widget.ImageView>(arrowId)
-        var open = startExpanded
-        group.visibility = if (open) View.VISIBLE else View.GONE
-        arrow.rotation = if (open) 90f else 0f
+        var open = false
+        group.visibility = View.GONE
+        arrow.rotation = 0f
         findViewById<View>(headId).setOnClickListener {
             open = !open
             group.visibility = if (open) View.VISIBLE else View.GONE
             arrow.animate().rotation(if (open) 90f else 0f).setDuration(150L).start()
-            val current = Prefs.settingsOpenSections(this).toMutableSet()
-            if (open) current.add(id) else current.remove(id)
-            Prefs.setSettingsOpenSections(this, current)
         }
     }
 
