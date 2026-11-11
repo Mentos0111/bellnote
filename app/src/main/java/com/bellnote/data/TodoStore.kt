@@ -6,8 +6,6 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
-import java.time.Instant
-import java.time.ZoneId
 
 /**
  * 本地账本里的一条待办：ntfy 发过来、或手动/截图加进日历的东西。
@@ -201,7 +199,8 @@ class TodoStore(context: Context) {
     }
 
     /**
-     * 收到删除指令时同步本地账：标题必须完全一致，给了日期就只删那一天的。
+     * 收到删除指令时同步本地账：标题必须完全一致，给了时间就只删那前后 30 分钟内的那条
+     * （和 CalendarRepository.findOwnEvents 用同一个窗口，不然日历删了、账还在，对账会报「多」）。
      * 这样「日历里已经被手动删掉、本地账还留着」的条目也会一起清掉。
      */
     @Synchronized
@@ -221,14 +220,11 @@ class TodoStore(context: Context) {
                     arrayOf(wanted, STATUS_ACTIVE)
                 )
             } else {
-                val zone = ZoneId.systemDefault()
-                val day = Instant.ofEpochMilli(dayMillis).atZone(zone).toLocalDate()
-                val start = day.atStartOfDay(zone).toInstant().toEpochMilli()
-                val end = day.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
+                val range = DeleteWindow.rangeOf(dayMillis)
                 db.update(
                     TABLE, values,
-                    "$COL_TITLE = ? AND $COL_START >= ? AND $COL_START < ? AND $COL_STATUS = ?",
-                    arrayOf(wanted, start.toString(), end.toString(), STATUS_ACTIVE)
+                    "$COL_TITLE = ? AND $COL_START >= ? AND $COL_START <= ? AND $COL_STATUS = ?",
+                    arrayOf(wanted, range.first.toString(), range.last.toString(), STATUS_ACTIVE)
                 )
             }
         } catch (e: Exception) {

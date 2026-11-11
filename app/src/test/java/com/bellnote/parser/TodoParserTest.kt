@@ -250,4 +250,60 @@ class TodoParserTest {
         assertEquals("数学作业", withTime?.title)
         assertEquals("2026-11-08 19:00", TimeFormat.full(withTime!!.timeMillis!!))
     }
+
+    // ---------------- 通知层把换行压平 / 截断时的容错（v3.0） ----------------
+
+    /** 2026-11-11 22:20 外部电脑端真实发出的两条正文（备注都很长）。 */
+    private val physicsBody = "标题：物理课\n时间：2026-11-12 20:30\n时长：120\n备注：" +
+        "第 2 次课 2 小时·考前押题串讲（以讲真题为主、电学为主）：① 电势能/电势/电势差/U=Ed/电容" +
+        "＋带电粒子在电场中（两道电场计算）② 串并联＋测金属丝电阻率（实验）③ 光：折射/全反射" +
+        "＋测玻璃砖折射率＋光学计算"
+
+    private val chemistryBody = "标题：化学课\n时间：2026-11-14 20:30\n时长：120\n" +
+        "备注：基础补漏（弱电解质、pH 的 log 换算）＋ 题型③：电离与 pH 计算 ＋ 限时动笔"
+
+    @Test
+    fun `真实长备注正文能完整解析`() {
+        val result = TodoParser.parse("物理课", physicsBody, now)
+        assertEquals("物理课", result.spec.title)
+        assertEquals("2026-11-12 20:30", TimeFormat.full(result.spec.startMillis))
+        assertEquals(120, result.spec.durationMinutes)
+        assertTrue(result.spec.note!!.startsWith("第 2 次课"))
+        assertTrue(result.timeParsed)
+    }
+
+    @Test
+    fun `换行被压成空格时仍能解析出时间`() {
+        val flat = physicsBody.replace("\n", " ")
+        val result = TodoParser.parse("物理课", flat, now)
+        assertEquals("物理课", result.spec.title)
+        assertEquals("2026-11-12 20:30", TimeFormat.full(result.spec.startMillis))
+        assertEquals(120, result.spec.durationMinutes)
+        assertTrue("换行被压平也必须能拿到时间，否则严格模式会静默丢弃", result.timeParsed)
+    }
+
+    @Test
+    fun `换行被压成间隔号时仍能解析出时间`() {
+        val flat = chemistryBody.replace("\n", " · ")
+        val result = TodoParser.parse("化学课", flat, now)
+        assertEquals("化学课", result.spec.title)
+        assertEquals("2026-11-14 20:30", TimeFormat.full(result.spec.startMillis))
+        assertTrue(result.timeParsed)
+    }
+
+    @Test
+    fun `只剩首行时确实拿不到时间（该被严格模式丢弃）`() {
+        val result = TodoParser.parse("物理课", "标题：物理课", now)
+        assertFalse("只有标题没有时间，不能假装解析成功", result.timeParsed)
+        assertEquals("物理课", result.spec.title)
+    }
+
+    @Test
+    fun `正常长备注不会被键名边界误切`() {
+        // 备注里出现「时间」字样但后面没有冒号的，不该被当成分隔点
+        val body = "标题：化学课\n时间：2026-11-14 20:30\n备注：这次重点讲反应时间 30 秒的影响"
+        val result = TodoParser.parse(null, body, now)
+        assertEquals("2026-11-14 20:30", TimeFormat.full(result.spec.startMillis))
+        assertEquals("这次重点讲反应时间 30 秒的影响", result.spec.note)
+    }
 }

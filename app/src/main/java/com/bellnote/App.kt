@@ -4,6 +4,7 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+import com.bellnote.service.NtfyFetcher
 import com.bellnote.service.ReconcileScheduler
 import com.bellnote.service.ScreenshotWatcher
 
@@ -25,6 +26,8 @@ class App : Application() {
         ReconcileScheduler.sync(this)
         // 有相册权限就顺手挂上截图监听（没权限时它在内部直接返回）
         ScreenshotWatcher.ensureStarted(this)
+        // 顺手补查一次 ntfy：ntfy App 没弹通知/被系统冻结时，消息还能从这里补回来
+        NtfyFetcher.catchUpInBackground(this)
     }
 
     companion object {

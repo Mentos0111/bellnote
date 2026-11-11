@@ -31,6 +31,8 @@ class ReconcileReceiver : BroadcastReceiver() {
                         ReconcileScheduler.scheduleNext(
                             app, Prefs.reconcileInterval(app) * 60_000L
                         )
+                        // 对账顺带补查一次 ntfy（自己开线程，不占着这次闹钟的时间窗）
+                        NtfyFetcher.catchUpInBackground(app)
                         pending.finish()
                     }
                 }.start()

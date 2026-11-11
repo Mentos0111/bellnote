@@ -204,23 +204,19 @@ class CalendarRepository(private val context: Context) {
         }
     }
 
-    /** 按标题（可再按日期）找本 App 写过的事件，供「发 ntfy 删除」用。 */
+    /**
+     * 按标题（可再按时间）找本 App 写过的事件，供「发 ntfy 删除」用。
+     * 时间按 ±[DeleteWindow.WINDOW_MS] 命中，不再按「同一天」——
+     * 否则删一节课会连带删掉当天同名但不同时段的另一节。
+     */
     fun findOwnEvents(title: String?, timeMillis: Long?): List<TodoItem> {
         val all = queryOwnEvents()
         if (title.isNullOrBlank() && timeMillis == null) return emptyList()
         val wanted = title?.trim().orEmpty()
         return all.filter { item ->
             val titleOk = wanted.isEmpty() || TitleKey.same(item.title, wanted)
-            val timeOk = timeMillis == null || sameDay(item.startMillis, timeMillis)
-            titleOk && timeOk
+            titleOk && DeleteWindow.matches(item.startMillis, timeMillis)
         }
-    }
-
-    private fun sameDay(first: Long, second: Long): Boolean {
-        val zone = java.time.ZoneId.systemDefault()
-        val a = java.time.Instant.ofEpochMilli(first).atZone(zone).toLocalDate()
-        val b = java.time.Instant.ofEpochMilli(second).atZone(zone).toLocalDate()
-        return a == b
     }
 
     /** 查询本 App 创建的事件；calendarId 传 null 表示所有日历。 */
