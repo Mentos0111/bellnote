@@ -48,10 +48,14 @@ object Prefs {
     private const val KEY_HEALTH = "health_cache"
     private const val KEY_ONBOARDED = "onboarded"
     private const val KEY_HEALTH_AT = "health_cached_at"
+    private const val KEY_COLLAPSED_GROUPS = "list_collapsed_groups"
 
     /** 存「被忽略的通知」用的分隔符：\u0001 分条、\u0002 分字段，正常正文里不会出现。 */
     private const val ENTRY_SEP = "\u0001"
     private const val FIELD_SEP = "\u0002"
+
+    /** 默认收起的分组：过期的事平时不用看，但收起时标题上会写条数。 */
+    private const val DEFAULT_COLLAPSED_GROUP = "已过期"
 
     const val DEFAULT_NTFY_SERVER = "https://ntfy.sh"
     const val MAX_IGNORED = 10
@@ -356,4 +360,15 @@ object Prefs {
             androidx.core.content.ContextCompat.checkSelfPermission(
                 context, android.Manifest.permission.WRITE_CALENDAR
             )
+
+    /** 列表里哪些分组是收起来的（默认只收「已过期」）。 */
+    fun collapsedGroups(context: Context): Set<String> {
+        val raw = sp(context).getString(KEY_COLLAPSED_GROUPS, null)
+            ?: return setOf(DEFAULT_COLLAPSED_GROUP)
+        return raw.split('\u0001').filter { it.isNotBlank() }.toSet()
+    }
+
+    fun setCollapsedGroups(context: Context, labels: Set<String>) {
+        sp(context).edit().putString(KEY_COLLAPSED_GROUPS, labels.joinToString("\u0001")).apply()
+    }
 }

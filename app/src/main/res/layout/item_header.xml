@@ -1,12 +1,31 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/headerText"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:letterSpacing="0.08"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?android:attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
     android:paddingLeft="4dp"
     android:paddingTop="14dp"
     android:paddingRight="4dp"
-    android:paddingBottom="6dp"
-    android:textColor="?attr/bnTextSecondary"
-    android:textSize="11sp" />
+    android:paddingBottom="6dp">
+
+    <TextView
+        android:id="@+id/headerText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:letterSpacing="0.08"
+        android:textColor="?attr/bnTextSecondary"
+        android:textSize="11sp" />
+
+    <ImageView
+        android:id="@+id/headerArrow"
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:contentDescription="展开或收起这一组"
+        android:src="@drawable/ic_chevron_right"
+        android:tint="?attr/bnTextSecondary" />
+</LinearLayout>
