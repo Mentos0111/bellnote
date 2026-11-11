@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.bellnote.ui.MainActivity
 
 /**
- * 子页面（编辑 / 截图识别 / 设置 / 对账 / 权限说明）统一用这套导航：
+ * 子页面（编辑 / 截图识别 / 设置 / 对账 / 运行体检）统一用这套导航：
  * 左上角一个箭头直接回主页，而不是让用户一层层按返回。
  */
 

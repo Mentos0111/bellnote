@@ -84,12 +84,6 @@
             android:parentActivityName=".ui.MainActivity" />
 
         <activity
-            android:name=".ui.PermissionGuideActivity"
-            android:exported="false"
-            android:launchMode="singleTop"
-            android:parentActivityName=".ui.MainActivity" />
-
-        <activity
             android:name=".ui.ReconcileActivity"
             android:exported="false"
             android:launchMode="singleTop"

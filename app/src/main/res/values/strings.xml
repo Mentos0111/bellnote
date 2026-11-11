@@ -41,7 +41,6 @@
     <string name="perm_autostart">自启动管理（realme）</string>
     <string name="perm_battery">电池 / 后台耗电白名单</string>
     <string name="perm_app_detail">应用详情页</string>
-    <string name="perm_open">去设置</string>
 
     <string name="btn_pick_image">选择截图</string>
     <string name="btn_recognize">调用 DeepSeek 识别</string>

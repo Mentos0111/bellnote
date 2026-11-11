@@ -100,7 +100,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, HealthActivity::class.java))
         }
         findViewById<View>(R.id.statusCard).setOnClickListener {
-            startActivity(Intent(this, PermissionGuideActivity::class.java))
+            startActivity(Intent(this, HealthActivity::class.java))
         }
         findViewById<TextView>(R.id.tvDate).text = TimeFormat.todayLine(System.currentTimeMillis())
     }
@@ -211,7 +211,7 @@ class MainActivity : AppCompatActivity() {
                         .setPositiveButton("知道了", null)
                         .show()
 
-                    else -> startActivity(Intent(this, PermissionGuideActivity::class.java))
+                    else -> startActivity(Intent(this, HealthActivity::class.java))
                 }
             }
             .setNegativeButton("关闭", null)
