@@ -9,6 +9,7 @@ local.properties
 *.keystore
 !keystore/bellnote-debug.keystore
 *.jks
+*.jks.b64
 # 正式签名口令等敏感文件，绝不入库
 *.credentials.txt
 *credentials*.txt
