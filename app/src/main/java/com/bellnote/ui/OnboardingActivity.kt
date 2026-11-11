@@ -176,6 +176,12 @@ class OnboardingActivity : AppCompatActivity() {
             }
             .start()
 
+        // 主视觉比页面慢半拍，做一点点视差
+        val hero = heroOf(target)
+        hero.translationX = dir * width * 0.18f
+        hero.animate().translationX(0f).setDuration(360L)
+            .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
+
         next.visibility = View.VISIBLE
         next.translationX = dir * width * 0.45f
         next.alpha = 0f
@@ -190,11 +196,29 @@ class OnboardingActivity : AppCompatActivity() {
             .start()
 
         step = target
+        popHero(step)
         if (step == 1) loadCalendars()
         renderDots()
         btnNext.text = if (step == steps.lastIndex) "开始使用" else "下一步"
         btnSkip.animate().alpha(if (step == steps.lastIndex) 0f else 1f).setDuration(150L).start()
         btnSkip.isEnabled = step != steps.lastIndex
+    }
+
+    private fun heroOf(index: Int): View = when (index) {
+        1 -> findViewById(R.id.hero2)
+        2 -> findViewById(R.id.hero3)
+        else -> findViewById(R.id.hero1)
+    }
+
+    private fun popHero(index: Int) {
+        val hero = heroOf(index)
+        hero.scaleX = 0.85f
+        hero.scaleY = 0.85f
+        hero.alpha = 0.6f
+        hero.animate().scaleX(1f).scaleY(1f).alpha(1f)
+            .setStartDelay(80L).setDuration(380L)
+            .setInterpolator(android.view.animation.OvershootInterpolator(1.3f))
+            .start()
     }
 
     /** 进度条：当期那颗从圆点拉成一小条。 */

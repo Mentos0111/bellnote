@@ -4,6 +4,13 @@
     android:layout_height="match_parent"
     android:background="?attr/bnWindowBg">
 
+    <!-- 顶部一层很淡的底色渐晕，换页时交叉淡入 -->
+    <View
+        android:id="@+id/ambient"
+        android:layout_width="match_parent"
+        android:layout_height="440dp"
+        android:background="@drawable/bg_ambient" />
+
     <!-- 三页并排放在一个 deck 里，翻页整层平移，做出真正的滑动感 -->
     <FrameLayout
         android:id="@+id/deck"
@@ -78,6 +85,26 @@
             android:paddingTop="56dp"
             android:paddingBottom="104dp">
 
+            <FrameLayout
+                android:layout_width="112dp"
+                android:layout_height="112dp"
+                android:layout_marginBottom="14dp"
+                android:clipChildren="false">
+
+                <View
+                    android:layout_width="112dp"
+                    android:layout_height="112dp"
+                    android:background="@drawable/bg_hero_ring" />
+
+                <ImageView
+                    android:id="@+id/hero2"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_scene_calendar" />
+            </FrameLayout>
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -132,6 +159,26 @@
             android:paddingRight="28dp"
             android:paddingTop="56dp"
             android:paddingBottom="104dp">
+
+            <FrameLayout
+                android:layout_width="112dp"
+                android:layout_height="112dp"
+                android:layout_marginBottom="14dp"
+                android:clipChildren="false">
+
+                <View
+                    android:layout_width="112dp"
+                    android:layout_height="112dp"
+                    android:background="@drawable/bg_hero_ring" />
+
+                <ImageView
+                    android:id="@+id/hero3"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_scene_shield" />
+            </FrameLayout>
 
             <TextView
                 android:layout_width="match_parent"
