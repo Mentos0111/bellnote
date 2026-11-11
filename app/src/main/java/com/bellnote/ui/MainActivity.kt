@@ -71,6 +71,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         DeviceVendor.log(this)
         maybePlaySplash()
+        com.bellnote.util.PrivacyGate.ensure(this)
 
         emptyView = findViewById(R.id.emptyView)
         drawer = findViewById(R.id.drawer)
@@ -328,6 +329,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
+        // 从隐私政策页返回还没同意的话，继续挡着
+        com.bellnote.util.PrivacyGate.ensure(this)
+
         super.onResume()
         refreshHealthIfStale()
         if (ThemeManager.refreshIfNeeded(this)) {

@@ -110,6 +110,9 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnExportIcs).setOnClickListener { exportIcs() }
         findViewById<Button>(R.id.btnBackupLedger).setOnClickListener { backupLedger() }
         findViewById<Button>(R.id.btnCrashLog).setOnClickListener { showCrashLog() }
+        findViewById<Button>(R.id.btnPrivacy).setOnClickListener {
+            com.bellnote.util.PrivacyGate.openFullText(this)
+        }
         findViewById<Button>(R.id.btnOnboarding).setOnClickListener {
             startActivity(Intent(this, OnboardingActivity::class.java))
         }
@@ -130,11 +133,6 @@ class SettingsActivity : AppCompatActivity() {
         setupHelp()
         setupSections()
         findViewById<Button>(R.id.btnCreateCalendar).setOnClickListener { createLocalCalendar() }
-        findViewById<Button>(R.id.btnNotifAccess).setOnClickListener {
-            if (!SystemPages.openNotificationAccess(this)) {
-                toast("打不开通知使用权页面，请手动到 设置→应用→特殊应用权限")
-            }
-        }
         findViewById<Button>(R.id.btnOpenA11y).setOnClickListener {
             if (com.bellnote.service.ScreenCaptureService.isConnected()) {
                 toast("截屏服务已经开着")

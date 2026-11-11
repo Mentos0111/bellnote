@@ -7,6 +7,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
 import com.bellnote.service.NtfyFetcher
+import com.bellnote.service.NtfyPollScheduler
 import com.bellnote.service.ReconcileScheduler
 import com.bellnote.service.ScreenshotWatcher
 import com.bellnote.util.CrashLog
@@ -41,6 +42,8 @@ class App : Application() {
         ScreenshotWatcher.ensureStarted(this)
         // 顺手补查一次 ntfy：ntfy App 没弹通知/被系统冻结时，消息还能从这里补回来
         NtfyFetcher.catchUpInBackground(this)
+        // 主动拉取排班：不再依赖「通知使用权」，每 15 分钟问一次 ntfy 服务器
+        NtfyPollScheduler.sync(this)
 
         // 换桌面图标会禁用旧的 activity-alias，正在用的任务会被系统收掉；
         // 所以等所有页面都退到后台再换，用户看不到这一下。

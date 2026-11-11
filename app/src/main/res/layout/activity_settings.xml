@@ -416,6 +416,12 @@
             android:visibility="gone">
 
             <Button
+                android:id="@+id/btnPrivacy"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="隐私政策" />
+
+            <Button
                 android:id="@+id/btnOnboarding"
                 style="@style/BtnTonal"
                 android:layout_marginTop="6dp"
@@ -444,12 +450,6 @@
                     android:contentDescription="看说明"
                     android:src="@drawable/ic_nav_help" />
             </LinearLayout>
-
-            <Button
-                android:id="@+id/btnNotifAccess"
-                style="@style/BtnTonal"
-                android:layout_marginTop="4dp"
-                android:text="@string/perm_notification" />
 
             <Button
                 android:id="@+id/btnOpenA11y"

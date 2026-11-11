@@ -46,6 +46,7 @@ object Prefs {
     private const val KEY_LISTENER_AT = "listener_connected_at"
     private const val KEY_THEME = "theme_palette"
     private const val KEY_SPLASH_VERSION = "splash_version"
+    private const val KEY_PRIVACY_ACCEPTED = "privacy_accepted"
     private const val KEY_THEME_MODE = "theme_mode"
     private const val KEY_HEALTH = "health_cache"
     private const val KEY_ONBOARDED = "onboarded"
@@ -299,6 +300,14 @@ object Prefs {
 
     fun setTheme(context: Context, id: String) {
         sp(context).edit().putString(KEY_THEME, id).apply()
+    }
+
+    /** 是否同意过隐私政策（首次启动必须点过「同意」）。 */
+    fun privacyAccepted(context: Context): Boolean =
+        sp(context).getBoolean(KEY_PRIVACY_ACCEPTED, false)
+
+    fun setPrivacyAccepted(context: Context, accepted: Boolean) {
+        sp(context).edit().putBoolean(KEY_PRIVACY_ACCEPTED, accepted).apply()
     }
 
     /** 上次播过开屏的版本号；换了版本就再播一次品牌动效。 */
