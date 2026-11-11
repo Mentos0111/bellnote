@@ -1,38 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/window_bg">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="28dp">
 
+        <!-- ===== 目标日历 ===== -->
         <TextView
-            style="@style/FormLabel"
-            android:layout_marginTop="0dp"
-            android:text="@string/label_calendar" />
+            style="@style/SectionLabel"
+            android:layout_marginTop="8dp"
+            android:text="日历" />
 
         <Spinner
             android:id="@+id/spCalendar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="52dp"
+            android:background="@drawable/bg_input"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp" />
 
         <TextView
             android:id="@+id/tvCalendarHint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="12sp"
-            android:textColor="@color/text_secondary" />
+            style="@style/HintText"
+            android:layout_marginTop="6dp" />
 
         <Button
             android:id="@+id/btnCreateCalendar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
             android:text="@string/btn_create_calendar" />
 
+        <!-- ===== 提醒 ===== -->
         <TextView
             style="@style/FormLabel"
             android:text="@string/label_remind" />
@@ -43,8 +49,48 @@
             android:hint="1440,60"
             android:inputType="text" />
 
+        <!-- ===== 一句话 / 侧边栏 ===== -->
+        <TextView
+            style="@style/SectionLabel"
+            android:text="ntfy 补查" />
+
         <TextView
             style="@style/FormLabel"
+            android:layout_marginTop="0dp"
+            android:text="@string/label_ntfy_topic" />
+
+        <EditText
+            android:id="@+id/etNtfyTopic"
+            style="@style/FormInput"
+            android:hint="todo-xxxxxxxxxxxx"
+            android:inputType="text" />
+
+        <TextView
+            android:id="@+id/tvNtfyHint"
+            style="@style/HintText"
+            android:layout_marginTop="6dp"
+            android:text="@string/hint_ntfy_topic" />
+
+        <Button
+            android:id="@+id/btnCatchUpNow"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
+            android:text="@string/btn_catch_up_now" />
+
+        <Button
+            android:id="@+id/btnSendTest"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
+            android:text="@string/btn_send_test" />
+
+        <!-- ===== 识别模型 ===== -->
+        <TextView
+            style="@style/SectionLabel"
+            android:text="截图识别" />
+
+        <TextView
+            style="@style/FormLabel"
+            android:layout_marginTop="0dp"
             android:text="@string/label_api_key" />
 
         <EditText
@@ -64,63 +110,53 @@
 
         <TextView
             android:id="@+id/tvModelHint"
+            style="@style/HintText"
+            android:layout_marginTop="6dp"
+            android:text="@string/model_hint" />
+
+        <CheckBox
+            android:id="@+id/cbShotWatch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="12sp"
-            android:textColor="@color/text_secondary"
-            android:text="@string/model_hint" />
+            android:layout_marginTop="12dp"
+            android:text="@string/shot_watch_label" />
+
+        <TextView
+            android:id="@+id/tvShotWatchHint"
+            style="@style/HintText"
+            android:text="@string/shot_watch_hint" />
+
+        <Button
+            android:id="@+id/btnMediaPerm"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
+            android:text="@string/btn_grant_media" />
+
+        <!-- ===== 推送行为 ===== -->
+        <TextView
+            style="@style/SectionLabel"
+            android:text="推送行为" />
 
         <CheckBox
             android:id="@+id/cbAutoImport"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
             android:text="@string/label_auto_import" />
 
         <CheckBox
             android:id="@+id/cbStrictParse"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
             android:text="@string/label_strict_parse" />
 
         <TextView
             android:id="@+id/tvStrictHint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="12sp"
-            android:textColor="@color/text_secondary"
+            style="@style/HintText"
             android:text="@string/hint_strict_parse" />
 
+        <!-- ===== 对账 ===== -->
         <TextView
-            style="@style/FormLabel"
-            android:layout_marginTop="20dp"
-            android:text="@string/btn_shot_big" />
-
-        <CheckBox
-            android:id="@+id/cbShotWatch"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/shot_watch_label" />
-
-        <TextView
-            android:id="@+id/tvShotWatchHint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="12sp"
-            android:textColor="@color/text_secondary"
-            android:text="@string/shot_watch_hint" />
-
-        <Button
-            android:id="@+id/btnMediaPerm"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="@string/btn_grant_media" />
-
-        <TextView
-            style="@style/FormLabel"
-            android:layout_marginTop="20dp"
+            style="@style/SectionLabel"
             android:text="@string/title_reconcile" />
 
         <CheckBox
@@ -136,7 +172,10 @@
         <Spinner
             android:id="@+id/spReconcileInterval"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="52dp"
+            android:background="@drawable/bg_input"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp" />
 
         <CheckBox
             android:id="@+id/cbReconcileNotify"
@@ -146,100 +185,65 @@
 
         <Button
             android:id="@+id/btnReconcileNow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
             android:text="@string/btn_reconcile_now" />
 
+        <!-- ===== 备份 ===== -->
         <TextView
-            style="@style/FormLabel"
-            android:layout_marginTop="20dp"
-            android:text="@string/label_ntfy_topic" />
-
-        <EditText
-            android:id="@+id/etNtfyTopic"
-            style="@style/FormInput"
-            android:hint="todo-xxxxxxxxxxxx"
-            android:inputType="text" />
-
-        <TextView
-            android:id="@+id/tvNtfyHint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="12sp"
-            android:textColor="@color/text_secondary"
-            android:text="@string/hint_ntfy_topic" />
-
-        <Button
-            android:id="@+id/btnCatchUpNow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="@string/btn_catch_up_now" />
-
-        <Button
-            android:id="@+id/btnSendTest"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/btn_send_test" />
+            style="@style/SectionLabel"
+            android:text="备份" />
 
         <Button
             android:id="@+id/btnExportIcs"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            style="@style/BtnTonal"
             android:text="@string/btn_export_ics" />
 
         <Button
             android:id="@+id/btnBackupLedger"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
             android:text="@string/btn_backup_ledger" />
 
-        <Button
-            android:id="@+id/btnCrashLog"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="@string/btn_crash_log" />
-
+        <!-- ===== 被忽略的推送 ===== -->
         <TextView
-            style="@style/FormLabel"
-            android:layout_marginTop="20dp"
+            style="@style/SectionLabel"
             android:text="@string/label_ignored" />
 
         <TextView
             android:id="@+id/tvIgnored"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="12sp"
-            android:textColor="@color/text_secondary"
+            style="@style/HintText"
+            android:background="@drawable/bg_input"
+            android:padding="12dp"
             android:text="@string/hint_ignored_empty" />
 
         <Button
             android:id="@+id/btnClearIgnored"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
             android:text="@string/btn_clear_ignored" />
 
         <Button
+            android:id="@+id/btnCrashLog"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
+            android:text="@string/btn_crash_log" />
+
+        <!-- ===== 保存 ===== -->
+        <Button
             android:id="@+id/btnSaveSettings"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
+            style="@style/BtnPrimary"
+            android:layout_marginTop="26dp"
             android:text="@string/btn_save_settings" />
 
+        <!-- ===== 权限与后台 ===== -->
         <TextView
-            style="@style/FormLabel"
-            android:layout_marginTop="24dp"
+            style="@style/SectionLabel"
             android:text="@string/title_permission" />
 
         <Button
             android:id="@+id/btnNotifAccess"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            style="@style/BtnTonal"
             android:text="@string/perm_notification" />
 
         <TextView
@@ -248,62 +252,59 @@
 
         <TextView
             android:id="@+id/tvA11yHint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="12sp"
-            android:textColor="@color/text_secondary"
+            style="@style/HintText"
             android:text="@string/a11y_hint" />
 
         <Button
             android:id="@+id/btnOpenA11y"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
             android:text="@string/btn_open_a11y" />
 
         <Button
             android:id="@+id/btnSidebarGuide"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
             android:text="@string/btn_sidebar_guide" />
 
         <Button
             android:id="@+id/btnTileGuide"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
             android:text="@string/btn_tile_guide" />
 
         <Button
             android:id="@+id/btnCalendarPerm"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
             android:text="@string/perm_calendar" />
 
         <Button
             android:id="@+id/btnAutostart"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
             android:text="@string/perm_autostart" />
 
         <Button
             android:id="@+id/btnBattery"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
             android:text="@string/perm_battery" />
 
         <Button
             android:id="@+id/btnAppDetail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
             android:text="@string/perm_app_detail" />
 
         <TextView
             android:id="@+id/tvVersion"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="24dp"
             android:layout_marginBottom="8dp"
-            android:textSize="12sp"
+            android:gravity="center"
             android:textColor="@color/text_secondary"
-            android:gravity="center" />
+            android:textSize="12sp" />
     </LinearLayout>
 </ScrollView>

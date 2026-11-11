@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/window_bg"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="24dp">
 
         <TextView
             style="@style/FormLabel"
-            android:layout_marginTop="0dp"
+            android:layout_marginTop="8dp"
             android:text="@string/label_title" />
 
         <EditText
@@ -24,32 +29,44 @@
             style="@style/FormLabel"
             android:text="@string/label_time" />
 
+        <!-- 时间：一块「卡片」，点左边选日期、点右边选时间 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="14dp">
 
-            <Button
-                android:id="@+id/btnDate"
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/tvWhen"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/btn_pick_date" />
+                android:textColor="@color/primary"
+                android:textSize="20sp"
+                android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/btnTime"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/btn_pick_time" />
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnDate"
+                    style="@style/BtnTonal"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:text="@string/btn_pick_date" />
+
+                <Button
+                    android:id="@+id/btnTime"
+                    style="@style/BtnTonal"
+                    android:layout_width="0dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:text="@string/btn_pick_time" />
+            </LinearLayout>
         </LinearLayout>
-
-        <TextView
-            android:id="@+id/tvWhen"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textColor="@color/primary" />
 
         <TextView
             style="@style/FormLabel"
@@ -68,7 +85,11 @@
         <Spinner
             android:id="@+id/spRepeat"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="52dp"
+            android:layout_marginTop="2dp"
+            android:background="@drawable/bg_input"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp" />
 
         <TextView
             style="@style/FormLabel"
@@ -84,16 +105,14 @@
 
         <Button
             android:id="@+id/btnSave"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            style="@style/BtnPrimary"
+            android:layout_marginTop="24dp"
             android:text="@string/btn_save" />
 
         <Button
             android:id="@+id/btnDelete"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            style="@style/BtnDanger"
+            android:layout_marginTop="10dp"
             android:text="@string/btn_delete"
             android:visibility="gone" />
     </LinearLayout>

@@ -1,10 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#FF156B5A</color>
-    <color name="primary_dark">#FF0E4B3F</color>
-    <color name="accent">#FFEF8F32</color>
-    <color name="card_bg">#14808080</color>
-    <color name="text_secondary">#FF6B6B6B</color>
-    <color name="text_primary">#FF1F1F1F</color>
+    <!-- 主色：稳住青绿，饱和度比旧版低一点，暗色下也不刺眼 -->
+    <color name="primary">#FF0E7C6B</color>
+    <color name="primary_dark">#FF0A5A4D</color>
+    <color name="primary_light">#FFE6F4F1</color>
+    <color name="accent">#FFF59E0B</color>
+
+    <!-- 表面与分隔 -->
+    <color name="window_bg">#FFF4F7F7</color>
+    <color name="surface">#FFFFFFFF</color>
+    <color name="card_bg">#FFFFFFFF</color>
+    <color name="card_stroke">#FFE2E8E7</color>
+    <color name="divider">#FFEDF1F0</color>
+
+    <!-- 文字 -->
+    <color name="text_primary">#FF10201D</color>
+    <color name="text_secondary">#FF6B7A75</color>
+    <color name="text_on_primary">#FFFFFFFF</color>
+
+    <color name="chip_bg">#FFE8F4F1</color>
+    <color name="danger">#FFD64545</color>
     <color name="nav_bg">#FFFFFFFF</color>
+    <color name="ripple">#220E7C6B</color>
 </resources>

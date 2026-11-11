@@ -33,6 +33,7 @@
     </LinearLayout>
 
     <Button
+            style="@style/BtnTonal"
         android:id="@+id/btnRefresh"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -69,6 +70,7 @@
         android:paddingBottom="4dp">
 
         <Button
+            style="@style/BtnTonal"
             android:id="@+id/btnFill"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -80,6 +82,7 @@
             android:text="@string/btn_reconcile_fill" />
 
         <Button
+            style="@style/BtnTonal"
             android:id="@+id/btnClean"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -91,6 +94,7 @@
             android:text="@string/btn_reconcile_clean" />
 
         <Button
+            style="@style/BtnTonal"
             android:id="@+id/btnFix"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -103,6 +107,7 @@
     </LinearLayout>
 
     <Button
+            style="@style/BtnTonal"
         android:id="@+id/btnPurge"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

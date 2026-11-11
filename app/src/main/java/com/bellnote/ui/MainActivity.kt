@@ -332,6 +332,7 @@ class MainActivity : AppCompatActivity() {
         if (Prefs.calendarId(this) <= 0) problems.add("· 还没选目标日历")
 
         if (problems.isEmpty()) {
+            findViewById<View>(R.id.statusDot).setBackgroundResource(R.drawable.dot_ok)
             statusTitle.text = getString(R.string.main_status_ok)
             val lastAt = Prefs.lastReconcileAt(this)
             val summary = Prefs.lastReconcileSummary(this)
@@ -360,6 +361,7 @@ class MainActivity : AppCompatActivity() {
             }
             statusDetail.text = "$reconcileLine\n$catchUpLine\n$ignoredLine"
         } else {
+            findViewById<View>(R.id.statusDot).setBackgroundResource(R.drawable.dot_warn)
             statusTitle.text = getString(R.string.main_status_need)
             statusDetail.text = problems.joinToString("\n") + "\n点这里逐项去开"
         }
