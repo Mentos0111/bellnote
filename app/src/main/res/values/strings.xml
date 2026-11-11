@@ -126,4 +126,5 @@
     <string name="btn_mail_dev">给开发者写信</string>
     <string name="dev_name">Mentos</string>
     <string name="dev_mail">1904656703@qq.com</string>
+    <string name="quick_go_desc">把这一句记成待办</string>
 </resources>
