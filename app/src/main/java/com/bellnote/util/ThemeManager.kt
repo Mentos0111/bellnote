@@ -64,6 +64,24 @@ object ThemeManager {
      * 桌面图标跟着配色走：四套图标各挂在一个 activity-alias 上，只开当前这套。
      * 注意：部分桌面（realme / ColorOS）会缓存图标，切完可能要等桌面刷新一次才看到。
      */
+    private var iconPending = false
+
+    /**
+     * 改了配色先记账，等 App 退到后台再真正换桌面图标。
+     * 原因：禁用正在用的那个 activity-alias 会让系统把当前任务一起收掉，
+     * 用户看到的就是「切个主题 App 被关了」。后台切换虽然也会结束进程，但用户看不见。
+     */
+    fun scheduleLauncherIcon() {
+        iconPending = true
+    }
+
+    /** App 退到后台（所有页面都 stop）时调用。 */
+    fun applyPendingLauncherIcon(context: Context) {
+        if (!iconPending) return
+        iconPending = false
+        applyLauncherIcon(context)
+    }
+
     fun applyLauncherIcon(context: Context) {
         val current = Prefs.theme(context)
         val pm = context.packageManager
