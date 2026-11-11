@@ -22,7 +22,7 @@
 
     <!-- 页眉 -->
     <path
-        android:fillColor="#1E3A8C"
+        android:fillColor="#7C93E8"
         android:pathData="M30.5,26H76.5A4.5,4.5 0,0 1,81 30.5V38H26V30.5A4.5,4.5 0,0 1,30.5 26Z" />
 
     <!-- 橙色块：被标记的那一件事 -->
