@@ -407,7 +407,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="谢谢用 Bellnote"
+                android:text="可以开始用了"
                 android:textColor="?attr/bnTextPrimary"
                 android:textSize="28sp"
                 android:textStyle="bold" />
@@ -417,7 +417,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:lineSpacingExtra="5dp"
-                android:text="这工具是我一个人一点点改出来的，用着有别扭的地方，随时跟我说，改就是了。\n\n现在去首页，顶部敲一句就能记第一条。"
+                android:text="首页敲一句就能记，设置里都能改。"
                 android:textColor="?attr/bnTextSecondary"
                 android:textSize="14sp" />
         </LinearLayout>
