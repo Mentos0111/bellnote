@@ -39,7 +39,8 @@ class OnboardingActivity : AppCompatActivity() {
     private lateinit var steps: List<View>
     private lateinit var dots: List<View>
     private lateinit var btnNext: Button
-    private lateinit var intro2: android.view.View
+    private lateinit var tvPermHint: TextView
+    private lateinit var intro2: TextView
     private lateinit var body2: android.view.View
     private val ui = android.os.Handler(android.os.Looper.getMainLooper())
 
@@ -49,6 +50,11 @@ class OnboardingActivity : AppCompatActivity() {
     private val enterMs = 360L
     private val exitMs = 280L
     private val staggerMs = 70L
+
+    private companion object {
+        const val STAGE2_INTRO = "如何实现"
+        const val STAGE2_TITLE = "先把这几个开关打开"
+    }
     private var pendingStage: Runnable? = null
 
     private val repository by lazy { CalendarRepository(this) }
@@ -90,6 +96,7 @@ class OnboardingActivity : AppCompatActivity() {
             findViewById(R.id.dot5)
         )
         btnNext = findViewById(R.id.btnNext)
+        tvPermHint = findViewById(R.id.tvPermHint)
         intro2 = findViewById(R.id.intro2)
         body2 = findViewById(R.id.body2)
 
@@ -102,6 +109,10 @@ class OnboardingActivity : AppCompatActivity() {
         etModel.setText(Prefs.model(this))
 
         btnNext.setOnClickListener {
+            if (step == 1 && !hasBasicPermissions()) {
+                toast("先把「通知使用权」和「日历读写」开了才能继续")
+                return@setOnClickListener
+            }
             if (step < steps.lastIndex) goTo(step + 1) else finishOnboarding()
         }
 
@@ -230,16 +241,19 @@ class OnboardingActivity : AppCompatActivity() {
         popHero(target)
         renderDots()
         btnNext.text = if (step == steps.lastIndex) "开始使用" else "下一步"
+        btnNext.alpha = 1f
+        btnNext.isEnabled = true
+        if (step == 1) updatePermGate()
         if (step == 3) loadCalendars()
     }
 
-    /** 第二页：图标 +「如何实现」先稳住，随后与开关清单交叉淡入淡出，没有空档。 */
+    /** 第二页：页头图标不动，标题先写「如何实现」，随后换成清单标题并展开内容。 */
     private fun playStage2() {
         val d = resources.displayMetrics.density
         pendingStage?.let { ui.removeCallbacks(it) }
         intro2.visibility = View.VISIBLE
         intro2.alpha = 0f
-        intro2.translationY = 16f * d
+        intro2.translationY = 12f * d
         body2.visibility = View.INVISIBLE
         body2.alpha = 0f
         body2.translationY = 0f
@@ -247,16 +261,19 @@ class OnboardingActivity : AppCompatActivity() {
             .setDuration(enterMs).setInterpolator(easeStd).start()
 
         val runnable = Runnable {
-            // 两段交叉：上段往上走、下段同时淡入，重叠 120ms
-            intro2.animate().alpha(0f).translationY(-24f * d)
-                .setDuration(300L).setInterpolator(easeOutSoft)
-                .withEndAction { intro2.visibility = View.GONE }.start()
+            // 标题原地换词，下面的内容同时淡入，位置不跳
+            intro2.animate().alpha(0f).translationY(-10f * d)
+                .setDuration(160L).setInterpolator(easeOutSoft)
+                .withEndAction {
+                    intro2.text = STAGE2_TITLE
+                    intro2.translationY = 10f * d
+                    intro2.animate().alpha(1f).translationY(0f)
+                        .setDuration(enterMs).setInterpolator(easeStd).start()
+                }.start()
 
             body2.visibility = View.VISIBLE
-            body2.alpha = 0f
-            body2.translationY = 20f * d
-            body2.animate().alpha(1f).translationY(0f)
-                .setStartDelay(120L).setDuration(enterMs).setInterpolator(easeStd).start()
+            body2.animate().alpha(1f).setDuration(enterMs)
+                .setStartDelay(140L).setInterpolator(easeStd).start()
         }
         pendingStage = runnable
         ui.postDelayed(runnable, 900L)
@@ -266,6 +283,7 @@ class OnboardingActivity : AppCompatActivity() {
         pendingStage?.let { ui.removeCallbacks(it) }
         pendingStage = null
         intro2.visibility = View.VISIBLE
+        intro2.text = STAGE2_INTRO
         intro2.alpha = 1f
         intro2.translationY = 0f
         body2.visibility = View.INVISIBLE
@@ -319,7 +337,14 @@ class OnboardingActivity : AppCompatActivity() {
             val width = deck.width.toFloat().takeIf { it > 0f }
             if (width != null) {
                 val target = if (dx < 0) step + 1 else step - 1
-                if (abs(dx) > width * 0.22f && target in steps.indices) settleTo(target)
+                if (abs(dx) > width * 0.22f && target in steps.indices) {
+                    if (step == 1 && target == 2 && !hasBasicPermissions()) {
+                        toast("先把「通知使用权」和「日历读写」开了才能继续")
+                        snapBack()
+                    } else {
+                        settleTo(target)
+                    }
+                }
                 else snapBack()
             }
         }
@@ -479,6 +504,23 @@ class OnboardingActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.permAutostartState).apply {
             text = "未开启"
             setTextColor(themeColor(R.attr.bnDanger))
+        }
+        updatePermGate()
+    }
+
+    /** 通知使用权 + 日历读写是「能跑起来」的最低要求，缺一个就不让往下走。 */
+    private fun hasBasicPermissions(): Boolean =
+        Permissions.hasNotificationAccess(this) && Permissions.hasCalendar(this)
+
+    private fun updatePermGate() {
+        val missing = mutableListOf<String>()
+        if (!Permissions.hasNotificationAccess(this)) missing.add("通知使用权")
+        if (!Permissions.hasCalendar(this)) missing.add("日历读写")
+
+        tvPermHint.text = if (missing.isEmpty()) "" else "还要开：" + missing.joinToString("、")
+        if (step == 1) {
+            btnNext.isEnabled = missing.isEmpty()
+            btnNext.alpha = if (missing.isEmpty()) 1f else 0.4f
         }
     }
 

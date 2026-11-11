@@ -30,20 +30,19 @@
             android:paddingBottom="104dp">
 
             <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="250dp"
-                android:clipChildren="false">
+                android:layout_width="112dp"
+                android:layout_height="112dp"
+                android:layout_marginBottom="14dp">
 
                 <View
-                    android:layout_width="150dp"
-                    android:layout_height="150dp"
-                    android:layout_gravity="center"
+                    android:layout_width="112dp"
+                    android:layout_height="112dp"
                     android:background="@drawable/bg_hero_ring" />
 
                 <ImageView
                     android:id="@+id/hero1"
-                    android:layout_width="72dp"
-                    android:layout_height="72dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:layout_gravity="center"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_nav_quick"
@@ -69,69 +68,54 @@
         </LinearLayout>
 
         <!-- 2 权限：先出现图标与「如何实现」，再动画换成开关清单 -->
-        <FrameLayout
+        <LinearLayout
             android:id="@+id/step2"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:orientation="vertical"
             android:paddingLeft="28dp"
             android:paddingRight="28dp"
             android:paddingTop="56dp"
             android:paddingBottom="104dp">
 
-            <LinearLayout
+            <FrameLayout
+                android:layout_width="112dp"
+                android:layout_height="112dp"
+                android:layout_marginBottom="14dp">
+
+                <View
+                    android:layout_width="112dp"
+                    android:layout_height="112dp"
+                    android:background="@drawable/bg_hero_ring" />
+
+                <ImageView
+                    android:id="@+id/hero2"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_scene_shield" />
+            </FrameLayout>
+
+            <TextView
                 android:id="@+id/intro2"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:orientation="vertical">
-
-                <FrameLayout
-                    android:layout_width="150dp"
-                    android:layout_height="150dp">
-
-                    <View
-                        android:layout_width="150dp"
-                        android:layout_height="150dp"
-                        android:background="@drawable/bg_hero_ring" />
-
-                    <ImageView
-                        android:id="@+id/hero2"
-                        android:layout_width="72dp"
-                        android:layout_height="72dp"
-                        android:layout_gravity="center"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_scene_shield" />
-                </FrameLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="22dp"
-                    android:text="如何实现"
-                    android:textColor="?attr/bnTextPrimary"
-                    android:textSize="28sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="如何实现"
+                android:textColor="?attr/bnTextPrimary"
+                android:textSize="28sp"
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:id="@+id/body2"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:visibility="invisible">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="先把这几个开关打开"
-                    android:textColor="?attr/bnTextPrimary"
-                    android:textSize="28sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
                     android:text="不开会漏推送，或被系统掐掉。点一行跳过去。"
                     android:textColor="?attr/bnTextSecondary"
                     android:textSize="14sp" />
@@ -223,8 +207,17 @@
                             style="@style/AboutValue" />
                     </LinearLayout>
                 </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvPermHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:lineSpacingExtra="4dp"
+                    android:textColor="?attr/bnDanger"
+                    android:textSize="12sp" />
             </LinearLayout>
-        </FrameLayout>
+        </LinearLayout>
 
         <!-- 3 配置 -->
         <LinearLayout
@@ -376,7 +369,6 @@
             android:id="@+id/step5"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center_vertical"
             android:orientation="vertical"
             android:paddingLeft="28dp"
             android:paddingRight="28dp"
@@ -384,19 +376,19 @@
             android:paddingBottom="104dp">
 
             <FrameLayout
-                android:layout_width="150dp"
-                android:layout_height="150dp"
-                android:clipChildren="false">
+                android:layout_width="112dp"
+                android:layout_height="112dp"
+                android:layout_marginBottom="14dp">
 
                 <View
-                    android:layout_width="150dp"
-                    android:layout_height="150dp"
+                    android:layout_width="112dp"
+                    android:layout_height="112dp"
                     android:background="@drawable/bg_hero_ring" />
 
                 <ImageView
                     android:id="@+id/hero5"
-                    android:layout_width="72dp"
-                    android:layout_height="72dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:layout_gravity="center"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_nav_check"
@@ -406,7 +398,6 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
                 android:text="可以开始用了"
                 android:textColor="?attr/bnTextPrimary"
                 android:textSize="28sp"
