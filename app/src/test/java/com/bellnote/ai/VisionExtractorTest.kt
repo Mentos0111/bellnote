@@ -77,14 +77,14 @@ class VisionExtractorTest {
 
     @Test
     fun `短标题原样保留`() {
-        val out = VisionExtractor.tidy(spec("检查学生笔记"))
-        assertTrue(out.title == "检查学生笔记")
+        val out = VisionExtractor.tidy(spec("检查同学A笔记"))
+        assertTrue(out.title == "检查同学A笔记")
         assertTrue(out.note == null)
     }
 
     @Test
     fun `超长标题截断并把多出来的挪进备注`() {
-        val long = "收学生的课堂笔记照片，看两色标记和错题有没有做"
+        val long = "收同学A的课堂笔记照片，看两色标记和错题有没有做"
         val out = VisionExtractor.tidy(spec(long))
         assertTrue("标题应被截断，实际：${out.title}", out.title.length <= 20)
         assertTrue(out.title.endsWith("…"))
@@ -94,7 +94,7 @@ class VisionExtractorTest {
 
     @Test
     fun `长标题溢出内容排在原有备注前面`() {
-        val long = "收学生的课堂笔记照片，看两色标记和错题有没有做"
+        val long = "收同学A的课堂笔记照片，看两色标记和错题有没有做"
         val out = VisionExtractor.tidy(spec(long, note = "截止 20:00"))
         assertTrue(out.note!!.endsWith("截止 20:00"))
     }
