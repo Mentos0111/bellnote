@@ -11,4 +11,4 @@
     android:canTakeScreenshot="true"
     android:description="@string/a11y_hint"
     android:notificationTimeout="100"
-    android:summary="@string/a11y_title" />
+    android:summary="@string/a11y_label" />

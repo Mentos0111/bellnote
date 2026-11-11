@@ -277,7 +277,7 @@ class MainActivity : AppCompatActivity() {
         styleChip(
             chip,
             dot,
-            if (worst.status == HealthCheck.Status.OK) "正常" else "${HealthCheck.pending(items).size} 项待看"
+            if (worst.status == HealthCheck.Status.OK) "正常" else "${HealthCheck.pending(items).size} 项可优化"
         )
     }
 

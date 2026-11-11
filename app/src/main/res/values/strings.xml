@@ -107,6 +107,7 @@
     <string name="sidebar_app_label">Bellnote 截屏记</string>
     <string name="sidebar_howto_title">放进系统侧边栏（一次就好）</string>
     <string name="a11y_title">截屏服务（无障碍）</string>
+    <string name="a11y_label">Bellnote 截屏识别</string>
     <string name="a11y_hint">只用来截当前屏幕，不读输入内容。开了之后，从系统侧边栏点「Bellnote 截屏记」就能直接截屏识别。</string>
     <string name="btn_open_a11y">去开截屏服务</string>
     <string name="btn_sidebar_guide">看怎么加进侧边栏</string>
