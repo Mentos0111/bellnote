@@ -44,6 +44,7 @@ class OnboardingActivity : AppCompatActivity() {
 
     private val repository by lazy { CalendarRepository(this) }
     private var calendars: List<CalendarRepository.CalendarInfo> = emptyList()
+    private var suppressSelect = false
 
     private lateinit var spCalendar: Spinner
     private lateinit var tvCalendarHint: TextView
@@ -83,7 +84,21 @@ class OnboardingActivity : AppCompatActivity() {
             }
         }
 
-        findViewById<Button>(R.id.btnOnbCreateCalendar).setOnClickListener { createLocalCalendar() }
+        findViewById<View>(R.id.btnHelpCalendar).setOnClickListener { showCalendarHelp() }
+        spCalendar.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (suppressSelect) return
+                if (position == calendars.size) {
+                    // 最后一项是「新建日历」
+                    suppressSelect = true
+                    spCalendar.setSelection(0)
+                    suppressSelect = false
+                    createLocalCalendar()
+                }
+            }
+
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
+        }
 
         findViewById<LinearLayout>(R.id.permNotification).setOnClickListener {
             if (!SystemPages.openNotificationAccess(this)) {
@@ -332,6 +347,22 @@ class OnboardingActivity : AppCompatActivity() {
         }
     }
 
+    /** 手机为什么有好几个日历、怎样让待办走系统日历的提醒。 */
+    private fun showCalendarHelp() {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("日历不止一个？")
+            .setMessage(
+                "手机里的日历可以有很多份：本地日历、各个邮箱账号同步来的日历、别的 App 自己建的日历。" +
+                    "它们互相独立，Bellnote 只往你选中的那一份里写。\n\n" +
+                    "想让待办出现在系统日历里、靠系统日历弹提醒：\n" +
+                    "1. 选一个系统日历 App 会显示的日历（没账号时用下面列表最后的「新建本地日历」，建一个「待办」）；\n" +
+                    "2. 在系统日历 App 里确认这个日历是勾选显示的，并且允许它发通知；\n" +
+                    "3. Bellnote 里的提醒时间（默认提前 24 小时 / 1 小时）会一起写进事件，系统日历到点弹提醒。"
+            )
+            .setPositiveButton("知道了", null)
+            .show()
+    }
+
     private fun persistConfig() {
         val index = spCalendar.selectedItemPosition
         if (index in calendars.indices) Prefs.setCalendarId(this, calendars[index].id)
@@ -352,14 +383,17 @@ class OnboardingActivity : AppCompatActivity() {
             val list = repository.listCalendars()
             runOnUiThread {
                 calendars = list
-                val names = if (list.isEmpty()) listOf("（没有可写日历）")
-                else list.map { it.displayName + if (it.accountName.isBlank()) "" else "（${it.accountName}）" }
+                val names = if (list.isEmpty()) mutableListOf("（没有可写日历）")
+                else list.map { it.displayName + if (it.accountName.isBlank()) "" else "（${it.accountName}）" }.toMutableList()
+                names.add("＋ 新建本地日历…")
                 spCalendar.adapter = ArrayAdapter(
                     this, android.R.layout.simple_spinner_item, names
                 ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
                 val saved = Prefs.calendarId(this)
                 val index = list.indexOfFirst { it.id == saved }
+                suppressSelect = true
                 if (index >= 0) spCalendar.setSelection(index)
+                suppressSelect = false
                 tvCalendarHint.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
                 tvCalendarHint.text = "没有可写日历，点下面那个按钮建一个"
             }
