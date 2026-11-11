@@ -67,89 +67,75 @@
             android:layout_marginTop="10dp"
             android:text="@string/btn_grant_media" />
 
-        <!-- ===== 一句话 / 侧边栏 ===== -->
-        <TextView
+                <TextView
             style="@style/SectionSubLabel"
-            android:text="第三方通知（ntfy）" />
+            android:text="其他入口" />
 
         <TextView
             style="@style/FormLabel"
-            android:layout_marginTop="0dp"
-            android:text="@string/label_ntfy_topic" />
-
-        <EditText
-            android:id="@+id/etNtfyTopic"
-            style="@style/FormInput"
-            android:hint="todo-xxxxxxxxxxxx"
-            android:inputType="text" />
+            android:text="@string/sidebar_entry_title" />
 
         <TextView
-            android:id="@+id/tvNtfyHint"
-            style="@style/FormLabel"
-            android:layout_marginTop="6dp"
-            android:text="@string/hint_ntfy_topic" />
-
-        <Button
-            android:id="@+id/btnCatchUpNow"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/btn_catch_up_now" />
-
-        <Button
-            android:id="@+id/btnSendTest"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/btn_send_test" />
-
-        <TextView
-            style="@style/SectionSubLabel"
-            android:text="其他 App 的通知" />
-
-        <TextView
+            android:id="@+id/tvSidebarEntryHint"
             style="@style/HintText"
-            android:text="@string/hint_other_sources" />
-
-        <!-- ===== 推送行为 ===== -->
-        <TextView
-            style="@style/SectionSubLabel"
-            android:text="推送怎么处理" />
-
-        <CheckBox
-            android:id="@+id/cbAutoImport"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/label_auto_import" />
-
-        <CheckBox
-            android:id="@+id/cbStrictParse"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/label_strict_parse" />
-
-        <TextView
-            android:id="@+id/tvStrictHint"
-            style="@style/FormLabel"
-            android:text="@string/hint_strict_parse" />
-
-        <!-- ===== 被忽略的推送 ===== -->
-        <TextView
-            style="@style/SectionSubLabel"
-            android:text="没写进日历的推送" />
-
-        <TextView
-            android:id="@+id/tvIgnored"
-            style="@style/FormLabel"
-            android:background="@drawable/bg_input"
-            android:padding="12dp"
-            android:text="@string/hint_ignored_empty" />
+            android:text="@string/sidebar_entry_hint" />
 
         <Button
-            android:id="@+id/btnClearIgnored"
+            android:id="@+id/btnSidebarEntry"
             style="@style/BtnTonal"
             android:layout_marginTop="10dp"
-            android:text="@string/btn_clear_ignored" />
+            android:text="@string/sidebar_entry_show" />
 
-                <!-- ===== 日历与同步 ===== -->
+        <Button
+            android:id="@+id/btnSidebarGuide"
+            style="@style/BtnTonal"
+            android:layout_marginTop="10dp"
+            android:text="@string/btn_sidebar_guide" />
+
+        <Button
+            android:id="@+id/btnTileGuide"
+            style="@style/BtnTonal"
+            android:layout_marginTop="10dp"
+            android:text="@string/btn_tile_guide" />
+
+        <TextView
+            style="@style/SectionSubLabel"
+            android:text="系统权限" />
+
+        <Button
+            android:id="@+id/btnNotifAccess"
+            style="@style/BtnTonal"
+            android:text="@string/perm_notification" />
+
+        <TextView
+            style="@style/FormLabel"
+            android:text="@string/a11y_title" />
+
+        <TextView
+            android:id="@+id/tvA11yHint"
+            style="@style/HintText"
+            android:text="@string/a11y_hint" />
+
+        <Button
+            android:id="@+id/btnOpenA11y"
+            style="@style/BtnTonal"
+            android:layout_marginTop="10dp"
+            android:text="@string/btn_open_a11y" />
+
+<!-- ===== 第三方通知 ===== -->
+        <Button
+            android:id="@+id/btnNtfy"
+            style="@style/BtnTonal"
+            android:layout_marginTop="14dp"
+            android:text="高级 · 第三方推送" />
+
+        <TextView
+            android:id="@+id/tvNtfySummary"
+            style="@style/HintText"
+            android:visibility="gone"
+            android:text="已启用" />
+
+        <!-- ===== 日历与同步 ===== -->
         <TextView
             style="@style/FormLabel"
             android:text="日历与同步" />
@@ -225,7 +211,29 @@
             android:layout_marginTop="10dp"
             android:text="@string/btn_reconcile_now" />
 
-        <!-- ===== 备份 ===== -->
+                <Button
+            android:id="@+id/btnCalendarPerm"
+            style="@style/BtnTonal"
+            android:layout_marginTop="10dp"
+            android:text="@string/perm_calendar" />
+
+        <TextView
+            style="@style/SectionSubLabel"
+            android:text="后台不被杀" />
+
+        <Button
+            android:id="@+id/btnBattery"
+            style="@style/BtnTonal"
+            android:layout_marginTop="10dp"
+            android:text="@string/perm_battery" />
+
+        <Button
+            android:id="@+id/btnAutostart"
+            style="@style/BtnTonal"
+            android:layout_marginTop="10dp"
+            android:text="@string/perm_autostart" />
+
+<!-- ===== 备份 ===== -->
         <TextView
             style="@style/SectionSubLabel"
             android:text="备份" />
@@ -303,86 +311,17 @@
             style="@style/BtnTonal"
             android:text="@string/about_entry" />
 
-        <!-- ===== 权限与后台 ===== -->
-
-        <TextView
-            style="@style/SectionSubLabel"
-            android:text="@string/title_permission" />
-
-        <Button
-            android:id="@+id/btnNotifAccess"
-            style="@style/BtnTonal"
-            android:text="@string/perm_notification" />
-
-        <TextView
-            style="@style/FormLabel"
-            android:text="@string/a11y_title" />
-
-        <TextView
-            android:id="@+id/tvA11yHint"
-            style="@style/FormLabel"
-            android:text="@string/a11y_hint" />
-
-        <Button
-            android:id="@+id/btnOpenA11y"
+                <Button
+            android:id="@+id/btnCrashLog"
             style="@style/BtnTonal"
             android:layout_marginTop="10dp"
-            android:text="@string/btn_open_a11y" />
-
-        <TextView
-            style="@style/FormLabel"
-            android:text="@string/sidebar_entry_title" />
-
-        <TextView
-            android:id="@+id/tvSidebarEntryHint"
-            style="@style/FormLabel"
-            android:text="@string/sidebar_entry_hint" />
-
-        <Button
-            android:id="@+id/btnSidebarEntry"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/sidebar_entry_show" />
-
-        <Button
-            android:id="@+id/btnSidebarGuide"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/btn_sidebar_guide" />
-
-        <Button
-            android:id="@+id/btnTileGuide"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/btn_tile_guide" />
-
-        <Button
-            android:id="@+id/btnCalendarPerm"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/perm_calendar" />
-
-        <Button
-            android:id="@+id/btnAutostart"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/perm_autostart" />
-
-        <Button
-            android:id="@+id/btnBattery"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/perm_battery" />
+            android:text="@string/btn_crash_log" />
 
         <Button
             android:id="@+id/btnAppDetail"
             style="@style/BtnTonal"
             android:layout_marginTop="10dp"
-            android:text="@string/perm_app_detail" />        <Button
-            android:id="@+id/btnCrashLog"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/btn_crash_log" />
+            android:text="@string/perm_app_detail" />
 
 <!-- ===== 保存 ===== -->
         <Button

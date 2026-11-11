@@ -77,8 +77,8 @@
     <string name="btn_grant_media">允许读取相册</string>
     <string name="shot_saved">设置已保存</string>
 
-    <string name="label_ntfy_topic">ntfy 主题（第三方推送的补查地址）</string>
-    <string name="hint_ntfy_topic">ntfy App 没弹通知、被系统冻结或被关掉时，消息会丢。填上主题后，App 每次启动和定时对账时会直接从 ntfy 服务器补查最近 2 小时的消息，规则与通知完全一致。留空 = 只靠通知。</string>
+    <string name="label_push_topic">ntfy 主题</string>
+    <string name="hint_push_topic">ntfy App 没弹通知、被系统冻结或被关掉时消息会丢。填上主题后，每次启动和定时对账时 Bellnote 会直接去 ntfy 服务器补查最近 2 小时的消息，规则与通知一致。留空 = 只靠通知。</string>
     <string name="hint_other_sources">微信 / QQ / 钉钉：暂不支持。以后会加「只读哪些 App 的通知」白名单，届时在这里勾选。</string>
     <string name="btn_catch_up_now">立即补查一次</string>
     <string name="btn_send_test">发一条测试推送（10 分钟后）</string>

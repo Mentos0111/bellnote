@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/bnWindowBg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="28dp">
+
+        <Button
+            android:id="@+id/btnWhatIsNtfy"
+            style="@style/BtnTonal"
+            android:text="什么是 ntfy，为什么要填主题" />
+
+        <TextView
+            style="@style/HintText"
+            android:text="ntfy 是把电脑上的待办推到手机的通道：电脑或脚本往同一个主题发一条消息，手机收到就写进日历。截图和分享这两种入口不用配这里。" />
+
+        <TextView
+            style="@style/FormLabel"
+            android:text="@string/label_push_topic" />
+
+        <EditText
+            android:id="@+id/etNtfyTopic"
+            style="@style/FormInput"
+            android:hint="todo-xxxx"
+            android:inputType="text" />
+
+        <TextView
+            style="@style/HintText"
+            android:text="@string/hint_push_topic" />
+
+        <Button
+            android:id="@+id/btnCatchUpNow"
+            style="@style/BtnTonal"
+            android:layout_marginTop="10dp"
+            android:text="@string/btn_catch_up_now" />
+
+        <Button
+            android:id="@+id/btnSendTest"
+            style="@style/BtnTonal"
+            android:layout_marginTop="10dp"
+            android:text="@string/btn_send_test" />
+
+        <TextView
+            style="@style/SectionSubLabel"
+            android:text="推送怎么处理" />
+
+        <CheckBox
+            android:id="@+id/cbAutoImport"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/label_auto_import" />
+
+        <CheckBox
+            android:id="@+id/cbStrictParse"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/label_strict_parse" />
+
+        <TextView
+            android:id="@+id/tvStrictHint"
+            style="@style/HintText"
+            android:text="@string/hint_strict_parse" />
+
+        <TextView
+            style="@style/SectionSubLabel"
+            android:text="没写进日历的推送" />
+
+        <TextView
+            android:id="@+id/tvIgnored"
+            style="@style/HintText"
+            android:background="@drawable/bg_input"
+            android:padding="12dp"
+            android:text="@string/hint_ignored_empty" />
+
+        <Button
+            android:id="@+id/btnClearIgnored"
+            style="@style/BtnTonal"
+            android:layout_marginTop="10dp"
+            android:text="@string/btn_clear_ignored" />
+
+        <TextView
+            style="@style/SectionSubLabel"
+            android:text="其他 App 的通知" />
+
+        <TextView
+            style="@style/HintText"
+            android:text="@string/hint_other_sources" />
+
+        <Button
+            android:id="@+id/btnSaveNtfy"
+            style="@style/BtnPrimary"
+            android:layout_marginTop="24dp"
+            android:text="保存" />
+    </LinearLayout>
+</ScrollView>
