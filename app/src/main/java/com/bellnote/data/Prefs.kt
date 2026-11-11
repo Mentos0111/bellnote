@@ -50,7 +50,6 @@ object Prefs {
     private const val KEY_ONBOARDED = "onboarded"
     private const val KEY_HEALTH_AT = "health_cached_at"
     private const val KEY_COLLAPSED_GROUPS = "list_collapsed_groups"
-    private const val KEY_SETTINGS_OPEN = "settings_open_sections"
 
     /** 存「被忽略的通知」用的分隔符：\u0001 分条、\u0002 分字段，正常正文里不会出现。 */
     private const val ENTRY_SEP = "\u0001"
@@ -370,16 +369,6 @@ object Prefs {
             androidx.core.content.ContextCompat.checkSelfPermission(
                 context, android.Manifest.permission.WRITE_CALENDAR
             )
-
-    /** 设置页哪几组是展开的；默认全收起，用户点开一次就记住。 */
-    fun settingsOpenSections(context: Context): Set<String> {
-        val raw = sp(context).getString(KEY_SETTINGS_OPEN, "").orEmpty()
-        return raw.split('\u0001').filter { it.isNotBlank() }.toSet()
-    }
-
-    fun setSettingsOpenSections(context: Context, ids: Set<String>) {
-        sp(context).edit().putString(KEY_SETTINGS_OPEN, ids.joinToString("\u0001")).apply()
-    }
 
     /** 列表里哪些分组是收起来的（默认只收「已过期」）。 */
     fun collapsedGroups(context: Context): Set<String> {
