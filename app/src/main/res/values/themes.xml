@@ -179,6 +179,35 @@
         <item name="android:focusable">true</item>
     </style>
 
+    <style name="AboutRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">50dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+
+    <style name="AboutKey">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">?attr/bnTextPrimary</item>
+    </style>
+
+    <style name="AboutValue">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:gravity">end</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">?attr/bnTextSecondary</item>
+    </style>
+
+    <style name="AboutDivider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:background">?attr/bnDivider</item>
+    </style>
+
     <style name="NavRow">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">50dp</item>
