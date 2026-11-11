@@ -45,6 +45,7 @@ object Prefs {
     private const val KEY_CATCHUP_SUMMARY = "catchup_last_summary"
     private const val KEY_LISTENER_AT = "listener_connected_at"
     private const val KEY_THEME = "theme_palette"
+    private const val KEY_THEME_MODE = "theme_mode"
     private const val KEY_HEALTH = "health_cache"
     private const val KEY_ONBOARDED = "onboarded"
     private const val KEY_HEALTH_AT = "health_cached_at"
@@ -297,6 +298,14 @@ object Prefs {
 
     fun setTheme(context: Context, id: String) {
         sp(context).edit().putString(KEY_THEME, id).apply()
+    }
+
+    /** 明暗模式：system（跟随系统）/ light / dark。 */
+    fun themeMode(context: Context): String =
+        sp(context).getString(KEY_THEME_MODE, "system").orEmpty().ifBlank { "system" }
+
+    fun setThemeMode(context: Context, mode: String) {
+        sp(context).edit().putString(KEY_THEME_MODE, mode).apply()
     }
 
     // ---------------- 监听健康 ----------------

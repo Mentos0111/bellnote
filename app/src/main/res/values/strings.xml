@@ -120,7 +120,8 @@
     <string name="nav_section_manage">管理</string>
     <string name="nav_help">帮助与引导</string>
     <string name="hint_note">补充说明（可留空）</string>
-    <string name="hint_theme">换主题会立刻生效；深色/浅色跟随系统。</string>
+    <string name="hint_theme">换配色会立刻生效，深浅色在下面单独选。</string>
+    <string name="hint_theme_mode">默认跟随系统；手动选浅色 / 深色后就不再跟着系统变。</string>
     <string name="btn_mail_dev">给开发者写信</string>
     <string name="dev_name">Mentos</string>
     <string name="dev_mail">1904656703@qq.com</string>

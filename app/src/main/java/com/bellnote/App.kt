@@ -8,11 +8,14 @@ import com.bellnote.service.NtfyFetcher
 import com.bellnote.service.ReconcileScheduler
 import com.bellnote.service.ScreenshotWatcher
 import com.bellnote.util.CrashLog
+import com.bellnote.util.ThemeManager
 
 class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // 深浅色：跟随系统 / 浅色 / 深色，设置里可改
+        ThemeManager.applyNightMode(this)
         // 崩了要留痕：realme 后台被杀是不留日志的，至少能分清「崩」和「被杀」
         CrashLog.install(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

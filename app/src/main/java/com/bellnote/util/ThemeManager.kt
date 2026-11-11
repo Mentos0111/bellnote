@@ -1,6 +1,8 @@
 package com.bellnote.util
 
 import android.app.Activity
+import android.content.Context
+import androidx.appcompat.app.AppCompatDelegate
 import com.bellnote.R
 import com.bellnote.data.Prefs
 
@@ -23,6 +25,31 @@ object ThemeManager {
 
     fun labelOf(id: String): String =
         palettes.firstOrNull { it.id == id }?.label ?: palettes.first().label
+
+    data class NightMode(val id: String, val label: String)
+
+    val nightModes = listOf(
+        NightMode("system", "跟随系统"),
+        NightMode("light", "浅色"),
+        NightMode("dark", "深色")
+    )
+
+    fun nightModeLabel(id: String): String =
+        nightModes.firstOrNull { it.id == id }?.label ?: nightModes.first().label
+
+    private fun nightModeOf(id: String): Int = when (id) {
+        "light" -> AppCompatDelegate.MODE_NIGHT_NO
+        "dark" -> AppCompatDelegate.MODE_NIGHT_YES
+        else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+    }
+
+    /** 进程启动时套一次；用户在设置里切换时再调一次，AppCompat 会自己重建页面。 */
+    fun applyNightMode(context: Context) {
+        val target = nightModeOf(Prefs.themeMode(context))
+        if (AppCompatDelegate.getDefaultNightMode() != target) {
+            AppCompatDelegate.setDefaultNightMode(target)
+        }
+    }
 
     private fun overlayOf(id: String): Int = when (id) {
         "indigo" -> R.style.ThemeOverlay_Bellnote_Indigo
