@@ -45,6 +45,8 @@ object Prefs {
     private const val KEY_CATCHUP_SUMMARY = "catchup_last_summary"
     private const val KEY_LISTENER_AT = "listener_connected_at"
     private const val KEY_THEME = "theme_palette"
+    private const val KEY_HEALTH = "health_cache"
+    private const val KEY_HEALTH_AT = "health_cached_at"
 
     /** 存「被忽略的通知」用的分隔符：\u0001 分条、\u0002 分字段，正常正文里不会出现。 */
     private const val ENTRY_SEP = "\u0001"
@@ -262,6 +264,16 @@ object Prefs {
 
     fun clearIgnoredNotices(context: Context) {
         sp(context).edit().remove(KEY_IGNORED).apply()
+    }
+
+    // ---------------- 体检结果缓存 ----------------
+
+    fun healthCache(context: Context): String = sp(context).getString(KEY_HEALTH, "").orEmpty()
+
+    fun healthCachedAt(context: Context): Long = sp(context).getLong(KEY_HEALTH_AT, 0L)
+
+    fun setHealthCache(context: Context, raw: String, at: Long) {
+        sp(context).edit().putString(KEY_HEALTH, raw).putLong(KEY_HEALTH_AT, at).apply()
     }
 
     // ---------------- 外观主题 ----------------

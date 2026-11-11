@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/drawer"
     android:layout_width="match_parent"
@@ -34,7 +34,7 @@
                 android:layout_weight="1" />
 
             <TextView
-                android:id="@+id/tvVendorHint"
+                android:id="@+id/tvVersionTop"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="?attr/bnTextSecondary"
@@ -50,14 +50,38 @@
             android:textColor="?attr/bnTextSecondary"
             android:textSize="12sp" />
 
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:text="@string/app_name"
-            android:textColor="?attr/bnTextPrimary"
-            android:textSize="26sp"
-            android:textStyle="bold" />
+
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/app_name"
+                android:textColor="?attr/bnTextPrimary"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/healthChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:drawableStart="@drawable/dot_ok"
+                android:drawablePadding="7dp"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:text="检测中"
+                android:textColor="?attr/bnTextSecondary"
+                android:textSize="12sp" />
+        </LinearLayout>
 
         <!-- 一句话记一条 -->
         <LinearLayout
