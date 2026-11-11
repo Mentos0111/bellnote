@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="ThemeOverlay.Bellnote.Teal" parent="">
         <item name="bnPrimary">#FF0E7C6B</item>
@@ -76,4 +76,23 @@
         <item name="bnRipple">#141F2321</item>
     </style>
 
+
+    <style name="ThemeOverlay.Bellnote.Pink" parent="">
+        <item name="bnPrimary">#FFC2185B</item>
+        <item name="bnPrimaryDark">#FF8E1550</item>
+        <item name="bnOnPrimary">#FFFFFFFF</item>
+        <item name="bnAccent">#FFD79A3C</item>
+        <item name="bnWindowBg">#FFFDF6F8</item>
+        <item name="bnSurface">#FFFFFFFF</item>
+        <item name="bnCard">#FFFFFFFF</item>
+        <item name="bnCardStroke">#FFF3E1E8</item>
+        <item name="bnDivider">#FFF7E9EE</item>
+        <item name="bnTextPrimary">#FF241218</item>
+        <item name="bnTextSecondary">#FF7C5F68</item>
+        <item name="bnChipBg">#FFFBE9F0</item>
+        <item name="bnIconBg">#FFF9EEF2</item>
+        <item name="bnDanger">#FFC94848</item>
+        <item name="bnNavBg">#FFFFFFFF</item>
+        <item name="bnRipple">#14C2185B</item>
+    </style>
 </resources>
