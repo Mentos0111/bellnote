@@ -16,6 +16,7 @@ import com.bellnote.data.CalendarRepository
 import com.bellnote.data.Prefs
 import com.bellnote.data.TodoItem
 import com.bellnote.data.TodoStore
+import com.bellnote.service.NtfyFetcher
 import com.bellnote.service.ScreenshotWatcher
 import com.bellnote.service.ReconcileRunner
 import com.bellnote.util.Permissions
@@ -92,6 +93,24 @@ class MainActivity : AppCompatActivity() {
         }
         refresh()
         runReconcileIfDue()
+        runCatchUpIfDue()
+    }
+
+    /**
+     * 打开 App 是「解锁」最可靠的信号：realme 上闹钟都可能被推迟，
+     * 这里顺手补查一次 ntfy（3 分钟内刚查过就跳过）。
+     */
+    private fun runCatchUpIfDue() {
+        if (Prefs.ntfyTopic(this).isBlank()) return
+        if (System.currentTimeMillis() - Prefs.lastCatchUpAt(this) < 3 * 60_000L) return
+        Thread {
+            try {
+                NtfyFetcher.catchUp(this)
+            } catch (e: Exception) {
+                android.util.Log.w("MainActivity", "补查 ntfy 失败", e)
+            }
+            runOnUiThread { refresh() }
+        }.start()
     }
 
     /** 闹钟可能被 realme 的后台限制掐掉，打开 App 时补跑一次。 */
@@ -145,8 +164,21 @@ class MainActivity : AppCompatActivity() {
             } else {
                 "还没跑过对账，点下方「对账」看清单和日历差在哪"
             }
+            val catchUpLine = if (Prefs.ntfyTopic(this).isBlank()) {
+                "补查：没开（设置里填 ntfy 主题后，ntfy 没弹通知也能补回来）"
+            } else {
+                val catchAt = Prefs.lastCatchUpAt(this)
+                val catchSummary = Prefs.lastCatchUpSummary(this)
+                if (catchAt > 0) "补查：$catchSummary（${TimeFormat.full(catchAt)}）" else "补查：开了，还没跑过"
+            }
+            val ignored = Prefs.ignoredNotices(this).size
+            val ignoredLine = if (ignored > 0) {
+                "有 $ignored 条推送没写进日历（设置页可看原因）"
+            } else {
+                "最近没有写失败的推送"
+            }
             statusDetail.text =
-                "收到 ntfy 通知会自动写进日历，双提醒已生效\n$reconcileLine\n点这里可查看权限说明"
+                "收到 ntfy 通知会自动写进日历，双提醒已生效\n$reconcileLine\n$catchUpLine\n$ignoredLine"
         } else {
             statusTitle.text = getString(R.string.main_status_need)
             statusDetail.text = problems.joinToString("\n") + "\n点这里逐项去开"

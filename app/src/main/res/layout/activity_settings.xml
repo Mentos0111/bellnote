@@ -177,6 +177,32 @@
             android:layout_marginTop="6dp"
             android:text="@string/btn_catch_up_now" />
 
+        <Button
+            android:id="@+id/btnSendTest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_send_test" />
+
+        <Button
+            android:id="@+id/btnExportIcs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/btn_export_ics" />
+
+        <Button
+            android:id="@+id/btnBackupLedger"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_backup_ledger" />
+
+        <Button
+            android:id="@+id/btnCrashLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/btn_crash_log" />
+
         <TextView
             style="@style/FormLabel"
             android:layout_marginTop="20dp"

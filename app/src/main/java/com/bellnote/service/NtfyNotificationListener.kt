@@ -26,7 +26,25 @@ class NtfyNotificationListener : NotificationListenerService() {
 
     override fun onListenerConnected() {
         super.onListenerConnected()
-        Log.i(TAG, "onListenerConnected: 通知使用权已连接，包名=${packageName}")
+        Log.i(TAG, "onListenerConnected: 通知使用权已连接，包名=$packageName")
+        // 服务被系统回收后又连上时，通知栏里可能还挂着没处理过的 ntfy 通知 —— 先补一遍。
+        try {
+            val active = activeNotifications ?: emptyArray()
+            Log.i(TAG, "重连补收：通知栏里现有 ${active.size} 条")
+            if (active.isNotEmpty()) {
+                Thread {
+                    for (sbn in active) {
+                        try {
+                            process(sbn)
+                        } catch (e: Exception) {
+                            Log.w(TAG, "补收单条通知失败", e)
+                        }
+                    }
+                }.start()
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "读取通知栏现有通知失败", e)
+        }
     }
 
     override fun onListenerDisconnected() {
@@ -36,14 +54,18 @@ class NtfyNotificationListener : NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         val statusBarNotification = sbn ?: return
-        Log.i(TAG, "收到通知 pkg=${statusBarNotification.packageName} id=${statusBarNotification.id}")
-        if (statusBarNotification.packageName != CalendarRepository.NTFY_PACKAGE) return
+        process(statusBarNotification)
+    }
+
+    private fun process(sbn: StatusBarNotification) {
+        Log.i(TAG, "收到通知 pkg=${sbn.packageName} id=${sbn.id}")
+        if (sbn.packageName != CalendarRepository.NTFY_PACKAGE) return
         if (!Prefs.autoImport(this)) {
             Log.i(TAG, "自动导入已关闭，忽略")
             return
         }
 
-        val notification = statusBarNotification.notification ?: return
+        val notification = sbn.notification ?: return
         val extras = notification.extras
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim().orEmpty()
         val text = (
@@ -67,10 +89,7 @@ class NtfyNotificationListener : NotificationListenerService() {
         Thread {
             try {
                 val outcome = TodoIngestor.handle(appContext, title, text)
-                val notice = outcome.noticeTitle
-                if (notice != null) {
-                    notifyResult(notice, outcome.noticeBody.orEmpty())
-                }
+                outcome.noticeTitle?.let { notifyResult(it, outcome.noticeBody.orEmpty()) }
             } catch (e: Exception) {
                 Log.w(TAG, "处理 ntfy 通知失败", e)
                 notifyResult("写日历出错了", e.message ?: e.javaClass.simpleName)

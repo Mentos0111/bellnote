@@ -20,6 +20,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.bellnote.R
 import com.bellnote.data.CalendarRepository
 import com.bellnote.data.DEFAULT_DURATION_MINUTES
+import com.bellnote.data.MANUAL_DEFAULT_DURATION_MINUTES
 import com.bellnote.data.RepeatRule
 import com.bellnote.data.SOURCE_MANUAL
 import com.bellnote.data.TodoItem
@@ -90,7 +91,10 @@ class EditActivity : AppCompatActivity() {
             title = getString(R.string.title_edit_new)
             etTitle.setText(intent.getStringExtra(EXTRA_TITLE).orEmpty())
             etNote.setText(intent.getStringExtra(EXTRA_NOTE).orEmpty())
-            etDuration.setText(intent.getIntExtra(EXTRA_DURATION, DEFAULT_DURATION_MINUTES).toString())
+            // 手动新建默认 1 小时；推送/截图识别那条路仍然走 5 分钟（DEFAULT_DURATION_MINUTES）
+            etDuration.setText(
+                intent.getIntExtra(EXTRA_DURATION, MANUAL_DEFAULT_DURATION_MINUTES).toString()
+            )
             spRepeat.setSelection(RepeatRule.fromRaw(intent.getStringExtra(EXTRA_REPEAT)).ordinal)
         }
         updateWhenLabel()

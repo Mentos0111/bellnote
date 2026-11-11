@@ -202,9 +202,12 @@ class TodoStore(context: Context) {
      * 收到删除指令时同步本地账：标题必须完全一致，给了时间就只删那前后 30 分钟内的那条
      * （和 CalendarRepository.findOwnEvents 用同一个窗口，不然日历删了、账还在，对账会报「多」）。
      * 这样「日历里已经被手动删掉、本地账还留着」的条目也会一起清掉。
+     *
+     * notAfterMillis：只处理「这条消息发出之前就已经建好」的账。补查会重放旧消息，
+     * 没有这道闸的话，一条三天前的删除指令会把老师昨天手工建的同名事件也删掉。
      */
     @Synchronized
-    fun markDeletedByTitle(title: String, dayMillis: Long?) {
+    fun markDeletedByTitle(title: String, dayMillis: Long?, notAfterMillis: Long? = null) {
         val wanted = title.trim()
         if (wanted.isEmpty()) return
         try {
@@ -213,23 +216,35 @@ class TodoStore(context: Context) {
                 put(COL_UPDATED, System.currentTimeMillis())
             }
             val db = helper.writableDatabase
-            if (dayMillis == null) {
-                db.update(
-                    TABLE, values,
-                    "$COL_TITLE = ? AND $COL_STATUS = ?",
-                    arrayOf(wanted, STATUS_ACTIVE)
-                )
-            } else {
+            val args = mutableListOf(wanted)
+            val selection = StringBuilder("$COL_TITLE = ? AND $COL_STATUS = ?")
+            args.add(STATUS_ACTIVE)
+            if (dayMillis != null) {
                 val range = DeleteWindow.rangeOf(dayMillis)
-                db.update(
-                    TABLE, values,
-                    "$COL_TITLE = ? AND $COL_START >= ? AND $COL_START <= ? AND $COL_STATUS = ?",
-                    arrayOf(wanted, range.first.toString(), range.last.toString(), STATUS_ACTIVE)
-                )
+                selection.append(" AND $COL_START >= ? AND $COL_START <= ?")
+                args.add(range.first.toString())
+                args.add(range.last.toString())
             }
+            if (notAfterMillis != null) {
+                selection.append(" AND $COL_CREATED <= ?")
+                args.add(notAfterMillis.toString())
+            }
+            db.update(TABLE, values, selection.toString(), args.toTypedArray())
         } catch (e: Exception) {
             Log.w(TAG, "按标题标记删除失败", e)
         }
+    }
+
+    /** 这条账是什么时候建的（epoch millis）；没有这条账返回 null。 */
+    @Synchronized
+    fun createdAtOfEvent(eventId: Long): Long? = try {
+        helper.readableDatabase.rawQuery(
+            "SELECT $COL_CREATED FROM $TABLE WHERE $COL_EVENT_ID = ? ORDER BY $COL_ID DESC LIMIT 1",
+            arrayOf(eventId.toString())
+        ).use { cursor -> if (cursor.moveToFirst()) cursor.getLong(0) else null }
+    } catch (e: Exception) {
+        Log.w(TAG, "查账本创建时间失败", e)
+        null
     }
 
     // ---------------- 内部实现 ----------------

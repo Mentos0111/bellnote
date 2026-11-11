@@ -1,4 +1,4 @@
-plugins {
+﻿plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
@@ -11,8 +11,8 @@ android {
         applicationId = "com.bellnote"
         minSdk = 26
         targetSdk = 34
-        versionCode = 30
-        versionName = "3.0"
+        versionCode = 31
+        versionName = "3.1"
     }
 
     signingConfigs {
