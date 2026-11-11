@@ -5,7 +5,7 @@
 #   .\build.cmd clean assembleDebug
 #
 # 工具链位置优先级：
-#   1. 环境变量 BELLNOTE_TOOLCHAIN 指向的目录（目录内应有 jdk-17 / sdk / gradle-8.7 / gradle-home）
+#   1. 环境变量 BELLNOTE_TOOLCHAIN 指向的目录（目录内应有 jdk-17 / sdk / gradle-8.7）
 #   2. 老默认路径 D:\deepseek-harness\.toolchain
 #   3. 都没有则直接用系统的 JAVA_HOME / ANDROID_HOME + gradlew
 param(
@@ -21,7 +21,8 @@ if ([string]::IsNullOrWhiteSpace($toolchain)) { $toolchain = 'D:\deepseek-harnes
 
 $jdk = Join-Path $toolchain 'jdk-17'
 $sdk = Join-Path $toolchain 'sdk'
-$gradleHome = Join-Path $toolchain 'gradle-home'
+# Gradle 可写缓存放在项目内，避免 workspace-write 沙箱越权。
+$gradleHome = Join-Path $root '.gradle'
 $gradleBin = Join-Path $toolchain 'gradle-8.7\bin\gradle.bat'
 $wrapper = Join-Path $root 'gradlew.bat'
 
@@ -35,7 +36,7 @@ if (Test-Path $sdk) {
     $env:ANDROID_HOME = $sdk
     $env:ANDROID_SDK_ROOT = $sdk
 }
-if (Test-Path $gradleHome) { $env:GRADLE_USER_HOME = $gradleHome }
+$env:GRADLE_USER_HOME = $gradleHome
 
 Write-Host "JAVA_HOME        = $env:JAVA_HOME"
 Write-Host "ANDROID_HOME     = $env:ANDROID_HOME"
