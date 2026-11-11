@@ -416,6 +416,12 @@
             android:visibility="gone">
 
             <Button
+                android:id="@+id/btnOnboarding"
+                style="@style/BtnTonal"
+                android:layout_marginTop="6dp"
+                android:text="再看一次新手引导" />
+
+            <Button
                 android:id="@+id/btnHealth"
                 style="@style/BtnTonal"
                 android:layout_marginTop="6dp"
