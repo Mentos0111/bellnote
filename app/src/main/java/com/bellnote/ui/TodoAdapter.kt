@@ -3,6 +3,7 @@ package com.bellnote.ui
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bellnote.R
@@ -13,24 +14,32 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
-/** 主页待办列表：按「今天 / 明天 / 后天 / 已过期 / 具体日期」分组，条目多了也不糊。 */
+/**
+ * 主页待办列表：按「今天 / 明天 / 后天 / 已过期 / 具体日期」分组，条目多了也不糊。
+ * 分组标题可以点一下收起／展开，收起时标题上写着这一组有几条；状态记在 Prefs 里。
+ */
 class TodoAdapter(
     items: List<TodoItem> = emptyList(),
+    collapsedGroups: Set<String> = emptySet(),
     private val onClick: (TodoItem) -> Unit,
-    private val onLongClick: (TodoItem) -> Unit
+    private val onLongClick: (TodoItem) -> Unit,
+    private val onCollapseChanged: (Set<String>) -> Unit = {}
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private sealed interface Row {
-        data class Header(val label: String) : Row
+        data class Header(val label: String, val count: Int, val collapsed: Boolean) : Row
         data class Entry(val todo: TodoItem) : Row
     }
 
-    private var rows: List<Row> = buildRows(items)
+    private var source: List<TodoItem> = items
+    private var collapsed: MutableSet<String> = collapsedGroups.toMutableSet()
+    private var rows: List<Row> = buildRows(items, collapsed)
 
     var items: List<TodoItem>
-        get() = rows.filterIsInstance<Row.Entry>().map { it.todo }
+        get() = source
         set(value) {
-            rows = buildRows(value)
+            source = value
+            rows = buildRows(value, collapsed)
         }
 
     class ItemHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -41,6 +50,7 @@ class TodoAdapter(
 
     class HeaderHolder(view: View) : RecyclerView.ViewHolder(view) {
         val text: TextView = view.findViewById(R.id.headerText)
+        val arrow: ImageView = view.findViewById(R.id.headerArrow)
     }
 
     override fun getItemCount(): Int = rows.size
@@ -59,8 +69,20 @@ class TodoAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (val row = rows[position]) {
-            is Row.Header -> (holder as HeaderHolder).text.text = row.label
+            is Row.Header -> bindHeader(holder as HeaderHolder, row)
             is Row.Entry -> bindItem(holder as ItemHolder, row.todo)
+        }
+    }
+
+    private fun bindHeader(holder: HeaderHolder, row: Row.Header) {
+        holder.text.text = if (row.collapsed) "${row.label} · ${row.count}" else row.label
+        // 收起时箭头朝右，展开时朝下
+        holder.arrow.rotation = if (row.collapsed) 0f else 90f
+        holder.itemView.setOnClickListener {
+            if (!collapsed.remove(row.label)) collapsed.add(row.label)
+            rows = buildRows(source, collapsed)
+            notifyDataSetChanged()
+            onCollapseChanged(collapsed.toSet())
         }
     }
 
@@ -83,16 +105,13 @@ class TodoAdapter(
         }
     }
 
-    private fun buildRows(source: List<TodoItem>): List<Row> {
+    private fun buildRows(source: List<TodoItem>, collapsed: Set<String>): List<Row> {
         val out = mutableListOf<Row>()
-        var lastLabel: String? = null
-        for (item in source.sortedBy { it.startMillis }) {
-            val label = dayLabel(item.startMillis)
-            if (label != lastLabel) {
-                out.add(Row.Header(label))
-                lastLabel = label
-            }
-            out.add(Row.Entry(item))
+        val groups = source.sortedBy { it.startMillis }.groupBy { dayLabel(it.startMillis) }
+        for ((label, entries) in groups) {
+            val isCollapsed = collapsed.contains(label)
+            out.add(Row.Header(label, entries.size, isCollapsed))
+            if (!isCollapsed) entries.forEach { out.add(Row.Entry(it)) }
         }
         return out
     }

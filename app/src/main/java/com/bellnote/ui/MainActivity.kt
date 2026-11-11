@@ -75,7 +75,9 @@ class MainActivity : AppCompatActivity() {
 
         adapter = TodoAdapter(
             onClick = { item -> startActivity(EditActivity.intentForItem(this, item)) },
-            onLongClick = { item -> confirmDelete(item) }
+            onLongClick = { item -> confirmDelete(item) },
+            collapsedGroups = Prefs.collapsedGroups(this),
+            onCollapseChanged = { labels -> Prefs.setCollapsedGroups(this, labels) }
         )
 
         val recycler: RecyclerView = findViewById(R.id.recycler)
