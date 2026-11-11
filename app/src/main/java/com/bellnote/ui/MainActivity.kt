@@ -89,7 +89,7 @@ class MainActivity : AppCompatActivity() {
         setupQuickAdd()
         setupDrawer()
 
-        findViewById<View>(R.id.btnShotBig).setOnClickListener {
+        findViewById<View>(R.id.btnShotIcon).setOnClickListener {
             startActivity(Intent(this, ImportActivity::class.java))
         }
         findViewById<TextView>(R.id.tvVersionTop).text = versionLabel()

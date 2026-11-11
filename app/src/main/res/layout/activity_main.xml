@@ -83,7 +83,7 @@
                 android:textSize="12sp" />
         </LinearLayout>
 
-        <!-- 一句话记一条 -->
+        <!-- 一句话记一条：输入 → 发送 → 截屏，三个并排 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -107,26 +107,28 @@
                 android:textColorHint="?attr/bnTextSecondary"
                 android:textSize="15sp" />
 
-            <TextView
+            <ImageButton
                 android:id="@+id/btnQuickGo"
                 android:layout_width="46dp"
                 android:layout_height="46dp"
                 android:layout_marginStart="10dp"
                 android:background="@drawable/bg_circle_primary"
-                android:gravity="center"
-                android:text="→"
-                android:textColor="?attr/bnOnPrimary"
-                android:textSize="20sp" />
-        </LinearLayout>
+                android:contentDescription="@string/quick_go_desc"
+                android:padding="12dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_send" />
 
-        <Button
-            android:id="@+id/btnShotBig"
-            style="@style/BtnPrimary"
-            android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:layout_marginTop="14dp"
-            android:text="@string/btn_shot_big"
-            android:textSize="17sp" />
+            <ImageButton
+                android:id="@+id/btnShotIcon"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_icon"
+                android:contentDescription="@string/btn_shot_big"
+                android:padding="11dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_screenshot" />
+        </LinearLayout>
 
         <!-- 状态 -->
         <LinearLayout
