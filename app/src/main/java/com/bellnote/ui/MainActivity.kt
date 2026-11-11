@@ -100,7 +100,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.statusChip).setOnClickListener {
             startActivity(Intent(this, HealthActivity::class.java))
         }
-        findViewById<TextView>(R.id.tvDate).text = TimeFormat.todayLine(System.currentTimeMillis())
+        findViewById<TextView>(R.id.tvDate).text = TimeFormat.headerLine(System.currentTimeMillis())
     }
 
     /** 首页顶部「一句话记」：敲完回车 / 点「记」→ 本地解析 → 填好编辑页给你确认。 */

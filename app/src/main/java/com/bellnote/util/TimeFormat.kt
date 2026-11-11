@@ -37,6 +37,12 @@ object TimeFormat {
     private val DAY = DateTimeFormatter.ofPattern("M 月 d 日 E", java.util.Locale.CHINA)
     private val MONTH_DAY_WEEK = DateTimeFormatter.ofPattern("M 月 d 日 EEEE", java.util.Locale.CHINA)
 
+    /** 首页顶栏居中那行：短一点，给左右两边留位置。 */
+    fun headerLine(millis: Long, zone: ZoneId = ZoneId.systemDefault()): String =
+        Instant.ofEpochMilli(millis).atZone(zone).toLocalDate().format(HEADER)
+
+    private val HEADER = DateTimeFormatter.ofPattern("M 月 d 日 · E", java.util.Locale.CHINA)
+
     /** 首页顶部那行日期：11 月 12 日 周四（今天会加「今天 ·」前缀）。 */
     fun todayLine(millis: Long, zone: ZoneId = ZoneId.systemDefault()): String {
         val date = Instant.ofEpochMilli(millis).atZone(zone).toLocalDate()

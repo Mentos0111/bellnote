@@ -12,164 +12,153 @@
         android:paddingLeft="20dp"
         android:paddingRight="20dp">
 
-        <!-- 日期：最上面一行，居中 -->
-        <TextView
-            android:id="@+id/tvDate"
+        <!-- 顶栏一行：☰ 在左，日期居中，品牌名 + 版本号在右 -->
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:gravity="center"
-            android:letterSpacing="0.12"
-            android:textColor="?attr/bnTextSecondary"
-            android:textSize="11sp" />
-
-        <!-- 顶栏：☰ 在左，品牌名和版本号在右 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_height="56dp">
 
             <TextView
                 android:id="@+id/btnMenu"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
+                android:layout_gravity="start|center_vertical"
+                android:layout_marginStart="-8dp"
                 android:gravity="center"
                 android:text="☰"
                 android:textColor="?attr/bnTextSecondary"
                 android:textSize="18sp" />
 
-            <View
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-
             <TextView
+                android:id="@+id/tvDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/app_name"
-                android:textColor="?attr/bnTextPrimary"
-                android:textSize="17sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvVersionTop"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_gravity="center"
+                android:letterSpacing="0.12"
                 android:textColor="?attr/bnTextSecondary"
                 android:textSize="11sp" />
-        </LinearLayout>
 
-        <!-- 头部面板：两颗灯 + 一句话记 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|center_vertical"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_name"
+                    android:textColor="?attr/bnTextPrimary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvVersionTop"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:textColor="?attr/bnTextSecondary"
+                    android:textSize="10sp" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <!-- 一句话记一条：输入 → 发送 → 截屏，三个并排 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/bg_hero"
-            android:orientation="vertical"
-            android:paddingLeft="18dp"
-            android:paddingTop="16dp"
-            android:paddingRight="18dp"
-            android:paddingBottom="18dp">
+            android:layout_marginTop="10dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-            <!-- 两颗指示灯：体检结果 + 配置状态，点了都进「运行体检」 -->
-            <LinearLayout
-                android:layout_width="match_parent"
+            <EditText
+                android:id="@+id/etQuick"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_input_hero"
+                android:hint="@string/quick_hint"
+                android:imeOptions="actionGo"
+                android:inputType="text"
+                android:maxLines="1"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:textColor="?attr/bnTextPrimary"
+                android:textColorHint="?attr/bnTextSecondary"
+                android:textSize="15sp" />
+
+            <ImageButton
+                android:id="@+id/btnQuickGo"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/bg_circle_primary"
+                android:contentDescription="@string/quick_go_desc"
+                android:padding="12dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_send" />
+
+            <ImageButton
+                android:id="@+id/btnShotIcon"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_icon_circle"
+                android:contentDescription="@string/btn_shot_big"
+                android:padding="11dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_screenshot" />
+        </LinearLayout>
+
+        <!-- 两颗指示灯：体检结果 + 配置状态，点了都进「运行体检」 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/healthChip"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="@drawable/bg_status_pill"
+                android:clickable="true"
+                android:drawableStart="@drawable/dot_ok"
+                android:drawableEnd="@drawable/ic_chevron_right"
+                android:drawablePadding="6dp"
+                android:focusable="true"
+                android:foreground="?android:attr/selectableItemBackground"
                 android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:maxLines="1"
+                android:paddingLeft="11dp"
+                android:paddingTop="6dp"
+                android:paddingRight="9dp"
+                android:paddingBottom="6dp"
+                android:text="检测中"
+                android:textColor="?attr/bnTextSecondary"
+                android:textSize="12sp" />
 
-                <TextView
-                    android:id="@+id/healthChip"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_status_pill"
-                    android:clickable="true"
-                    android:drawableStart="@drawable/dot_ok"
-                    android:drawableEnd="@drawable/ic_chevron_right"
-                    android:drawablePadding="6dp"
-                    android:focusable="true"
-                    android:foreground="?android:attr/selectableItemBackground"
-                    android:gravity="center_vertical"
-                    android:maxLines="1"
-                    android:paddingLeft="11dp"
-                    android:paddingTop="6dp"
-                    android:paddingRight="9dp"
-                    android:paddingBottom="6dp"
-                    android:text="检测中"
-                    android:textColor="?attr/bnTextSecondary"
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:id="@+id/statusChip"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_status_pill"
-                    android:clickable="true"
-                    android:drawableStart="@drawable/dot_ok"
-                    android:drawableEnd="@drawable/ic_chevron_right"
-                    android:drawablePadding="6dp"
-                    android:focusable="true"
-                    android:foreground="?android:attr/selectableItemBackground"
-                    android:gravity="center_vertical"
-                    android:maxLines="1"
-                    android:paddingLeft="11dp"
-                    android:paddingTop="6dp"
-                    android:paddingRight="9dp"
-                    android:paddingBottom="6dp"
-                    android:text="一切就绪"
-                    android:textColor="?attr/bnTextSecondary"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <!-- 一句话记一条：输入 → 发送 → 截屏，三个并排 -->
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/statusChip"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_status_pill"
+                android:clickable="true"
+                android:drawableStart="@drawable/dot_ok"
+                android:drawableEnd="@drawable/ic_chevron_right"
+                android:drawablePadding="6dp"
+                android:focusable="true"
+                android:foreground="?android:attr/selectableItemBackground"
                 android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <EditText
-                    android:id="@+id/etQuick"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_input_hero"
-                    android:hint="@string/quick_hint"
-                    android:imeOptions="actionGo"
-                    android:inputType="text"
-                    android:maxLines="1"
-                    android:paddingLeft="16dp"
-                    android:paddingRight="16dp"
-                    android:textColor="?attr/bnTextPrimary"
-                    android:textColorHint="?attr/bnTextSecondary"
-                    android:textSize="15sp" />
-
-                <ImageButton
-                    android:id="@+id/btnQuickGo"
-                    android:layout_width="46dp"
-                    android:layout_height="46dp"
-                    android:layout_marginStart="10dp"
-                    android:background="@drawable/bg_circle_primary"
-                    android:contentDescription="@string/quick_go_desc"
-                    android:padding="12dp"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/ic_send" />
-
-                <ImageButton
-                    android:id="@+id/btnShotIcon"
-                    android:layout_width="46dp"
-                    android:layout_height="46dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_icon_circle"
-                    android:contentDescription="@string/btn_shot_big"
-                    android:padding="11dp"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/ic_screenshot" />
-            </LinearLayout>
+                android:maxLines="1"
+                android:paddingLeft="11dp"
+                android:paddingTop="6dp"
+                android:paddingRight="9dp"
+                android:paddingBottom="6dp"
+                android:text="一切就绪"
+                android:textColor="?attr/bnTextSecondary"
+                android:textSize="12sp" />
         </LinearLayout>
 
         <TextView
