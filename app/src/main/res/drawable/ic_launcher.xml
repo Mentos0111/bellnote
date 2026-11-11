@@ -1,21 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 优化版：白卡放大到 52、居中、圆角统一，内容左右各留 10（原来左 10 右 8 不对称） -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+
+    <!-- 底：圆角方块 -->
     <path
         android:fillColor="#156B5A"
         android:pathData="M14,0H94A14,14 0,0 1,108 14V94A14,14 0,0 1,94 108H14A14,14 0,0 1,0 94V14A14,14 0,0 1,14 0Z" />
+
+    <!-- 白卡（圆角 4） -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M30,30H78V78H30Z" />
+        android:pathData="M32,28H76A4,4 0,0 1,80 32V76A4,4 0,0 1,76 80H32A4,4 0,0 1,28 76V32A4,4 0,0 1,32 28Z" />
+
+    <!-- 页眉带（只圆上面两个角） -->
     <path
         android:fillColor="#0E4B3F"
-        android:pathData="M30,30H78V42H30Z" />
+        android:pathData="M32,28H76A4,4 0,0 1,80 32V40H28V32A4,4 0,0 1,32 28Z" />
+
+    <!-- 橙色块（圆角 2.2） -->
     <path
-        android:fillColor="#EF8F32"
-        android:pathData="M40,54H52V66H40Z" />
+        android:fillColor="#F0912F"
+        android:pathData="M40.2,52H48.8A2.2,2.2 0,0 1,51 54.2V62.8A2.2,2.2 0,0 1,48.8 65H40.2A2.2,2.2 0,0 1,38 62.8V54.2A2.2,2.2 0,0 1,40.2 52Z" />
+
+    <!-- 两条待办线（圆角 3） -->
     <path
         android:fillColor="#0E4B3F"
-        android:pathData="M58,54H70V58H58ZM58,62H70V66H58Z" />
+        android:pathData="M58,51H67A3,3 0,0 1,70 54V54A3,3 0,0 1,67 57H58A3,3 0,0 1,55 54V54A3,3 0,0 1,58 51Z" />
+    <path
+        android:fillColor="#0E4B3F"
+        android:pathData="M58,59H67A3,3 0,0 1,70 62V62A3,3 0,0 1,67 65H58A3,3 0,0 1,55 62V62A3,3 0,0 1,58 59Z" />
 </vector>
