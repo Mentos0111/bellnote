@@ -45,6 +45,7 @@ object Prefs {
     private const val KEY_CATCHUP_SUMMARY = "catchup_last_summary"
     private const val KEY_LISTENER_AT = "listener_connected_at"
     private const val KEY_THEME = "theme_palette"
+    private const val KEY_SPLASH_VERSION = "splash_version"
     private const val KEY_THEME_MODE = "theme_mode"
     private const val KEY_HEALTH = "health_cache"
     private const val KEY_ONBOARDED = "onboarded"
@@ -298,6 +299,14 @@ object Prefs {
 
     fun setTheme(context: Context, id: String) {
         sp(context).edit().putString(KEY_THEME, id).apply()
+    }
+
+    /** 上次播过开屏的版本号；换了版本就再播一次品牌动效。 */
+    fun splashVersion(context: Context): String =
+        sp(context).getString(KEY_SPLASH_VERSION, "").orEmpty()
+
+    fun setSplashVersion(context: Context, version: String) {
+        sp(context).edit().putString(KEY_SPLASH_VERSION, version).apply()
     }
 
     /** 明暗模式：system（跟随系统）/ light / dark。 */

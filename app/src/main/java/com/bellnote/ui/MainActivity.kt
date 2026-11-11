@@ -18,6 +18,7 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bellnote.App
 import com.bellnote.util.ThemeManager
 import com.bellnote.R
 import com.bellnote.data.CalendarRepository
@@ -69,6 +70,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         DeviceVendor.log(this)
+        maybePlaySplash()
 
         emptyView = findViewById(R.id.emptyView)
         drawer = findViewById(R.id.drawer)
@@ -99,6 +101,19 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, HealthActivity::class.java))
         }
         findViewById<View>(R.id.statusChip).setOnClickListener { showSyncDialog() }
+    }
+
+    /**
+     * 冷启动开屏：日常只放图标；换了版本（含首次安装）再播一次带字标的品牌动效。
+     * 进程内只播一次，换主题重建页面不会再盖。
+     */
+    private fun maybePlaySplash() {
+        if (!App.splashPending) return
+        App.splashPending = false
+        val version = versionLabel().removePrefix("v")
+        val fancy = Prefs.splashVersion(this) != version
+        Prefs.setSplashVersion(this, version)
+        SplashOverlay.show(this, fancy) { }
     }
 
     /** 首页顶部「一句话记」：敲完回车 / 点「记」→ 本地解析 → 填好编辑页给你确认。 */

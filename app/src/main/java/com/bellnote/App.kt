@@ -71,5 +71,9 @@ class App : Application() {
 
     companion object {
         const val CHANNEL_EVENTS = "ntfy_calendar_events"
+
+        /** 冷启动开屏只播一次；Activity recreate（换主题）不会再盖一层。 */
+        @Volatile
+        var splashPending = true
     }
 }
