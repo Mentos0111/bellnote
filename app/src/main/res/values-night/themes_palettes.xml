@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="ThemeOverlay.Bellnote.Teal" parent="">
         <item name="bnPrimary">#FF3FCBAB</item>
         <item name="bnPrimaryDark">#FF0B3A33</item>
-        <item name="bnOnPrimary">#FFFFFFFF</item>
+        <item name="bnOnPrimary">#FF06231C</item>
         <item name="bnAccent">#FFF7B23B</item>
         <item name="bnWindowBg">#FF0B100F</item>
         <item name="bnSurface">#FF121917</item>

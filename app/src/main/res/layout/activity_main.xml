@@ -84,7 +84,7 @@
                 android:layout_marginStart="10dp"
                 android:background="@drawable/bg_circle_primary"
                 android:contentDescription="@string/quick_go_desc"
-                android:padding="12dp"
+                android:padding="10dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_send" />
 
