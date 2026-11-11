@@ -132,8 +132,24 @@ APK output: `app/build/outputs/apk/debug/app-debug.apk` (debug-signed; sideload 
 
 `keystore/bellnote-debug.keystore` is the standard Android **debug** key, committed on purpose so
 that every build — locally or on GitHub Actions — carries the same signature and existing users can
-upgrade in place. It is not a secret and has no value outside this app. If you fork this and ship to
-other people, generate your own release key instead.
+upgrade in place. It is not a secret and has no value outside this app.
+
+Release builds prefer a real key when one is configured: set the environment variables
+`BELLNOTE_KEYSTORE` (path to the keystore), `BELLNOTE_KEYSTORE_PASSWORD`, `BELLNOTE_KEY_ALIAS` and
+`BELLNOTE_KEY_PASSWORD`. Without them the release build falls back to the debug key and prints a
+warning, so local testing still works. If you fork this and ship to other people, generate your own
+release key instead of reusing either of these.
+
+> Switching to a new key means already-installed builds (debug-signed) can no longer upgrade in
+> place — signature mismatch requires uninstall + reinstall.
+
+### Versioning
+
+The git tag is the single source of truth: `v3.12` / `v3.12.1`. CI strips the `v` and injects it via
+`-PbellnoteVersionName`, so the APK always reports the tag it was built from — no hand-edited version
+in Gradle can drift. `versionCode` is derived from the version name: `major*10000 + minor*100 + patch`
+(3.12 → 31200). Bump policy lives in `CHANGELOG.md` / `HANDOFF.md`: patch for fixes and visual tweaks,
+minor for features, major for incompatible changes.
 
 ### Automated release
 
@@ -141,13 +157,16 @@ other people, generate your own release key instead.
 from the Actions tab for an existing tag):
 
 ```bash
-git tag -a v2.3 -m "Bellnote v2.3"
+git tag -a v3.13 -m "Bellnote v3.13"
 git push origin main
-git push origin v2.3
+git push origin v3.13
 ```
 
-The workflow runs the unit tests, builds the release APK, renames it `bellnote-<version>.apk`, and
-attaches it to the GitHub Release for that tag.
+The workflow validates the tag format, checks that `CHANGELOG.md` has a `## [3.13]` section, runs the
+unit tests, builds the release APK (`assembleRelease` with R8 enabled), re-reads the APK's real
+`versionName`/`versionCode` with `aapt2` and fails if they don't match the tag, then attaches
+`bellnote-<version>.apk` to the GitHub Release with the changelog section as its body. Tags with a
+`-beta`-style suffix are published as pre-releases.
 
 ## Install
 
@@ -242,10 +261,16 @@ MIT — see [LICENSE](LICENSE).
 
 签名：仓库里 `keystore/bellnote-debug.keystore` 是标准 Android debug key，**故意提交**的，
 这样本地构建和 GitHub Actions 产出的 APK 签名一致，已安装用户可以直接覆盖升级。它不是密钥，
-对外没有价值；如果你要 fork 后分发给别人，请换成自己的正式签名密钥。
+对外没有价值。正式发布可以配 `BELLNOTE_KEYSTORE` 等 4 个环境变量换成自己的正式 keystore；
+没配就退回 debug key，并在构建日志里告警。注意换签名后老用户必须卸载重装。
 
-自动发版：推 `v*` tag 就会触发 `.github/workflows/release.yml`，跑单测 → 构建 → 把
-`bellnote-<版本>.apk` 挂到对应 Release 上。
+版本：**git tag 是唯一真相源**（`v3.12`），CI 去掉 `v` 注入 Gradle；`versionCode` 由版本号推导
+（`major*10000+minor*100+patch`，3.12 → 31200）。每版改了什么只记在 `CHANGELOG.md`，
+升位规则（补丁/次位/主位）和发版步骤见 `HANDOFF.md` 的「发版规程」。
+
+自动发版：推 `v*` tag 触发 `.github/workflows/release.yml`：校验 tag 格式与 CHANGELOG 小节 →
+单测 → `assembleRelease`（已开 R8）→ 用 aapt2 复核包里的真实版本号 → 把 `bellnote-<版本>.apk`
+和 CHANGELOG 里对应小节一起挂到 Release 上。
 
 隐私：不收集任何数据；唯一联网是可选截图识别。
 

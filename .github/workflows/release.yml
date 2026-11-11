@@ -2,6 +2,10 @@ name: release
 
 # 打 tag 就自动构建，并把 APK 挂到对应 Release 上。
 # 也可以在 Actions 页面手动 Run workflow，指定已有 tag（用于补发/重发）。
+#
+# 版本号的真相源就是 tag：CI 把 tag 去掉 v 之后用 -PbellnoteVersionName 传给 Gradle，
+# 构建完再用 aapt2 读包里真实的 versionName / versionCode 复核一遍，两边不一致就红。
+# 改了什么必须写进 CHANGELOG.md，Release 说明从那里抽。
 
 on:
   push:
@@ -10,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: '要发布的 tag（必须已存在），例如 v2.2'
+        description: '要发布的 tag（必须已存在），例如 v3.12'
         required: true
       ref:
         description: '构建哪个 ref（默认 main）'
@@ -19,6 +23,9 @@ on:
 
 permissions:
   contents: write
+
+env:
+  PYTHONIOENCODING: utf-8
 
 jobs:
   build:
@@ -30,14 +37,59 @@ jobs:
           # push tag 时构建那个 tag；手动触发时构建 inputs.ref
           ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ref || github.ref }}
 
-      - name: Resolve tag name
+      - name: Resolve tag, version and versionCode
         id: meta
+        env:
+          TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
-          fi
+          python3 - <<'PY'
+          import os, re, sys
+
+          tag = os.environ["TAG"].strip()
+          m = re.fullmatch(r"v(\d+)\.(\d+)(?:\.(\d+))?(?:-([0-9A-Za-z.]+))?", tag)
+          if not m:
+              sys.exit(f"tag 格式不对：{tag}（要写成 v3.12 或 v3.12.1）")
+
+          major, minor, patch, pre = m.group(1), m.group(2), m.group(3) or "0", m.group(4)
+          version = tag[1:]
+          code = int(major) * 10000 + int(minor) * 100 + int(patch)
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"tag={tag}\n")
+              out.write(f"version={version}\n")
+              out.write(f"versioncode={code}\n")
+              out.write(f"prerelease={'true' if pre else 'false'}\n")
+
+          print(f"tag={tag} version={version} versionCode={code} prerelease={bool(pre)}")
+          PY
+
+      - name: Check CHANGELOG and extract release notes
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          python3 - <<'PY'
+          import os, re, sys
+
+          version = os.environ["VERSION"]
+          with open("CHANGELOG.md", encoding="utf-8") as f:
+              text = f.read()
+
+          pattern = re.compile(
+              r"^## \[" + re.escape(version) + r"\][^\n]*\n(.*?)(?=^## \[|\Z)",
+              re.M | re.S,
+          )
+          m = pattern.search(text)
+          body = m.group(1).strip() if m else ""
+          if not body:
+              sys.exit(
+                  f"CHANGELOG.md 里没有 '## [{version}]' 小节（或它是空的）。"
+                  "发版前先把这版改了什么写进去。"
+              )
+
+          with open("release-notes.md", "w", encoding="utf-8") as f:
+              f.write(body + "\n")
+          print(body)
+          PY
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -58,26 +110,85 @@ jobs:
           yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
           echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
 
+      - name: Prepare release keystore
+        # 4 个 secrets：KEYSTORE_BASE64 / KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD
+        # 没配就退回仓库里的 debug key，并在 Summary 里显式告警（不静默）。
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -z "${KEYSTORE_BASE64:-}" ]; then
+            echo "::warning::没有配置 KEYSTORE_BASE64，本次 release 包用 debug key 签名。"
+            echo "### ⚠️ 本次用 debug key 签名（未配置正式 keystore secrets）" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          KEYSTORE_PATH="$RUNNER_TEMP/bellnote-release.jks"
+          echo "$KEYSTORE_BASE64" | base64 -d > "$KEYSTORE_PATH"
+          {
+            echo "BELLNOTE_KEYSTORE=$KEYSTORE_PATH"
+            echo "BELLNOTE_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD"
+            echo "BELLNOTE_KEY_ALIAS=$KEY_ALIAS"
+            echo "BELLNOTE_KEY_PASSWORD=$KEY_PASSWORD"
+          } >> "$GITHUB_ENV"
+          echo "### ✅ 本次用正式 keystore 签名" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Unit tests
         run: |
           chmod +x gradlew
           ./gradlew testDebugUnitTest --no-daemon --console=plain
 
       - name: Build release APK
-        run: ./gradlew assembleRelease --no-daemon --console=plain
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          ./gradlew assembleRelease --no-daemon --console=plain \
+            "-PbellnoteVersionName=$VERSION"
+
+      - name: Verify APK version matches the tag
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          EXPECTED_CODE: ${{ steps.meta.outputs.versioncode }}
+        run: |
+          set -euo pipefail
+          AAPT="$(ls -d "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)"
+          "$AAPT" dump badging app/build/outputs/apk/release/app-release.apk > badging.txt
+          python3 - <<'PY'
+          import os, re, sys
+
+          badging = open("badging.txt", encoding="utf-8", errors="replace").read().lstrip("\ufeff")
+          m = re.search(
+              r"^package: name='[^']*' versionCode='(\d+)' versionName='([^']*)'",
+              badging,
+              re.M,
+          )
+          if not m:
+              sys.exit("aapt2 输出里找不到 package 行，无法复核版本号")
+
+          code, name = int(m.group(1)), m.group(2)
+          want_name = os.environ["VERSION"]
+          want_code = int(os.environ["EXPECTED_CODE"])
+          print(f"tag={want_name} / APK versionName={name} versionCode={code} / 期望 {want_code}")
+          if name != want_name or code != want_code:
+              sys.exit("包里版本号和 tag 不一致（Gradle 注入没生效？）")
+          print("版本号校验通过")
+          PY
 
       - name: Name the APK after the tag
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
         run: |
           mkdir -p dist
-          VERSION="${{ steps.meta.outputs.tag }}"
-          VERSION="${VERSION#v}"
           cp app/build/outputs/apk/release/app-release.apk "dist/bellnote-${VERSION}.apk"
-          ls -l dist
+          ls -lh dist
 
       - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.meta.outputs.tag }}
-          name: Bellnote ${{ steps.meta.outputs.tag }}
+          name: Bellnote ${{ steps.meta.outputs.version }}
+          body_path: release-notes.md
+          prerelease: ${{ steps.meta.outputs.prerelease }}
           files: dist/bellnote-*.apk
           fail_on_unmatched_files: true
