@@ -7,9 +7,9 @@
     <dimen name="space_lg">22dp</dimen>
     <dimen name="space_xl">30dp</dimen>
 
-    <dimen name="card_radius">18dp</dimen>
-    <dimen name="page_padding">18dp</dimen>
-    <dimen name="control_height">54dp</dimen>
+    <dimen name="card_radius">16dp</dimen>
+    <dimen name="page_padding">16dp</dimen>
+    <dimen name="control_height">48dp</dimen>
 
     <!-- 立体感：卡片和按钮的抬升高度 -->
     <dimen name="elevation_card">2dp</dimen>

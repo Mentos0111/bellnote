@@ -7,6 +7,7 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.bellnote.util.ThemeManager
 import com.bellnote.R
 import com.bellnote.util.Permissions
 import com.bellnote.util.enableHomeUp
@@ -23,6 +24,7 @@ class PermissionGuideActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeManager.apply(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_permission)
         enableHomeUp()

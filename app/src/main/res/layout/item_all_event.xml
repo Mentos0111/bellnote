@@ -23,7 +23,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:textSize="13sp"
-        android:textColor="@color/primary"
+        android:textColor="?attr/bnPrimary"
         android:text="2026-11-10 09:00 · 30 分钟" />
 
     <TextView
@@ -32,6 +32,6 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:textSize="12sp"
-        android:textColor="@color/text_secondary"
+        android:textColor="?attr/bnTextSecondary"
         android:text="手机日历" />
 </LinearLayout>

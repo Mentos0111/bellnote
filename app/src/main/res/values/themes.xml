@@ -1,22 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.NtfyCalendar" parent="Theme.AppCompat.DayNight.DarkActionBar">
-        <item name="colorPrimary">@color/primary_dark</item>
-        <item name="colorPrimaryDark">@color/primary_dark</item>
-        <item name="colorAccent">@color/accent</item>
-        <item name="android:windowBackground">@color/window_bg</item>
-        <item name="android:statusBarColor">@color/primary_dark</item>
-        <item name="android:navigationBarColor">@color/window_bg</item>
+        <item name="colorPrimary">?attr/bnPrimaryDark</item>
+        <item name="colorPrimaryDark">?attr/bnPrimaryDark</item>
+        <item name="colorAccent">?attr/bnAccent</item>
+        <item name="android:windowBackground">?attr/bnWindowBg</item>
+        <item name="android:statusBarColor">?attr/bnPrimaryDark</item>
+        <item name="android:navigationBarColor">?attr/bnWindowBg</item>
+        <item name="bnPrimary">@color/primary</item>
+        <item name="bnPrimaryDark">@color/primary_dark</item>
+        <item name="bnOnPrimary">@color/text_on_primary</item>
+        <item name="bnAccent">@color/accent</item>
+        <item name="bnWindowBg">@color/window_bg</item>
+        <item name="bnSurface">@color/surface</item>
+        <item name="bnCard">@color/card_bg</item>
+        <item name="bnCardStroke">@color/card_stroke</item>
+        <item name="bnDivider">@color/divider</item>
+        <item name="bnTextPrimary">@color/text_primary</item>
+        <item name="bnTextSecondary">@color/text_secondary</item>
+        <item name="bnChipBg">@color/chip_bg</item>
+        <item name="bnIconBg">@color/icon_bg</item>
+        <item name="bnDanger">@color/danger</item>
+        <item name="bnNavBg">@color/nav_bg</item>
+        <item name="bnRipple">@color/ripple</item>
     </style>
 
     <!-- 首页自带顶栏（☰ + 标题），不要再叠一层系统 ActionBar -->
     <style name="Theme.NtfyCalendar.Home" parent="Theme.AppCompat.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryDark">@color/primary_dark</item>
-        <item name="colorAccent">@color/accent</item>
-        <item name="android:windowBackground">@color/window_bg</item>
-        <item name="android:statusBarColor">@color/primary_dark</item>
-        <item name="android:navigationBarColor">@color/window_bg</item>
+        <item name="colorPrimary">?attr/bnPrimary</item>
+        <item name="colorPrimaryDark">?attr/bnPrimaryDark</item>
+        <item name="colorAccent">?attr/bnAccent</item>
+        <item name="android:windowBackground">?attr/bnWindowBg</item>
+        <item name="android:statusBarColor">?attr/bnPrimaryDark</item>
+        <item name="android:navigationBarColor">?attr/bnWindowBg</item>
+        <item name="bnPrimary">@color/primary</item>
+        <item name="bnPrimaryDark">@color/primary_dark</item>
+        <item name="bnOnPrimary">@color/text_on_primary</item>
+        <item name="bnAccent">@color/accent</item>
+        <item name="bnWindowBg">@color/window_bg</item>
+        <item name="bnSurface">@color/surface</item>
+        <item name="bnCard">@color/card_bg</item>
+        <item name="bnCardStroke">@color/card_stroke</item>
+        <item name="bnDivider">@color/divider</item>
+        <item name="bnTextPrimary">@color/text_primary</item>
+        <item name="bnTextSecondary">@color/text_secondary</item>
+        <item name="bnChipBg">@color/chip_bg</item>
+        <item name="bnIconBg">@color/icon_bg</item>
+        <item name="bnDanger">@color/danger</item>
+        <item name="bnNavBg">@color/nav_bg</item>
+        <item name="bnRipple">@color/ripple</item>
     </style>
 
     <!-- 透明、无标题：侧边栏截屏入口和「分享文字」入口都靠它不挡内容 -->
@@ -26,6 +58,22 @@
         <item name="android:windowNoTitle">true</item>
         <item name="android:backgroundDimEnabled">false</item>
         <item name="android:windowAnimationStyle">@null</item>
+        <item name="bnPrimary">@color/primary</item>
+        <item name="bnPrimaryDark">@color/primary_dark</item>
+        <item name="bnOnPrimary">@color/text_on_primary</item>
+        <item name="bnAccent">@color/accent</item>
+        <item name="bnWindowBg">@color/window_bg</item>
+        <item name="bnSurface">@color/surface</item>
+        <item name="bnCard">@color/card_bg</item>
+        <item name="bnCardStroke">@color/card_stroke</item>
+        <item name="bnDivider">@color/divider</item>
+        <item name="bnTextPrimary">@color/text_primary</item>
+        <item name="bnTextSecondary">@color/text_secondary</item>
+        <item name="bnChipBg">@color/chip_bg</item>
+        <item name="bnIconBg">@color/icon_bg</item>
+        <item name="bnDanger">@color/danger</item>
+        <item name="bnNavBg">@color/nav_bg</item>
+        <item name="bnRipple">@color/ripple</item>
     </style>
 
     <!-- 文字 -->
@@ -36,17 +84,17 @@
         <item name="android:layout_marginTop">16dp</item>
         <item name="android:textSize">12sp</item>
         <item name="android:letterSpacing">0.02</item>
-        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textColor">?attr/bnTextSecondary</item>
     </style>
 
     <style name="SectionLabel">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginTop">30dp</item>
+        <item name="android:layout_marginTop">24dp</item>
         <item name="android:layout_marginBottom">8dp</item>
         <item name="android:textSize">13sp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textColor">?attr/bnTextSecondary</item>
     </style>
 
     <style name="FieldCaption">
@@ -54,7 +102,7 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textSize">11sp</item>
         <item name="android:letterSpacing">0.08</item>
-        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textColor">?attr/bnTextSecondary</item>
     </style>
 
     <style name="HintText">
@@ -62,7 +110,7 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textSize">12sp</item>
         <item name="android:lineSpacingExtra">2dp</item>
-        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textColor">?attr/bnTextSecondary</item>
     </style>
 
     <!-- 输入 -->
@@ -77,17 +125,17 @@
         <item name="android:paddingTop">12dp</item>
         <item name="android:paddingBottom">12dp</item>
         <item name="android:textSize">16sp</item>
-        <item name="android:textColor">@color/text_primary</item>
-        <item name="android:textColorHint">@color/text_secondary</item>
+        <item name="android:textColor">?attr/bnTextPrimary</item>
+        <item name="android:textColorHint">?attr/bnTextSecondary</item>
     </style>
 
     <!-- 按钮 -->
 
     <style name="BtnPrimary">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">52dp</item>
+        <item name="android:layout_height">44dp</item>
         <item name="android:background">@drawable/bg_button_primary</item>
-        <item name="android:textColor">@color/text_on_primary</item>
+        <item name="android:textColor">?attr/bnOnPrimary</item>
         <item name="android:textSize">16sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textAllCaps">false</item>
@@ -96,9 +144,9 @@
 
     <style name="BtnTonal">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_height">44dp</item>
         <item name="android:background">@drawable/bg_button_tonal</item>
-        <item name="android:textColor">@color/primary</item>
+        <item name="android:textColor">?attr/bnPrimary</item>
         <item name="android:textSize">15sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textAllCaps">false</item>
@@ -107,9 +155,9 @@
 
     <style name="BtnDanger">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_height">44dp</item>
         <item name="android:background">@android:color/transparent</item>
-        <item name="android:textColor">@color/danger</item>
+        <item name="android:textColor">?attr/bnDanger</item>
         <item name="android:textSize">15sp</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:stateListAnimator">@null</item>
@@ -125,7 +173,7 @@
         <item name="android:paddingLeft">14dp</item>
         <item name="android:paddingRight">14dp</item>
         <item name="android:textSize">15sp</item>
-        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColor">?attr/bnTextPrimary</item>
         <item name="android:background">@drawable/bg_nav_item</item>
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
@@ -149,7 +197,7 @@
         <item name="android:layout_height">34dp</item>
         <item name="android:background">@drawable/bg_icon</item>
         <item name="android:padding">8dp</item>
-        <item name="android:tint">@color/text_secondary</item>
+        <item name="android:tint">?attr/bnTextSecondary</item>
     </style>
 
     <style name="NavLabel">
@@ -157,7 +205,7 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginStart">14dp</item>
         <item name="android:textSize">15sp</item>
-        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColor">?attr/bnTextPrimary</item>
     </style>
 
     <style name="NavSection">
@@ -168,6 +216,6 @@
         <item name="android:paddingLeft">14dp</item>
         <item name="android:textSize">11sp</item>
         <item name="android:letterSpacing">0.08</item>
-        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textColor">?attr/bnTextSecondary</item>
     </style>
 </resources>

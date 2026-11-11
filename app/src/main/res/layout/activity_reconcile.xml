@@ -28,7 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textSize="13sp"
-            android:textColor="@color/text_secondary"
+            android:textColor="?attr/bnTextSecondary"
             android:text="正在对账…" />
     </LinearLayout>
 
@@ -59,7 +59,7 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:textSize="14sp"
-            android:textColor="@color/text_secondary"
+            android:textColor="?attr/bnTextSecondary"
             android:text="正在对账…" />
     </FrameLayout>
 

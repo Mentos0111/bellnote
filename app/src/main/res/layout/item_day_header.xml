@@ -8,5 +8,5 @@
     android:paddingTop="20dp"
     android:paddingBottom="8dp"
     android:text="今天"
-    android:textColor="@color/text_secondary"
+    android:textColor="?attr/bnTextSecondary"
     android:textSize="11sp" />

@@ -11,6 +11,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bellnote.util.ThemeManager
 import com.bellnote.R
 import com.bellnote.data.CalendarRepository
 import com.bellnote.data.CalendarRepository.EventInfo
@@ -35,6 +36,7 @@ class AllEventsActivity : AppCompatActivity() {
     private lateinit var store: TodoStore
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeManager.apply(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_all_events)
         enableHomeUp()

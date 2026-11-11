@@ -122,4 +122,5 @@
     <string name="nav_section_manage">管理</string>
     <string name="nav_help">帮助与引导</string>
     <string name="hint_note">补充说明（可留空）</string>
+    <string name="hint_theme">换主题会立刻生效；深色/浅色跟随系统。</string>
 </resources>
