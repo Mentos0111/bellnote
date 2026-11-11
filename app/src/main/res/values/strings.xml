@@ -87,6 +87,33 @@
     <string name="btn_export_ics">导出 .ics（日历备份）</string>
     <string name="btn_backup_ledger">备份账本（JSON）</string>
     <string name="btn_crash_log">查看最近的崩溃日志</string>
+
+    <!-- 一句话记 -->
+    <string name="quick_hint">一句话记：明天下午三点交作业</string>
+    <string name="quick_go">记</string>
+    <string name="quick_empty">先写一句要记的事</string>
+
+    <!-- 侧边抽屉 -->
+    <string name="nav_title">Bellnote</string>
+    <string name="nav_add_manual">手动添加（自己填时间）</string>
+    <string name="nav_quick">一句话记一条</string>
+    <string name="nav_camera">拍照建待办</string>
+    <string name="nav_all_events">全部日程</string>
+    <string name="nav_reconcile">对账</string>
+    <string name="nav_settings">设置</string>
+    <string name="nav_permission">权限与后台</string>
+    <string name="nav_sidebar">怎么放进系统侧边栏</string>
+    <string name="nav_tile">把「记一条」加到通知栏</string>
+
+    <!-- 侧边栏截屏入口 -->
+    <string name="sidebar_app_label">Bellnote 截屏记</string>
+    <string name="sidebar_howto_title">放进系统侧边栏（一次就好）</string>
+    <string name="a11y_title">截屏服务（无障碍）</string>
+    <string name="a11y_hint">只用来截当前屏幕，不读输入内容。开了之后，从系统侧边栏点「Bellnote 截屏记」就能直接截屏识别。</string>
+    <string name="btn_open_a11y">去开截屏服务</string>
+    <string name="btn_sidebar_guide">看怎么加进侧边栏</string>
+    <string name="btn_tile_guide">怎么把磁贴加到通知栏</string>
+    <string name="tile_guide">下拉通知栏 → 点「编辑」（铅笔）→ 找到「记一条」拖上去</string>
     <string name="label_ignored">最近没写进日历的推送</string>
     <string name="hint_ignored_empty">暂时没有（没认出时间、缺权限、写日历失败的都会记在这里）</string>
     <string name="btn_clear_ignored">清空这个列表</string>

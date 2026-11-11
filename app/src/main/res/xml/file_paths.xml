@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- 拍照存这里，再把 content:// 交给识别页 -->
+    <cache-path name="captures" path="captures/" />
+    <cache-path name="photos" path="photos/" />
+    <cache-path name="images" path="images/" />
+</paths>

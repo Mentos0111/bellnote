@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  只用来调 takeScreenshot() 截一张当前屏幕。
+  不声明读取输入、不声明过滤按键事件，尽量把权限面收窄。
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeWindowStateChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagDefault"
+    android:canRetrieveWindowContent="true"
+    android:description="@string/a11y_hint"
+    android:notificationTimeout="100"
+    android:summary="@string/a11y_title" />
