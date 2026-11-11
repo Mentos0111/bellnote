@@ -5,9 +5,29 @@ import com.bellnote.util.TimeFormat
 
 /**
  * 首页原来那张「一切就绪」卡片压缩成一颗灯以后，卡片里的三行细节（对账 / 补查 / 写失败）
- * 挪到「运行体检」页底部展示。这里只负责把它们算出来，两处都不用再各写一遍。
+ * 挪到「运行体检」页底部展示，另外首页那颗「同步」灯也用它判断状态。
  */
 object StatusLines {
+
+    enum class Level { OK, WARN, IDLE }
+
+    /** 首页「同步」灯该亮什么颜色、写什么字。 */
+    fun level(context: Context): Level {
+        if (Prefs.ignoredNotices(context).isNotEmpty()) return Level.WARN
+        val reconciled = Prefs.lastReconcileAt(context)
+        if (reconciled > 0 && Prefs.lastReconcileSummary(context) != "一致") return Level.WARN
+        if (Prefs.ntfyTopic(context).isBlank()) return Level.IDLE
+        return Level.OK
+    }
+
+    fun chipLabel(context: Context): String {
+        val ignored = Prefs.ignoredNotices(context).size
+        if (ignored > 0) return "$ignored 条未写入"
+        val reconciled = Prefs.lastReconcileAt(context)
+        if (reconciled > 0 && Prefs.lastReconcileSummary(context) != "一致") return "对账有差"
+        if (Prefs.ntfyTopic(context).isBlank()) return "补查未开"
+        return "同步正常"
+    }
 
     fun recent(context: Context): List<String> {
         val lines = mutableListOf<String>()
