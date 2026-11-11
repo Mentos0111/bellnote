@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.view.MenuItem
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -21,8 +22,6 @@ import com.bellnote.R
 import com.bellnote.data.CalendarRepository
 import com.bellnote.data.Prefs
 import com.bellnote.data.TodoStore
-import com.bellnote.service.NtfyFetcher
-import com.bellnote.service.NtfySender
 import com.bellnote.service.ReconcileScheduler
 import com.bellnote.service.ScreenshotWatcher
 import com.bellnote.util.CrashLog
@@ -45,15 +44,11 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var etRemind: EditText
     private lateinit var etApiKey: EditText
     private lateinit var etModel: EditText
-    private lateinit var cbAutoImport: CheckBox
-    private lateinit var cbStrictParse: CheckBox
     private lateinit var cbReconcile: CheckBox
     private lateinit var cbReconcileNotify: CheckBox
     private lateinit var spReconcileInterval: Spinner
     private lateinit var cbShotWatch: CheckBox
     private lateinit var btnMediaPerm: Button
-    private lateinit var etNtfyTopic: EditText
-    private lateinit var tvIgnored: TextView
     private var intervalValues: List<Int> = emptyList()
 
     /** 导出内容先放这儿，用户选完文件再写（SAF 回调是异步的）。 */
@@ -94,42 +89,31 @@ class SettingsActivity : AppCompatActivity() {
         etRemind = findViewById(R.id.etRemind)
         etApiKey = findViewById(R.id.etApiKey)
         etModel = findViewById(R.id.etModel)
-        cbAutoImport = findViewById(R.id.cbAutoImport)
-        cbStrictParse = findViewById(R.id.cbStrictParse)
         cbReconcile = findViewById(R.id.cbReconcile)
         cbReconcileNotify = findViewById(R.id.cbReconcileNotify)
         spReconcileInterval = findViewById(R.id.spReconcileInterval)
         cbShotWatch = findViewById(R.id.cbShotWatch)
         btnMediaPerm = findViewById(R.id.btnMediaPerm)
-        etNtfyTopic = findViewById(R.id.etNtfyTopic)
         setupThemeSpinner()
         setupThemeModeSpinner()
-        tvIgnored = findViewById(R.id.tvIgnored)
 
         etRemind.setText(Prefs.remindMinutes(this).ifEmpty { listOf(1440, 60) }.joinToString(","))
         etApiKey.setText(Prefs.apiKey(this))
         etModel.setText(Prefs.model(this))
-        cbAutoImport.isChecked = Prefs.autoImport(this)
-        cbStrictParse.isChecked = Prefs.strictParse(this)
         cbReconcile.isChecked = Prefs.reconcileEnabled(this)
         cbReconcileNotify.isChecked = Prefs.reconcileNotify(this)
         cbShotWatch.isChecked = Prefs.shotWatchEnabled(this)
-        etNtfyTopic.setText(Prefs.ntfyTopic(this))
         btnMediaPerm.setOnClickListener { requestMediaPermission() }
-        findViewById<Button>(R.id.btnCatchUpNow).setOnClickListener { catchUpNow() }
-        findViewById<Button>(R.id.btnSendTest).setOnClickListener { sendTestPush() }
+        findViewById<Button>(R.id.btnNtfy).setOnClickListener {
+            startActivity(Intent(this, NtfyActivity::class.java))
+        }
         findViewById<Button>(R.id.btnExportIcs).setOnClickListener { exportIcs() }
         findViewById<Button>(R.id.btnBackupLedger).setOnClickListener { backupLedger() }
         findViewById<Button>(R.id.btnCrashLog).setOnClickListener { showCrashLog() }
         findViewById<Button>(R.id.btnAbout).setOnClickListener {
             startActivity(Intent(this, AboutActivity::class.java))
         }
-        findViewById<Button>(R.id.btnClearIgnored).setOnClickListener {
-            Prefs.clearIgnoredNotices(this)
-            renderIgnored()
-            toast("已清空")
-        }
-        renderIgnored()
+        renderNtfyEntry()
         setupIntervalSpinner()
 
         findViewById<Button>(R.id.btnReconcileNow).setOnClickListener {
@@ -249,6 +233,22 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    /** 从「第三方通知」页回来时刷新这行状态。 */
+    override fun onResume() {
+        super.onResume()
+        renderNtfyEntry()
+    }
+
+
+
+    /** 状态行只在启用了 ntfy 时出现；没启用就完全不占地方。 */
+    private fun renderNtfyEntry() {
+        val on = Prefs.ntfyTopic(this).isNotBlank()
+        val line = findViewById<TextView>(R.id.tvNtfySummary)
+        line.visibility = if (on) View.VISIBLE else View.GONE
+        if (on) line.text = "已启用：电脑上的待办会推到这里"
+    }
+
     /** 间隔做成选项，避免手输数字；当前值不在列表里时补进去，不动用户已有设置。 */
     private fun setupIntervalSpinner() {
         val presets = listOf(15, 30, 45, 60, 90, 120, 180, 1440)
@@ -357,10 +357,7 @@ class SettingsActivity : AppCompatActivity() {
         Prefs.setRemindMinutes(this, effective)
         Prefs.setApiKey(this, etApiKey.text.toString())
         Prefs.setModel(this, etModel.text.toString())
-        Prefs.setAutoImport(this, cbAutoImport.isChecked)
-        Prefs.setStrictParse(this, cbStrictParse.isChecked)
         Prefs.setShotWatchEnabled(this, cbShotWatch.isChecked)
-        Prefs.setNtfyTopic(this, etNtfyTopic.text.toString())
         if (cbShotWatch.isChecked) ScreenshotWatcher.ensureStarted(this)
 
         val interval = intervalValues.getOrNull(spReconcileInterval.selectedItemPosition)
@@ -380,70 +377,11 @@ class SettingsActivity : AppCompatActivity() {
             "定时对账已关"
         }
         toast("设置已保存（提醒：${effective.joinToString(" / ")} 分钟前；$reconcileText）")
-        if (Prefs.ntfyTopic(this).isNotBlank()) NtfyFetcher.catchUpInBackground(this)
         finish()
     }
 
-    /** 把「最近没写进日历的推送」和上次补查结果摊在设置页，出问题不用连 adb 也能看。 */
-    private fun renderIgnored() {
-        val entries = Prefs.ignoredNotices(this)
-        val lastAt = Prefs.lastCatchUpAt(this)
-        val summary = Prefs.lastCatchUpSummary(this)
-        val builder = StringBuilder()
-        if (lastAt > 0L) {
-            builder.append("上次补查：${TimeFormat.full(lastAt)}")
-            if (summary.isNotBlank()) builder.append("　$summary")
-            builder.append("\n")
-        }
-        if (entries.isEmpty()) {
-            if (builder.isEmpty()) builder.append(getString(R.string.hint_ignored_empty))
-        } else {
-            builder.append("共 ${entries.size} 条（最新在上）：\n")
-            for (entry in entries) {
-                builder.append("· ${TimeFormat.monthDay(entry.at)}　${entry.reason}\n")
-                builder.append("　${entry.text}\n")
-            }
-        }
-        tvIgnored.text = builder.toString().trim()
-    }
 
-    /** 立即补查一次：先把输入框里的主题存下来，再联网拉，结果直接回显。 */
-    private fun catchUpNow() {
-        Prefs.setNtfyTopic(this, etNtfyTopic.text.toString())
-        if (Prefs.ntfyTopic(this).isBlank()) {
-            toast("先在「第三方通知」里填 ntfy 主题（例如 todo-xxxx），再点补查")
-            return
-        }
-        val button = findViewById<Button>(R.id.btnCatchUpNow)
-        button.isEnabled = false
-        toast("正在补查…")
-        Thread {
-            val result = NtfyFetcher.catchUp(this)
-            runOnUiThread {
-                button.isEnabled = true
-                renderIgnored()
-                toast(result.summary())
-            }
-        }.start()
-    }
 
-    /** 从手机这头发一条测试推送，不用电脑也能自检整条链路。 */
-    private fun sendTestPush() {
-        Prefs.setNtfyTopic(this, etNtfyTopic.text.toString())
-        if (Prefs.ntfyTopic(this).isBlank()) {
-            toast("先填 ntfy 主题（例如 todo-xxxx）")
-            return
-        }
-        val button = findViewById<Button>(R.id.btnSendTest)
-        button.isEnabled = false
-        Thread {
-            val result = NtfySender.sendTest(this)
-            runOnUiThread {
-                button.isEnabled = true
-                toast(if (result.ok) result.detail else "发不出去：${result.detail}")
-            }
-        }.start()
-    }
 
     /** 导出账本为 .ics（走系统文件选择器，不用存储权限）。 */
     private fun exportIcs() {

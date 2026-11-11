@@ -146,7 +146,7 @@ class HealthActivity : AppCompatActivity() {
         val how = when (item.action) {
             HealthCheck.Action.NOTIFICATION_ACCESS ->
                 "设置 → 通知 → 通知使用权 → 找到 Bellnote → 打开。\n" +
-                    "授权后监听服务才会把第三方推送（ntfy）的通知读到。"
+                    "授权后监听服务才会把 ntfy 的通知读到。"
             HealthCheck.Action.ACCESSIBILITY ->
                 "设置 → 无障碍（${vendor.label} 里可能叫「辅助功能」）→ 已下载的服务 → Bellnote 截屏 → 打开。\n" +
                     "只用来截当前屏幕，不读输入内容。"
@@ -159,7 +159,7 @@ class HealthActivity : AppCompatActivity() {
             HealthCheck.Action.CALENDAR ->
                 "设置 → 权限与后台 → 日历读写权限；没有可写日历时点「创建本地日历」。"
             HealthCheck.Action.SETTINGS ->
-                "设置 → 输入渠道 → 第三方通知（ntfy）→ 填主题（例如 todo-xxxx），并点「立即补查一次」确认能拉到消息。"
+                "设置 → 输入渠道 → ntfy 推送 → 填主题（例如 todo-xxxx），并点「立即补查一次」确认能拉到消息。"
             HealthCheck.Action.NONE -> item.detail
         }
         AlertDialog.Builder(this)
