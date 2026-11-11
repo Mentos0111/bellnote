@@ -78,12 +78,25 @@ class TodoAdapter(
         holder.text.text = if (row.collapsed) "${row.label} · ${row.count}" else row.label
         // 收起时箭头朝右，展开时朝下
         holder.arrow.rotation = if (row.collapsed) 0f else 90f
-        holder.itemView.setOnClickListener {
-            if (!collapsed.remove(row.label)) collapsed.add(row.label)
-            rows = buildRows(source, collapsed)
-            notifyDataSetChanged()
-            onCollapseChanged(collapsed.toSet())
+        holder.itemView.setOnClickListener { toggleGroup(row.label) }
+    }
+
+    /** 收起/展开：只通知被插/删的那几行，让 RecyclerView 自己把它们滑走或滑进来。 */
+    private fun toggleGroup(label: String) {
+        val headerIndex = rows.indexOfFirst { it is Row.Header && it.label == label }
+        if (headerIndex < 0) return
+        val header = rows[headerIndex] as Row.Header
+        val expanding = header.collapsed
+        if (expanding) collapsed.remove(label) else collapsed.add(label)
+
+        rows = buildRows(source, collapsed)
+        notifyItemChanged(headerIndex)
+        if (expanding) {
+            notifyItemRangeInserted(headerIndex + 1, header.count)
+        } else {
+            notifyItemRangeRemoved(headerIndex + 1, header.count)
         }
+        onCollapseChanged(collapsed.toSet())
     }
 
     private fun bindItem(holder: ItemHolder, item: TodoItem) {

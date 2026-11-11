@@ -283,8 +283,14 @@ class MainActivity : AppCompatActivity() {
 
     /** 两颗灯同一个样子：圆点 + 文字 + 右侧箭头，点开都是「运行体检」。 */
     private fun styleChip(chip: TextView, dot: Int, label: String) {
+        val changed = chip.text.toString() != label
         chip.text = label
         chip.setCompoundDrawablesRelativeWithIntrinsicBounds(dot, 0, R.drawable.ic_chevron_right, 0)
+        if (changed) {
+            // 状态变了就淡入一下，别硬切
+            chip.alpha = 0.35f
+            chip.animate().alpha(1f).setDuration(200L).start()
+        }
     }
 
     private fun refreshHealthIfStale() {
