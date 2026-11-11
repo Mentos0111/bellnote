@@ -25,7 +25,7 @@ import com.bellnote.R
  */
 object SplashOverlay {
 
-    private const val HARD_TIMEOUT_MS = 1200L
+    private const val HARD_TIMEOUT_MS = 2200L
 
     fun show(activity: Activity, fancy: Boolean, onFinished: () -> Unit) {
         val root = activity.findViewById<ViewGroup>(android.R.id.content) ?: run {
@@ -89,7 +89,7 @@ object SplashOverlay {
             if (finished) return
             finished = true
             handler.removeCallbacksAndMessages(null)
-            scrim.animate().alpha(0f).setDuration(180L).withEndAction {
+            scrim.animate().alpha(0f).setDuration(220L).withEndAction {
                 (scrim.parent as? ViewGroup)?.removeView(scrim)
                 onFinished()
             }.start()
@@ -105,9 +105,9 @@ object SplashOverlay {
                 .setStartDelay(120L).setDuration(260L)
                 .setInterpolator(android.view.animation.DecelerateInterpolator())
                 .start()
-            handler.postDelayed({ dismiss() }, 780L)
+            handler.postDelayed({ dismiss() }, 1250L)
         } else {
-            handler.postDelayed({ dismiss() }, 420L)
+            handler.postDelayed({ dismiss() }, 800L)
         }
     }
 
