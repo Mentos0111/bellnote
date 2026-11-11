@@ -306,4 +306,45 @@ class TodoParserTest {
         assertEquals("2026-11-14 20:30", TimeFormat.full(result.spec.startMillis))
         assertEquals("这次重点讲反应时间 30 秒的影响", result.spec.note)
     }
+
+    // ---------------- 改期指令 ----------------
+
+    @Test
+    fun `改期指令 文本形式 带两个时间`() {
+        val cmd = TodoParser.parseCommand("改期：化学课 2026-11-12 20:30 到 2026-11-14 20:30", now)
+        assertEquals(TodoParser.CommandType.MOVE, cmd?.type)
+        assertEquals("化学课", cmd?.title)
+        assertEquals("2026-11-12 20:30", TimeFormat.full(cmd!!.timeMillis!!))
+        assertEquals("2026-11-14 20:30", TimeFormat.full(cmd.newTimeMillis!!))
+    }
+
+    @Test
+    fun `改期指令 支持箭头和只给新时间`() {
+        val arrow = TodoParser.parseCommand("改期：物理课 2026-11-12 20:30 -> 2026-11-13 20:30", now)
+        assertEquals(TodoParser.CommandType.MOVE, arrow?.type)
+        assertEquals("物理课", arrow?.title)
+        assertEquals("2026-11-13 20:30", TimeFormat.full(arrow!!.newTimeMillis!!))
+
+        val onlyNew = TodoParser.parseCommand("改期：物理课 到 2026-11-13 20:30", now)
+        assertEquals(TodoParser.CommandType.MOVE, onlyNew?.type)
+        assertEquals("物理课", onlyNew?.title)
+        assertEquals(null, onlyNew?.timeMillis)
+        assertEquals("2026-11-13 20:30", TimeFormat.full(onlyNew!!.newTimeMillis!!))
+    }
+
+    @Test
+    fun `改期指令 JSON 形式`() {
+        val json = """{"action":"move","title":"化学课","from":"2026-11-12 20:30","to":"2026-11-14 20:30"}"""
+        val cmd = TodoParser.parseCommand(json, now)
+        assertEquals(TodoParser.CommandType.MOVE, cmd?.type)
+        assertEquals("化学课", cmd?.title)
+        assertEquals("2026-11-12 20:30", TimeFormat.full(cmd!!.timeMillis!!))
+        assertEquals("2026-11-14 20:30", TimeFormat.full(cmd.newTimeMillis!!))
+    }
+
+    @Test
+    fun `普通待办不会被当成改期指令`() {
+        assertEquals(null, TodoParser.parseCommand("标题：化学课\n时间：2026-11-14 20:30", now))
+        assertEquals(null, TodoParser.parseCommand("化学课改到周六", now))
+    }
 }

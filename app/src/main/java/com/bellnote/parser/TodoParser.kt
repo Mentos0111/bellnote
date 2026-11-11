@@ -127,10 +127,12 @@ object TodoParser {
     )
 
     /**
-     * 识别「删除指令」。支持：
+     * 识别「删除 / 改期」指令。支持：
      * 1) JSON  {"action":"delete","title":"数学作业","time":"2026-11-08 19:00"}
+     *          {"action":"move","title":"化学课","from":"2026-11-12 20:30","to":"2026-11-14 20:30"}
      * 2) 文本  删除：数学作业 [2026-11-08 19:00] / delete: xxx
-     * 不是删除指令时返回 null。
+     *          改期：化学课 2026-11-12 20:30 到 2026-11-14 20:30
+     * 不是指令时返回 null。
      */
     fun parseCommand(notifText: String?, now: Long = System.currentTimeMillis()): Command? {
         val text = notifText?.trim().orEmpty()
@@ -139,10 +141,33 @@ object TodoParser {
         if (text.contains('{')) {
             val fields = jsonFields(text).mapKeys { it.key.trim().lowercase(Locale.CHINA) }
             val action = fields["action"]?.trim()?.lowercase(Locale.CHINA)
+            if (action in MOVE_ACTIONS) {
+                val title = fields["title"]?.trim()?.ifBlank { null }
+                val from = parseTime(fields["from"] ?: fields["time"], now)
+                val to = parseTime(fields["to"] ?: fields["newtime"] ?: fields["new_time"], now)
+                return Command(CommandType.MOVE, title, from, to)
+            }
             if (action in DELETE_ACTIONS) {
                 val title = fields["title"]?.trim()?.ifBlank { null }
                 val time = parseTime(fields["time"], now)
                 return Command(CommandType.DELETE, title, time)
+            }
+        }
+
+        MOVE_PREFIX.find(text)?.let { movePrefix ->
+            val rest = text.substring(movePrefix.range.last + 1).trim()
+            if (rest.isEmpty()) return Command(CommandType.MOVE, null, null, null)
+            val connector = MOVE_CONNECTOR.find(rest)
+                ?: return Command(CommandType.MOVE, null, null, null)
+            val left = rest.substring(0, connector.range.first).trim()
+            val right = rest.substring(connector.range.last + 1).trim()
+            val to = parseTime(TIME_TAIL.find(right)?.value ?: right, now)
+            val fromMatch = TIME_TAIL.find(left)
+            return if (fromMatch != null) {
+                val title = left.substring(0, fromMatch.range.first).trim().ifBlank { null }
+                Command(CommandType.MOVE, title, parseTime(fromMatch.value, now), to)
+            } else {
+                Command(CommandType.MOVE, left.ifBlank { null }, null, to)
             }
         }
 
@@ -151,7 +176,7 @@ object TodoParser {
         if (rest.isEmpty()) return Command(CommandType.DELETE, null, null)
 
         // 尾部的日期时间可选：「标题 2026-11-08 19:00」
-        val timeMatch = Regex("(\\d{4}-\\d{1,2}-\\d{1,2}\\s+\\d{1,2}:\\d{2}(?::\\d{2})?)$").find(rest)
+        val timeMatch = TIME_TAIL.find(rest)
         return if (timeMatch != null) {
             val title = rest.substring(0, timeMatch.range.first).trim().ifBlank { null }
             Command(CommandType.DELETE, title, parseTime(timeMatch.value, now))
@@ -160,16 +185,25 @@ object TodoParser {
         }
     }
 
-    enum class CommandType { DELETE }
+    enum class CommandType { DELETE, MOVE }
 
     data class Command(
         val type: CommandType,
         val title: String?,
-        val timeMillis: Long?
+        val timeMillis: Long?,
+        /** 只有改期指令用到：新的开始时间 */
+        val newTimeMillis: Long? = null
     )
 
     private val DELETE_PREFIX = Regex("^(删除|删掉|取消|delete|cancel)\\s*[:：]?\\s*", RegexOption.IGNORE_CASE)
+    private val MOVE_PREFIX = Regex("^(改期|改时间|调到|移到|挪到|move)\\s*[:：]?\\s*", RegexOption.IGNORE_CASE)
     private val DELETE_ACTIONS = setOf("delete", "remove", "cancel", "删除", "取消")
+    private val MOVE_ACTIONS = setOf("move", "reschedule", "shift", "改期", "调整")
+
+    /** 「从 A 到 B」的连接词，长的放前面，避免「改到」被「到」抢先匹配。 */
+    private val MOVE_CONNECTOR = Regex("\\s*(?:->|→|=>|改成|改到|挪到|调到|到|至)\\s*")
+
+    private val TIME_TAIL = Regex("(\\d{4}-\\d{1,2}-\\d{1,2}\\s+\\d{1,2}:\\d{2}(?::\\d{2})?)$")
 
     /**
      * 一条通知里可能有多条待办：

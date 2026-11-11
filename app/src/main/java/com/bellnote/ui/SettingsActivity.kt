@@ -17,9 +17,14 @@ import androidx.appcompat.app.AppCompatActivity
 import com.bellnote.R
 import com.bellnote.data.CalendarRepository
 import com.bellnote.data.Prefs
+import com.bellnote.data.TodoStore
 import com.bellnote.service.NtfyFetcher
+import com.bellnote.service.NtfySender
 import com.bellnote.service.ReconcileScheduler
 import com.bellnote.service.ScreenshotWatcher
+import com.bellnote.util.CrashLog
+import com.bellnote.util.IcsExport
+import com.bellnote.util.LedgerBackup
 import com.bellnote.util.Permissions
 import com.bellnote.util.TimeFormat
 import com.bellnote.util.enableHomeUp
@@ -46,6 +51,17 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var etNtfyTopic: EditText
     private lateinit var tvIgnored: TextView
     private var intervalValues: List<Int> = emptyList()
+
+    /** 导出内容先放这儿，用户选完文件再写（SAF 回调是异步的）。 */
+    private var pendingExport: String? = null
+
+    private val createIcs = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("text/calendar")
+    ) { uri -> writeExport(uri) }
+
+    private val createJson = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri -> writeExport(uri) }
 
     private val requestCalendar = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -94,6 +110,10 @@ class SettingsActivity : AppCompatActivity() {
         etNtfyTopic.setText(Prefs.ntfyTopic(this))
         btnMediaPerm.setOnClickListener { requestMediaPermission() }
         findViewById<Button>(R.id.btnCatchUpNow).setOnClickListener { catchUpNow() }
+        findViewById<Button>(R.id.btnSendTest).setOnClickListener { sendTestPush() }
+        findViewById<Button>(R.id.btnExportIcs).setOnClickListener { exportIcs() }
+        findViewById<Button>(R.id.btnBackupLedger).setOnClickListener { backupLedger() }
+        findViewById<Button>(R.id.btnCrashLog).setOnClickListener { showCrashLog() }
         findViewById<Button>(R.id.btnClearIgnored).setOnClickListener {
             Prefs.clearIgnoredNotices(this)
             renderIgnored()
@@ -298,6 +318,83 @@ class SettingsActivity : AppCompatActivity() {
                 toast(result.summary())
             }
         }.start()
+    }
+
+    /** 从手机这头发一条测试推送，不用电脑也能自检整条链路。 */
+    private fun sendTestPush() {
+        Prefs.setNtfyTopic(this, etNtfyTopic.text.toString())
+        if (Prefs.ntfyTopic(this).isBlank()) {
+            toast("先填 ntfy 主题（例如 todo-xxxx）")
+            return
+        }
+        val button = findViewById<Button>(R.id.btnSendTest)
+        button.isEnabled = false
+        Thread {
+            val result = NtfySender.sendTest(this)
+            runOnUiThread {
+                button.isEnabled = true
+                toast(if (result.ok) result.detail else "发不出去：${result.detail}")
+            }
+        }.start()
+    }
+
+    /** 导出账本为 .ics（走系统文件选择器，不用存储权限）。 */
+    private fun exportIcs() {
+        Thread {
+            val items = TodoStore(this).all()
+            pendingExport = IcsExport.build(items)
+            runOnUiThread {
+                if (items.isEmpty()) {
+                    toast("账本是空的，没什么可导出")
+                    return@runOnUiThread
+                }
+                createIcs.launch("bellnote-${stampForFile()}.ics")
+            }
+        }.start()
+    }
+
+    private fun backupLedger() {
+        Thread {
+            val items = TodoStore(this).all()
+            pendingExport = LedgerBackup.toJson(items)
+            runOnUiThread {
+                createJson.launch("bellnote-ledger-${stampForFile()}.json")
+            }
+        }.start()
+    }
+
+    private fun stampForFile(): String =
+        java.text.SimpleDateFormat("yyyyMMdd-HHmm", java.util.Locale.CHINA)
+            .format(java.util.Date())
+
+    private fun writeExport(uri: android.net.Uri?) {
+        val content = pendingExport
+        if (uri == null || content == null) return
+        try {
+            contentResolver.openOutputStream(uri)?.use { it.write(content.toByteArray(Charsets.UTF_8)) }
+            toast("已导出")
+        } catch (e: Exception) {
+            toast("导出失败：${e.message ?: e.javaClass.simpleName}")
+        } finally {
+            pendingExport = null
+        }
+    }
+
+    private fun showCrashLog() {
+        val text = CrashLog.read(this)
+        if (text.isNullOrBlank()) {
+            toast("没有崩溃记录：后台被系统杀不会留痕，那种情况看首页的补查/对账状态")
+            return
+        }
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("最近的崩溃")
+            .setMessage(text.take(4000))
+            .setPositiveButton("知道了", null)
+            .setNeutralButton("清空") { _, _ ->
+                CrashLog.clear(this)
+                toast("已清空")
+            }
+            .show()
     }
 
     private fun requestMediaPermission() {        if (Permissions.hasMediaImages(this)) {

@@ -72,10 +72,21 @@ object NtfyFetcher {
         }
     }
 
-    /** 后台跑一次，不阻塞调用方；已经在跑就直接返回。 */
-    fun catchUpInBackground(context: Context, notify: Boolean = true) {
+    /**
+     * 后台跑一次，不阻塞调用方；已经在跑就跳过。
+     * @param minGapMillis 距上次补查不到这么久就干脆不跑（App 启动 + 打开首页会连着触发两次）
+     */
+    fun catchUpInBackground(
+        context: Context,
+        notify: Boolean = true,
+        minGapMillis: Long = 0L
+    ) {
         if (running) return
         val app = context.applicationContext
+        if (minGapMillis > 0L) {
+            val gap = System.currentTimeMillis() - Prefs.lastCatchUpAt(app)
+            if (gap in 0 until minGapMillis) return
+        }
         Thread {
             try {
                 val result = catchUp(app)
@@ -117,8 +128,18 @@ object NtfyFetcher {
             var dropped = 0
             var newest = stored
             for (message in fresh) {
-                val outcome = TodoIngestor.handle(app, message.title, message.text)
-                wrote += outcome.wrote
+                // 用消息自己的时间做「重放保护」：旧删除指令不许删后来新建的事件
+                val outcome = TodoIngestor.handle(
+                    app,
+                    message.title,
+                    message.text,
+                    messageTime = if (message.timeSeconds > 0) {
+                        message.timeSeconds * 1000
+                    } else {
+                        System.currentTimeMillis()
+                    }
+                )
+                wrote += outcome.wrote + outcome.updated
                 dropped += outcome.dropped
                 if (message.timeSeconds > newest) newest = message.timeSeconds
             }
