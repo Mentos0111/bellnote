@@ -1,6 +1,8 @@
 package com.bellnote
 
+import android.app.Activity
 import android.app.Application
+import android.os.Bundle
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
@@ -11,6 +13,10 @@ import com.bellnote.util.CrashLog
 import com.bellnote.util.ThemeManager
 
 class App : Application() {
+
+    private var startedActivities = 0
+    private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val applyIconRunnable = Runnable { ThemeManager.applyPendingLauncherIcon(this) }
 
     override fun onCreate() {
         super.onCreate()
@@ -35,6 +41,32 @@ class App : Application() {
         ScreenshotWatcher.ensureStarted(this)
         // 顺手补查一次 ntfy：ntfy App 没弹通知/被系统冻结时，消息还能从这里补回来
         NtfyFetcher.catchUpInBackground(this)
+
+        // 换桌面图标会禁用旧的 activity-alias，正在用的任务会被系统收掉；
+        // 所以等所有页面都退到后台再换，用户看不到这一下。
+        registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
+            override fun onActivityStarted(activity: Activity) {
+                startedActivities++
+                // 页面切回来就说明没真的退到后台（recreate 也会 stop 一下），撤回待执行的换图标
+                mainHandler.removeCallbacks(applyIconRunnable)
+            }
+
+            override fun onActivityStopped(activity: Activity) {
+                startedActivities--
+                if (startedActivities <= 0) {
+                    startedActivities = 0
+                    // 等 800ms：如果是 recreate / 页面切换，新页面会在这之前 start，换图标就被撤回
+                    mainHandler.removeCallbacks(applyIconRunnable)
+                    mainHandler.postDelayed(applyIconRunnable, 800L)
+                }
+            }
+
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
+            override fun onActivityResumed(activity: Activity) = Unit
+            override fun onActivityPaused(activity: Activity) = Unit
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
+            override fun onActivityDestroyed(activity: Activity) = Unit
+        })
     }
 
     companion object {
