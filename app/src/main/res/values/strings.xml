@@ -137,4 +137,22 @@
     <string name="about_action_repo">在 GitHub 上查看</string>
     <string name="about_privacy">隐私说明：所有待办、账本和截图识别结果都只存在这台手机上。只有你在 App 里主动点「识别」时，图片才会发送到 DeepSeek 用于提取日程；不收集设备信息，也不含任何统计 SDK。</string>
     <string name="about_entry">关于 Bellnote</string>
+    <string name="onboarding_1_title">三种方式，都能记</string>
+    <string name="onboarding_1_body">Bellnote 把要说的事写进手机日历，到点提醒。\n截图、说一句话、分享一段文字，怎么顺手怎么来。</string>
+    <string name="onboarding_1_way1">一句话</string>
+    <string name="onboarding_1_way2">截屏</string>
+    <string name="onboarding_1_way3">分享</string>
+    <string name="onboarding_2_title">先开三个开关</string>
+    <string name="onboarding_2_body">这三项不开，日历会写不进去、或者收不到推送。点每一项直接去开。</string>
+    <string name="onboarding_2_notification">通知使用权</string>
+    <string name="onboarding_2_calendar">日历读写权限</string>
+    <string name="onboarding_2_battery">电池 / 后台白名单</string>
+    <string name="onboarding_2_hint">以后随时点首页标题旁的状态灯，它会告诉你哪一项还没开。</string>
+    <string name="onboarding_3_title">可以开始了</string>
+    <string name="onboarding_3_body">首页上方输入一句话，右边两个按钮分别是「发送」和「截屏识别」。</string>
+    <string name="onboarding_3_tip1">· 想让手机不弹通知也不漏：设置里填 ntfy 主题，App 会自己补查</string>
+    <string name="onboarding_3_tip2">· 想在任何 App 里点一下截屏：把「Bellnote 截屏记」加进系统侧边栏</string>
+    <string name="onboarding_skip">跳过</string>
+    <string name="onboarding_next">下一步</string>
+    <string name="onboarding_start">开始使用</string>
 </resources>
