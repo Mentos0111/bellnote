@@ -88,6 +88,10 @@ class ImportActivity : AppCompatActivity() {
             // 换了新图，上次的结果就不再适用，别再让用户点到旧结果。
             resetPending()
             showImage(uri)
+            // 选完图直接开始识别，省一次点击；没配 Key 时 recognize() 会自己提示并跳设置
+            tvStatus.postDelayed({
+                if (!isFinishing && !isDestroyed) recognize()
+            }, 320)
         }
     }
 
