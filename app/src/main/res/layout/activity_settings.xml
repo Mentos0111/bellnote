@@ -296,6 +296,21 @@
             android:layout_marginTop="10dp"
             android:text="@string/btn_open_a11y" />
 
+        <TextView
+            style="@style/FormLabel"
+            android:text="@string/sidebar_entry_title" />
+
+        <TextView
+            android:id="@+id/tvSidebarEntryHint"
+            style="@style/HintText"
+            android:text="@string/sidebar_entry_hint" />
+
+        <Button
+            android:id="@+id/btnSidebarEntry"
+            style="@style/BtnTonal"
+            android:layout_marginTop="10dp"
+            android:text="@string/sidebar_entry_show" />
+
         <Button
             android:id="@+id/btnSidebarGuide"
             style="@style/BtnTonal"

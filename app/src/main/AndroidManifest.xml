@@ -101,7 +101,9 @@
             android:launchMode="singleTop"
             android:parentActivityName=".ui.MainActivity" />
 
-        <!-- 系统侧边栏（智能侧边栏）里添加的那个入口：点一下截当前屏幕并去识别 -->
+        <!-- 系统侧边栏（智能侧边栏）里添加的那个入口：点一下截当前屏幕并去识别。
+             桌面图标不再是 Activity 自带，而是下面这个 activity-alias，默认 disabled：
+             需要在系统侧边栏里添加时，去「设置 → 侧边栏入口」一键打开，加完再关掉。 -->
         <activity
             android:name=".ui.SidebarCaptureActivity"
             android:excludeFromRecents="true"
@@ -109,12 +111,20 @@
             android:label="@string/sidebar_app_label"
             android:launchMode="singleTop"
             android:noHistory="true"
-            android:theme="@style/Theme.Bellnote.Transparent">
+            android:theme="@style/Theme.Bellnote.Transparent" />
+
+        <activity-alias
+            android:name=".ui.SidebarEntry"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@drawable/ic_launcher"
+            android:label="@string/sidebar_app_label"
+            android:targetActivity=".ui.SidebarCaptureActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
 
         <!-- 分享一段文字 / 选中文字 → 记一条 -->
         <activity
