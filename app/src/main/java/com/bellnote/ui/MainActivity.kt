@@ -65,6 +65,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** 语音说一条：用系统语音识别把话变成文字，再走同一套本地解析。 */
+    private val voiceLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode != RESULT_OK) return@registerForActivityResult
+        val spoken = result.data
+            ?.getStringArrayListExtra(android.speech.RecognizerIntent.EXTRA_RESULTS)
+            ?.firstOrNull()
+            ?.trim()
+        if (spoken.isNullOrEmpty()) {
+            toast("没听清，再说一次")
+            return@registerForActivityResult
+        }
+        etQuick.setText(spoken)
+        etQuick.setSelection(spoken.length)
+        submitQuick()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeManager.apply(this)
         super.onCreate(savedInstanceState)
@@ -120,6 +138,10 @@ class MainActivity : AppCompatActivity() {
     /** 首页顶部「一句话记」：敲完回车 / 点「记」→ 本地解析 → 填好编辑页给你确认。 */
     private fun setupQuickAdd() {
         findViewById<View>(R.id.btnQuickGo).setOnClickListener { submitQuick() }
+        etQuick.setOnLongClickListener {
+            startVoiceInput()
+            true
+        }
         etQuick.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_GO || actionId == EditorInfo.IME_ACTION_DONE) {
                 submitQuick()
@@ -128,6 +150,51 @@ class MainActivity : AppCompatActivity() {
                 false
             }
         }
+    }
+
+    /** 叫系统语音识别；没装识别服务的话给一句人话提示。 */
+    private fun startVoiceInput() {
+        val intent = android.content.Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+            .putExtra(
+                android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+            )
+            .putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE, "zh-CN")
+            .putExtra(android.speech.RecognizerIntent.EXTRA_PROMPT, "说一条待办，比如「明天下午三点交作业」")
+        val canRecognize = packageManager.queryIntentActivities(
+            intent, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY
+        ).isNotEmpty()
+        if (!canRecognize) {
+            // 很多没有 GMS 的机器（含这台 realme）没装语音识别服务：退回到键盘，
+            // 让用户直接点输入法上的麦克风，别再弹一个「打不开」的框
+            focusQuick("说一条，用键盘上的麦克风")
+            toast("这台手机没有语音识别服务，已帮你打开输入框：点键盘上的麦克风说")
+            return
+        }
+        try {
+            voiceLauncher.launch(intent)
+        } catch (e: Exception) {
+            focusQuick("说一条，用键盘上的麦克风")
+            toast("语音识别打不开，改用键盘上的麦克风")
+        }
+    }
+
+    /** 从剪贴板取一段文字，直接走「一句话记」那套解析。 */
+    private fun readClipboard() {
+        val clipboard = getSystemService(android.content.ClipboardManager::class.java)
+        val clip = clipboard?.primaryClip
+        val text = if (clip != null && clip.itemCount > 0) {
+            clip.getItemAt(0).coerceToText(this)?.toString()?.trim().orEmpty()
+        } else {
+            ""
+        }
+        if (text.isEmpty()) {
+            toast("剪贴板里没有文字")
+            return
+        }
+        etQuick.setText(text)
+        etQuick.setSelection(text.length)
+        submitQuick()
     }
 
     private fun submitQuick() {
@@ -186,6 +253,14 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.navCamera).setOnClickListener {
             closeDrawer()
             takePhoto()
+        }
+        findViewById<View>(R.id.navVoice).setOnClickListener {
+            closeDrawer()
+            startVoiceInput()
+        }
+        findViewById<View>(R.id.navClip).setOnClickListener {
+            closeDrawer()
+            readClipboard()
         }
         findViewById<View>(R.id.navAllEvents).setOnClickListener {
             closeDrawer()

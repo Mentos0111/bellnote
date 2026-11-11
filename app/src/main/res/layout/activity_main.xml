@@ -248,6 +248,30 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/navVoice"
+                style="@style/NavRow">
+                <ImageView
+                    style="@style/NavIcon"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_nav_mic" />
+                <TextView
+                    style="@style/NavLabel"
+                    android:text="语音说一条" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/navClip"
+                style="@style/NavRow">
+                <ImageView
+                    style="@style/NavIcon"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_nav_clip" />
+                <TextView
+                    style="@style/NavLabel"
+                    android:text="从剪贴板记" />
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/navCamera"
                 style="@style/NavRow">
                 <ImageView

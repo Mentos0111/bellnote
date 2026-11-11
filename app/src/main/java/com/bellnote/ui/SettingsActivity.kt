@@ -357,7 +357,7 @@ class SettingsActivity : AppCompatActivity() {
                 val index = list.indexOfFirst { it.id == saved }
                 if (index >= 0) spCalendar.setSelection(index)
                 tvCalendarHint.text = if (list.isEmpty()) {
-                    "没有可写日历（无 GMS 的 realme 很常见）：点下面「创建本地日历」"
+                    "读不到可写日历（不少系统不自带可写的日历账号）：点下面「创建本地日历」"
                 } else {
                     "共 ${list.size} 个可写日历，收到通知后写到选中的这个"
                 }
