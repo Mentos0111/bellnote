@@ -110,6 +110,9 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnExportIcs).setOnClickListener { exportIcs() }
         findViewById<Button>(R.id.btnBackupLedger).setOnClickListener { backupLedger() }
         findViewById<Button>(R.id.btnCrashLog).setOnClickListener { showCrashLog() }
+        findViewById<Button>(R.id.btnOnboarding).setOnClickListener {
+            startActivity(Intent(this, OnboardingActivity::class.java))
+        }
         findViewById<Button>(R.id.btnHealth).setOnClickListener {
             startActivity(Intent(this, HealthActivity::class.java))
         }
@@ -248,6 +251,7 @@ class SettingsActivity : AppCompatActivity() {
         // 每次打开都从全收起开始，不记住上次的展开状态
         bindSection(R.id.headInput, R.id.groupInput, R.id.arrowInput)
         bindSection(R.id.headCalendar, R.id.groupCalendar, R.id.arrowCalendar)
+        bindSection(R.id.headBackup, R.id.groupBackup, R.id.arrowBackup)
         bindSection(R.id.headAppearance, R.id.groupAppearance, R.id.arrowAppearance)
         bindSection(R.id.headDiagnostics, R.id.groupDiagnostics, R.id.arrowDiagnostics)
     }
@@ -285,6 +289,9 @@ class SettingsActivity : AppCompatActivity() {
             "· 通知开关：控制对账发现问题时要不要弹提醒。\n" +
             "· 立即对账：不看间隔，马上跑一次。")
 
+
+        help(R.id.btnHelpBackup, "备份", "· 导出 .ics：把 Bellnote 里记的待办导成日历文件，可以导进别的日历 App。\n" +
+            "· 备份账本：导出 JSON（待办 + 它们和系统日历事件的对应关系），换机或重装后拿来核对，不会自动还原。")
 
         help(R.id.btnHelpTheme, "外观", "两套开关互不影响：\n\n" +
             "· 配色主题：青绿 / 靛蓝 / 暖沙 / 墨黑四套调色板。\n" +
