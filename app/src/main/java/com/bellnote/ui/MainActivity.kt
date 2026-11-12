@@ -43,6 +43,7 @@ class MainActivity : AppCompatActivity() {
 
     private val repository by lazy { CalendarRepository(this) }
     private lateinit var adapter: TodoAdapter
+    private var brandGlowAnimator: android.animation.ValueAnimator? = null
     private lateinit var emptyView: TextView
     private lateinit var drawer: DrawerLayout
     private lateinit var etQuick: EditText
@@ -438,6 +439,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        // 微光和光标只在页面上跑，切走就停，别在后台烧电
+        stopBrandPulse()
+    }
+
     override fun onResume() {
         // 从隐私政策页返回还没同意的话，继续挡着
         com.bellnote.util.PrivacyGate.ensure(this)
@@ -543,8 +550,9 @@ class MainActivity : AppCompatActivity() {
         val padV = (5 * density).toInt()
 
         if (available) {
-            pill.setBackgroundResource(R.drawable.bg_status_pill)
-            pill.setPadding((12 * density).toInt(), padV, (20 * density).toInt(), padV)
+            // 不加卡片：只有「Bellnote」这行字带一层会呼吸的主色光晕
+            pill.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            pill.setPadding((10 * density).toInt(), (4 * density).toInt(), (18 * density).toInt(), (4 * density).toInt())
             glyph.visibility = View.VISIBLE
             val color = when (StatusLines.level(this)) {
                 StatusLines.Level.OK -> attrColor(R.attr.bnPrimary)
@@ -553,12 +561,44 @@ class MainActivity : AppCompatActivity() {
             }
             glyph.imageTintList = android.content.res.ColorStateList.valueOf(color)
             pill.contentDescription = "Bellnote，ntfy 通道"
+            startBrandPulse(color)
         } else {
             pill.setBackgroundColor(android.graphics.Color.TRANSPARENT)
             pill.setPadding(0, padV, 0, padV)
             glyph.visibility = View.GONE
             pill.contentDescription = "Bellnote"
+            stopBrandPulse()
         }
+    }
+
+    /** 只有背景光晕在动：半径和透明度一起慢慢呼吸，像灯在亮。>_ 保持静止。 */
+    private fun startBrandPulse(color: Int) {
+        if (brandGlowAnimator?.isRunning == true) return
+        val name = findViewById<TextView>(R.id.tvBrandName)
+        val density = resources.displayMetrics.density
+
+        brandGlowAnimator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 2600L
+            repeatMode = android.animation.ValueAnimator.REVERSE
+            repeatCount = android.animation.ValueAnimator.INFINITE
+            interpolator = android.view.animation.AccelerateDecelerateInterpolator()
+            addUpdateListener { animator ->
+                val f = animator.animatedValue as Float
+                val radius = (4f + 6f * f) * density
+                val alpha = (45 + 85 * f).toInt()
+                name.setShadowLayer(
+                    radius, 0f, 0f,
+                    androidx.core.graphics.ColorUtils.setAlphaComponent(color, alpha)
+                )
+            }
+            start()
+        }
+    }
+
+    private fun stopBrandPulse() {
+        brandGlowAnimator?.cancel()
+        brandGlowAnimator = null
+        findViewById<TextView>(R.id.tvBrandName).setShadowLayer(0f, 0f, 0f, 0)
     }
 
     private fun attrColor(attr: Int): Int {
