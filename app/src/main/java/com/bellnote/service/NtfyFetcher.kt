@@ -8,10 +8,12 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.bellnote.App
 import com.bellnote.R
+import com.bellnote.data.MessageLog
 import com.bellnote.data.Prefs
 import com.bellnote.parser.MiniJson
 import com.bellnote.ui.MainActivity
 import com.bellnote.util.Permissions
+import com.bellnote.util.NtfyEndpoint
 import com.bellnote.util.TimeFormat
 import java.net.HttpURLConnection
 import java.net.URL
@@ -65,7 +67,7 @@ object NtfyFetcher {
         val changed: Boolean get() = wrote > 0 || dropped > 0
 
         fun summary(): String = when {
-            skipped -> "没配 ntfy 主题，跳过补查"
+            skipped -> "ntfy 模式没开或没填主题，跳过补查"
             failed != null -> "补查失败：$failed"
             fetched == 0 -> "补查：没有新消息"
             else -> "补查：拉到 $fetched 条，写进日历 $wrote 条，没写 $dropped 条"
@@ -103,9 +105,13 @@ object NtfyFetcher {
      */
     fun catchUp(context: Context, windowSeconds: Long = DEFAULT_WINDOW_SECONDS): Result {
         val app = context.applicationContext
+        if (!Prefs.ntfyEnabled(app)) {
+            Prefs.setLastCatchUpSummary(app, "ntfy 模式已关闭，跳过补查")
+            return Result(skipped = true)
+        }
         val topic = Prefs.ntfyTopic(app)
         if (topic.isBlank()) {
-            Prefs.setLastCatchUpSummary(app, "没配 ntfy 主题，跳过补查")
+            Prefs.setLastCatchUpSummary(app, "还没填 ntfy 主题，跳过补查")
             return Result(skipped = true)
         }
         if (!tryAcquire()) return Result(skipped = true)
@@ -137,7 +143,8 @@ object NtfyFetcher {
                         message.timeSeconds * 1000
                     } else {
                         System.currentTimeMillis()
-                    }
+                    },
+                    source = "补查"
                 )
                 wrote += outcome.wrote + outcome.updated
                 dropped += outcome.dropped
@@ -159,6 +166,15 @@ object NtfyFetcher {
             val result = Result(failed = e.message ?: e.javaClass.simpleName)
             Prefs.setLastCatchUpAt(app, System.currentTimeMillis())
             Prefs.setLastCatchUpSummary(app, result.summary())
+            MessageLog.log(
+                app,
+                MessageLog.DIR_IN,
+                "补查",
+                "拉取失败",
+                "服务器 ${Prefs.ntfyServer(app)}，主题 $topic",
+                MessageLog.RESULT_FAILED,
+                result.summary()
+            )
             Log.w(TAG, "补查失败", e)
             return result
         } finally {
@@ -168,7 +184,9 @@ object NtfyFetcher {
 
     private fun fetch(context: Context, topic: String, sinceSeconds: Long): List<Message> {
         val server = Prefs.ntfyServer(context)
-        val url = "$server/${topic.trim('/')}/json?poll=1&since=$sinceSeconds"
+        val endpoint = NtfyEndpoint.check(server)
+        if (!endpoint.ok) throw IllegalStateException(endpoint.reason ?: "服务器地址不对")
+        val url = "${endpoint.normalized}/${topic.trim('/')}/json?poll=1&since=$sinceSeconds"
         var connection: HttpURLConnection? = null
         try {
             connection = (URL(url).openConnection() as HttpURLConnection).apply {

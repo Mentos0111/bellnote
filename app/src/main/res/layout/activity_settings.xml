@@ -163,7 +163,7 @@
                 android:id="@+id/btnNtfy"
                 style="@style/BtnTonal"
                 android:layout_marginTop="14dp"
-                android:text="高级 · 第三方推送" />
+                android:text="推送通道 · ntfy 模式" />
 
             <TextView
                 android:id="@+id/tvNtfySummary"
