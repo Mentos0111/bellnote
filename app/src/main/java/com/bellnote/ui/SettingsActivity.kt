@@ -77,6 +77,12 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    private val requestNotifications = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        toast(if (granted) "通知已开启" else "没开通知：写日历结果、对账差异都不会弹提醒，App 里照样能看到")
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeManager.apply(this)
         super.onCreate(savedInstanceState)
@@ -139,6 +145,27 @@ class SettingsActivity : AppCompatActivity() {
                 toast("截屏服务已经开着")
             } else if (!DeviceVendor.openAccessibility(this)) {
                 toast("打不开无障碍页面，请手动到 设置→无障碍→Bellnote 截屏")
+            }
+        }
+        findViewById<Button>(R.id.btnNotifPerm).setOnClickListener {
+            if (Permissions.hasPostNotifications(this)) {
+                toast("通知权限已经有了")
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                requestNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                toast("这个系统版本不用单独授权通知")
+            }
+        }
+        findViewById<Button>(R.id.btnBatteryPerm).setOnClickListener {
+            if (com.bellnote.service.HealthInspector.isIgnoringBatteryOptimizations(this)) {
+                toast("已经在白名单里了")
+            } else if (!DeviceVendor.openBattery(this)) {
+                toast("打不开电池页面，请手动到 设置 → 电池 → 应用耗电管理")
+            }
+        }
+        findViewById<Button>(R.id.btnAutostartPerm).setOnClickListener {
+            if (!DeviceVendor.openAutostart(this)) {
+                toast("打不开自启动页面，去系统设置里搜「自启动」")
             }
         }
         findViewById<Button>(R.id.btnSidebarEntry).setOnClickListener {
@@ -461,7 +488,11 @@ class SettingsActivity : AppCompatActivity() {
         Prefs.setApiKey(this, etApiKey.text.toString())
         Prefs.setModel(this, etModel.text.toString())
         Prefs.setShotWatchEnabled(this, cbShotWatch.isChecked)
-        if (cbShotWatch.isChecked) ScreenshotWatcher.ensureStarted(this)
+        if (cbShotWatch.isChecked) {
+            // 打开截图监听时才要相册权限，没给就当场问一次
+            if (Permissions.hasMediaImages(this)) ScreenshotWatcher.ensureStarted(this)
+            else requestMediaPermission()
+        }
 
         val interval = intervalValues.getOrNull(spReconcileInterval.selectedItemPosition)
             ?: Prefs.DEFAULT_RECONCILE_INTERVAL

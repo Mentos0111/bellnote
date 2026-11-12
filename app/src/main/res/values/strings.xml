@@ -83,6 +83,7 @@
     <string name="btn_export_ics">导出 .ics</string>
     <string name="btn_backup_ledger">备份账本</string>
     <string name="btn_crash_log">崩溃日志</string>
+    <string name="btn_notif_perm">允许通知</string>
 
     <!-- 一句话记 -->
     <string name="quick_hint">记一条待办…</string>

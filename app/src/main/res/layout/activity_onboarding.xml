@@ -67,7 +67,7 @@
                 android:textSize="14sp" />
         </LinearLayout>
 
-        <!-- 2 权限：先出现图标与「如何实现」，再动画换成开关清单 -->
+        <!-- 2 权限：先出现图标与「如何实现」，再动画换成权限清单 -->
         <LinearLayout
             android:id="@+id/step2"
             android:layout_width="match_parent"
@@ -116,7 +116,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="不开会漏推送，或被系统掐掉。点一行跳过去。"
+                    android:text="只差这一项；开了才能把待办写进日历。"
                     android:textColor="?attr/bnTextSecondary"
                     android:textSize="14sp" />
 
@@ -143,54 +143,12 @@
                             style="@style/AboutValue" />
                     </LinearLayout>
 
-                    <View style="@style/AboutDivider" />
-
-                    <LinearLayout
-                        android:id="@+id/permBattery"
-                        style="@style/AboutRow"
-                        android:background="@drawable/bg_ripple_row"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <TextView
-                            style="@style/AboutKey"
-                            android:text="电池白名单" />
-                        <TextView
-                            android:id="@+id/permBatteryState"
-                            style="@style/AboutValue" />
-                    </LinearLayout>
-
-                    <View style="@style/AboutDivider" />
-
-                    <LinearLayout
-                        android:id="@+id/permAutostart"
-                        style="@style/AboutRow"
-                        android:background="@drawable/bg_ripple_row"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <TextView
-                            style="@style/AboutKey"
-                            android:text="自启动" />
-                        <TextView
-                            android:id="@+id/permAutostartState"
-                            style="@style/AboutValue" />
-                    </LinearLayout>
-
-                    <View style="@style/AboutDivider" />
-
-                    <LinearLayout
-                        android:id="@+id/permMedia"
-                        style="@style/AboutRow"
-                        android:background="@drawable/bg_ripple_row"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <TextView
-                            style="@style/AboutKey"
-                            android:text="读取相册（可选）" />
-                        <TextView
-                            android:id="@+id/permMediaState"
-                            style="@style/AboutValue" />
-                    </LinearLayout>
                 </LinearLayout>
+
+                <TextView
+                    style="@style/HintText"
+                    android:layout_marginTop="12dp"
+                    android:text="通知、相册、电池白名单、自启动都不影响基本使用，需要时去「设置 → 系统权限」开。" />
 
                 <TextView
                     android:id="@+id/tvPermHint"
