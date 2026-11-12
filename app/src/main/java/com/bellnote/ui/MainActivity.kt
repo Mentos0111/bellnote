@@ -1,4 +1,4 @@
-﻿package com.bellnote.ui
+package com.bellnote.ui
 
 import android.Manifest
 import android.content.Intent
@@ -660,7 +660,7 @@ class MainActivity : AppCompatActivity() {
     private fun startInputGlow() {
         if (inputGlowAnimator?.isRunning == true) return
         val outline = findViewById<View>(R.id.inputGlow)
-        val color = StatusColors.glow(this, StatusColors.attr(this, R.attr.bnPrimary))
+        val color = StatusColors.attr(this, R.attr.bnPrimary)
         outline.background?.setTint(color)
         inputGlowAnimator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
             duration = 2800L
@@ -668,7 +668,7 @@ class MainActivity : AppCompatActivity() {
             repeatCount = android.animation.ValueAnimator.INFINITE
             interpolator = android.view.animation.AccelerateDecelerateInterpolator()
             addUpdateListener { animator ->
-                outline.alpha = 0.15f + 0.50f * (animator.animatedValue as Float)
+                outline.alpha = 0.25f + 0.60f * (animator.animatedValue as Float)
             }
             start()
         }
