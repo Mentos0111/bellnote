@@ -15,6 +15,9 @@
         <item name="bnChipBg">#FFECF6F3</item>
         <item name="bnIconBg">#FFF1F5F4</item>
         <item name="bnDanger">#FFC94848</item>
+        <item name="bnOk">@color/ok</item>
+        <item name="bnWarn">@color/warn</item>
+        <item name="bnMuted">@color/muted</item>
         <item name="bnNavBg">#FFFFFFFF</item>
         <item name="bnRipple">#140E7C6B</item>
     </style>
@@ -34,6 +37,9 @@
         <item name="bnChipBg">#FFEDF1FC</item>
         <item name="bnIconBg">#FFF1F4FB</item>
         <item name="bnDanger">#FFC94848</item>
+        <item name="bnOk">@color/ok</item>
+        <item name="bnWarn">@color/warn</item>
+        <item name="bnMuted">@color/muted</item>
         <item name="bnNavBg">#FFFFFFFF</item>
         <item name="bnRipple">#142F55C9</item>
     </style>
@@ -53,6 +59,9 @@
         <item name="bnChipBg">#FFF7EADF</item>
         <item name="bnIconBg">#FFF5EDE4</item>
         <item name="bnDanger">#FFC0503F</item>
+        <item name="bnOk">@color/ok</item>
+        <item name="bnWarn">@color/warn</item>
+        <item name="bnMuted">@color/muted</item>
         <item name="bnNavBg">#FFFFFCF8</item>
         <item name="bnRipple">#14B2603A</item>
     </style>
@@ -72,6 +81,9 @@
         <item name="bnChipBg">#FFF0F1F0</item>
         <item name="bnIconBg">#FFF2F3F2</item>
         <item name="bnDanger">#FFB03A3A</item>
+        <item name="bnOk">@color/ok</item>
+        <item name="bnWarn">@color/warn</item>
+        <item name="bnMuted">@color/muted</item>
         <item name="bnNavBg">#FFFFFFFF</item>
         <item name="bnRipple">#141F2321</item>
     </style>
@@ -92,6 +104,9 @@
         <item name="bnChipBg">#FFFBE9F0</item>
         <item name="bnIconBg">#FFF9EEF2</item>
         <item name="bnDanger">#FFC94848</item>
+        <item name="bnOk">@color/ok</item>
+        <item name="bnWarn">@color/warn</item>
+        <item name="bnMuted">@color/muted</item>
         <item name="bnNavBg">#FFFFFFFF</item>
         <item name="bnRipple">#14C2185B</item>
     </style>

@@ -1,16 +1,14 @@
 package com.bellnote.ui
 
-import android.content.Context
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bellnote.R
 import com.bellnote.data.MessageLog
+import com.bellnote.util.StatusColors
 import com.bellnote.util.TimeFormat
 
 /** 消息记录列表：一条推送一行，结果用颜色区分，失败的可以原地重试。 */
@@ -55,10 +53,11 @@ class MessageLogAdapter(
             result.text = MessageLog.resultLabel(entry.result)
             result.setTextColor(
                 when (entry.result) {
-                    MessageLog.RESULT_FAILED, MessageLog.RESULT_DROPPED -> attrColor(context, R.attr.bnDanger)
+                    MessageLog.RESULT_FAILED, MessageLog.RESULT_DROPPED ->
+                        StatusColors.attr(context, R.attr.bnDanger)
                     MessageLog.RESULT_OK, MessageLog.RESULT_UPDATED, MessageLog.RESULT_SENT ->
-                        attrColor(context, R.attr.bnPrimary)
-                    else -> attrColor(context, R.attr.bnTextSecondary)
+                        StatusColors.attr(context, R.attr.bnOk)
+                    else -> StatusColors.attr(context, R.attr.bnTextSecondary)
                 }
             )
 
@@ -70,16 +69,6 @@ class MessageLogAdapter(
 
             retry.visibility = if (entry.canRetry) View.VISIBLE else View.GONE
             retry.setOnClickListener { onRetry(entry) }
-        }
-
-        private fun attrColor(context: Context, attr: Int): Int {
-            val value = TypedValue()
-            context.theme.resolveAttribute(attr, value, true)
-            return if (value.resourceId != 0) {
-                ContextCompat.getColor(context, value.resourceId)
-            } else {
-                value.data
-            }
         }
     }
 }

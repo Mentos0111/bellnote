@@ -21,6 +21,10 @@
 
     <color name="chip_bg">#FFECF6F3</color>
     <color name="danger">#FFC94848</color>
+    <!-- 语义状态色：不跟配色主题变，只管「正常 / 提醒 / 未配置」 -->
+    <color name="ok">#FF2E9E6B</color>
+    <color name="warn">#FFD98324</color>
+    <color name="muted">#FF9AA5A1</color>
     <color name="nav_bg">#FFFFFFFF</color>
     <color name="nav_header_start">#FFFFFFFF</color>
     <color name="ripple">#140E7C6B</color>

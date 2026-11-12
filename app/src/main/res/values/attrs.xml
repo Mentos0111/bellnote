@@ -14,6 +14,9 @@
     <attr name="bnChipBg" format="color" />
     <attr name="bnIconBg" format="color" />
     <attr name="bnDanger" format="color" />
+    <attr name="bnOk" format="color" />
+    <attr name="bnWarn" format="color" />
+    <attr name="bnMuted" format="color" />
     <attr name="bnNavBg" format="color" />
     <attr name="bnRipple" format="color" />
 </resources>
