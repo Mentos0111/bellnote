@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bellnote.R
 import com.bellnote.data.RepeatRule
 import com.bellnote.data.TodoItem
+import com.bellnote.util.StatusColors
 import com.bellnote.util.TimeFormat
 import java.time.Instant
 import java.time.LocalDate
@@ -45,7 +46,10 @@ class TodoAdapter(
     class ItemHolder(view: View) : RecyclerView.ViewHolder(view) {
         val title: TextView = view.findViewById(R.id.itemTitle)
         val time: TextView = view.findViewById(R.id.itemTime)
+        val duration: TextView = view.findViewById(R.id.itemDuration)
         val note: TextView = view.findViewById(R.id.itemNote)
+        val progressFill: View = view.findViewById(R.id.itemProgressFill)
+        val progressLabel: TextView = view.findViewById(R.id.itemProgressLabel)
     }
 
     class HeaderHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -101,9 +105,9 @@ class TodoAdapter(
 
     private fun bindItem(holder: ItemHolder, item: TodoItem) {
         holder.title.text = item.title
+        holder.time.text = TimeFormat.clock(item.startMillis)
         val repeatSuffix = if (item.repeat == RepeatRule.NONE) "" else " · ${item.repeat.label}"
-        holder.time.text =
-            "${TimeFormat.compact(item.startMillis)} · ${item.durationMinutes} 分$repeatSuffix"
+        holder.duration.text = "${item.durationMinutes} 分$repeatSuffix"
         val note = item.note
         if (note.isNullOrBlank()) {
             holder.note.visibility = View.GONE
@@ -111,10 +115,71 @@ class TodoAdapter(
             holder.note.visibility = View.VISIBLE
             holder.note.text = note
         }
+        styleProgressFill(holder)
+        bindProgress(holder, item)
         holder.itemView.setOnClickListener { onClick(item) }
         holder.itemView.setOnLongClickListener {
             onLongClick(item)
             true
+        }
+    }
+
+    /** 进度底色：浅色模式用主题色淡淡铺一层，深色模式用白色铺一层。 */
+    private fun styleProgressFill(holder: ItemHolder) {
+        val context = holder.progressFill.context
+        val night = StatusColors.isNight(context)
+        val color = if (night) android.graphics.Color.WHITE else StatusColors.attr(context, R.attr.bnPrimary)
+        holder.progressFill.background?.setTint(color)
+        holder.progressFill.alpha = if (night) 0.10f else 0.14f
+    }
+
+    /**
+     * 时间进度：开始前 2 小时内，卡片从左边开始逐渐涂上一块底色，越接近开始涂得越满；
+     * 进行中整张涂满并显示剩余时间。更早的（还有好几个小时）和已结束的都不涂。
+     */
+    private fun bindProgress(holder: ItemHolder, item: TodoItem) {
+        val now = System.currentTimeMillis()
+        val start = item.startMillis
+        val end = start + item.durationMinutes * 60_000L
+        val window = 2 * 60 * 60 * 1000L
+
+        when {
+            now >= end -> hideProgress(holder)
+
+            now >= start -> {
+                holder.progressFill.scaleX = 1f
+                holder.progressLabel.visibility = View.VISIBLE
+                holder.progressLabel.text = "进行中 · 还剩 ${humanize(end - now)}"
+            }
+
+            start - now <= window -> {
+                val remain = start - now
+                val fraction = (100f - remain * 100f / window).coerceIn(0f, 100f) / 100f
+                holder.progressFill.scaleX = fraction
+                holder.progressLabel.visibility = View.VISIBLE
+                holder.progressLabel.text = "还有 ${humanize(remain)}"
+            }
+
+            else -> hideProgress(holder)
+        }
+    }
+
+    private fun hideProgress(holder: ItemHolder) {
+        holder.progressFill.scaleX = 0f
+        holder.progressLabel.visibility = View.GONE
+    }
+
+    private fun humanize(millis: Long): String {
+        val minutes = (millis / 60_000L).coerceAtLeast(1)
+        return when {
+            minutes < 60 -> "$minutes 分钟"
+            minutes < 24 * 60 -> {
+                val hours = minutes / 60
+                val rest = minutes % 60
+                if (rest == 0L) "$hours 小时" else "$hours 小时 $rest 分"
+            }
+
+            else -> "${minutes / (24 * 60)} 天"
         }
     }
 

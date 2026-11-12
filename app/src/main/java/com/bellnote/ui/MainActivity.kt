@@ -45,6 +45,15 @@ class MainActivity : AppCompatActivity() {
     private val repository by lazy { CalendarRepository(this) }
     private lateinit var adapter: TodoAdapter
     private var brandGlowAnimator: android.animation.ValueAnimator? = null
+
+    /** 每分钟重绑一次列表，让卡片上的时间进度条自己往前走。 */
+    private val ticker = android.os.Handler(android.os.Looper.getMainLooper())
+    private val tick = object : Runnable {
+        override fun run() {
+            adapter.notifyDataSetChanged()
+            ticker.postDelayed(this, 60_000L)
+        }
+    }
     private lateinit var emptyView: TextView
     private lateinit var drawer: DrawerLayout
     private lateinit var etQuick: EditText
@@ -444,6 +453,7 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         // 微光和光标只在页面上跑，切走就停，别在后台烧电
         stopBrandPulse()
+        ticker.removeCallbacks(tick)
     }
 
     override fun onResume() {
@@ -451,6 +461,9 @@ class MainActivity : AppCompatActivity() {
         com.bellnote.util.PrivacyGate.ensure(this)
 
         super.onResume()
+        // 回到前台先对齐一次时间，之后每分钟刷新进度条
+        ticker.removeCallbacks(tick)
+        ticker.postDelayed(tick, 60_000L)
         refreshHealthIfStale()
         if (ThemeManager.refreshIfNeeded(this)) {
             recreate()
