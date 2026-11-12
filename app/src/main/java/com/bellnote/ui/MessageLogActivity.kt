@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bellnote.R
 import com.bellnote.data.MessageLog
 import com.bellnote.service.TodoIngestor
+import com.bellnote.util.Help
 import com.bellnote.util.ThemeManager
 import com.bellnote.util.enableHomeUp
 import com.bellnote.util.handleHomeUp
@@ -42,6 +43,12 @@ class MessageLogActivity : AppCompatActivity() {
         recycler.adapter = adapter
 
         findViewById<Button>(R.id.btnClearLog).setOnClickListener { confirmClear() }
+        Help.attach(
+            this,
+            R.id.btnHelpLog,
+            getString(R.string.help_log_title),
+            getString(R.string.ntfy_log_hint)
+        )
     }
 
     override fun onResume() {

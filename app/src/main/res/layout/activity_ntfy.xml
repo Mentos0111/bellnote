@@ -13,10 +13,26 @@
         android:paddingTop="12dp"
         android:paddingBottom="28dp">
 
-        <TextView
-            style="@style/SectionSubLabel"
-            android:layout_marginTop="0dp"
-            android:text="总开关" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/SectionSubLabel"
+                android:layout_width="0dp"
+                android:layout_marginTop="0dp"
+                android:layout_weight="1"
+                android:text="总开关" />
+
+            <ImageButton
+                android:id="@+id/btnHelpMode"
+                style="@style/SettingsHelpButton"
+                android:contentDescription="看说明"
+                android:src="@drawable/ic_nav_help" />
+        </LinearLayout>
 
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/swNtfyMode"
@@ -30,10 +46,6 @@
             android:textStyle="bold" />
 
         <TextView
-            style="@style/HintText"
-            android:text="@string/ntfy_mode_hint" />
-
-        <TextView
             android:id="@+id/tvNtfyStatus"
             style="@style/HintText"
             android:layout_marginTop="10dp"
@@ -41,15 +53,26 @@
             android:padding="12dp"
             android:text="还没配置" />
 
-        <Button
-            android:id="@+id/btnWhatIsNtfy"
-            style="@style/BtnTonal"
-            android:layout_marginTop="12dp"
-            android:text="什么是 ntfy，为什么要填主题" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <TextView
-            style="@style/SectionSubLabel"
-            android:text="消息从哪来" />
+            <TextView
+                style="@style/SectionSubLabel"
+                android:layout_width="0dp"
+                android:layout_marginTop="0dp"
+                android:layout_weight="1"
+                android:text="消息从哪来" />
+
+            <ImageButton
+                android:id="@+id/btnHelpChannel"
+                style="@style/SettingsHelpButton"
+                android:contentDescription="看说明"
+                android:src="@drawable/ic_nav_help" />
+        </LinearLayout>
 
         <Spinner
             android:id="@+id/spNtfyChannel"
@@ -57,28 +80,60 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp" />
 
-        <TextView
-            android:id="@+id/tvServerLabel"
-            style="@style/FieldCaption"
-            android:layout_marginTop="10dp"
-            android:text="@string/ntfy_server_label" />
+        <LinearLayout
+            android:id="@+id/groupServer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
 
-        <EditText
-            android:id="@+id/etNtfyServer"
-            style="@style/FormInput"
-            android:hint="https://ntfy.sh"
-            android:inputType="textUri"
-            android:visibility="gone" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/tvServerHint"
-            style="@style/HintText"
-            android:text="@string/ntfy_server_hint"
-            android:visibility="gone" />
+                <TextView
+                    style="@style/FieldCaption"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:text="@string/ntfy_server_label" />
 
-        <TextView
-            style="@style/FormLabel"
-            android:text="@string/label_push_topic" />
+                <ImageButton
+                    android:id="@+id/btnHelpServer"
+                    style="@style/SettingsHelpButton"
+                    android:contentDescription="看说明"
+                    android:src="@drawable/ic_nav_help" />
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/etNtfyServer"
+                style="@style/FormInput"
+                android:hint="https://ntfy.sh"
+                android:inputType="textUri" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/FormLabel"
+                android:layout_width="0dp"
+                android:layout_marginTop="0dp"
+                android:layout_weight="1"
+                android:text="@string/label_push_topic" />
+
+            <ImageButton
+                android:id="@+id/btnHelpTopic"
+                style="@style/SettingsHelpButton"
+                android:contentDescription="看说明"
+                android:src="@drawable/ic_nav_help" />
+        </LinearLayout>
 
         <EditText
             android:id="@+id/etNtfyTopic"
@@ -86,29 +141,70 @@
             android:hint="todo-xxxx"
             android:inputType="text" />
 
-        <TextView
-            style="@style/HintText"
-            android:text="@string/hint_push_topic" />
-
-        <Button
-            android:id="@+id/btnCatchUpNow"
-            style="@style/BtnTonal"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="@string/btn_catch_up_now" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/btnSendTest"
-            style="@style/BtnTonal"
+            <Button
+                android:id="@+id/btnCatchUpNow"
+                style="@style/BtnTonal"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:text="@string/btn_catch_up_now" />
+
+            <ImageButton
+                android:id="@+id/btnHelpCatchUp"
+                style="@style/SettingsHelpButton"
+                android:layout_marginStart="8dp"
+                android:contentDescription="看说明"
+                android:src="@drawable/ic_nav_help" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="@string/btn_send_test" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <TextView
-            style="@style/HintText"
-            android:text="测试推送会在 10 分钟后发出，用来确认整条链路通不通；发完也会记进下面的消息记录。" />
+            <Button
+                android:id="@+id/btnSendTest"
+                style="@style/BtnTonal"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:text="@string/btn_send_test" />
 
-        <TextView
-            style="@style/SectionSubLabel"
-            android:text="消息记录" />
+            <ImageButton
+                android:id="@+id/btnHelpTest"
+                style="@style/SettingsHelpButton"
+                android:layout_marginStart="8dp"
+                android:contentDescription="看说明"
+                android:src="@drawable/ic_nav_help" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/SectionSubLabel"
+                android:layout_width="0dp"
+                android:layout_marginTop="0dp"
+                android:layout_weight="1"
+                android:text="消息记录" />
+
+            <ImageButton
+                android:id="@+id/btnHelpLog"
+                style="@style/SettingsHelpButton"
+                android:contentDescription="看说明"
+                android:src="@drawable/ic_nav_help" />
+        </LinearLayout>
 
         <Button
             android:id="@+id/btnMessageLog"
@@ -116,13 +212,26 @@
             android:layout_marginTop="8dp"
             android:text="@string/ntfy_log_entry" />
 
-        <TextView
-            style="@style/HintText"
-            android:text="@string/ntfy_log_hint" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <TextView
-            style="@style/SectionSubLabel"
-            android:text="推送怎么处理" />
+            <TextView
+                style="@style/SectionSubLabel"
+                android:layout_width="0dp"
+                android:layout_marginTop="0dp"
+                android:layout_weight="1"
+                android:text="推送怎么处理" />
+
+            <ImageButton
+                android:id="@+id/btnHelpRules"
+                style="@style/SettingsHelpButton"
+                android:contentDescription="看说明"
+                android:src="@drawable/ic_nav_help" />
+        </LinearLayout>
 
         <CheckBox
             android:id="@+id/cbAutoImport"
@@ -138,32 +247,26 @@
             android:layout_marginTop="12dp"
             android:text="@string/label_strict_parse" />
 
-        <TextView
-            android:id="@+id/tvStrictHint"
-            style="@style/HintText"
-            android:text="@string/hint_strict_parse" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <TextView
-            style="@style/SectionSubLabel"
-            android:text="@string/ntfy_local_title" />
+            <TextView
+                style="@style/SectionSubLabel"
+                android:layout_width="0dp"
+                android:layout_marginTop="0dp"
+                android:layout_weight="1"
+                android:text="其他 App 的通知" />
 
-        <TextView
-            style="@style/HintText"
-            android:text="@string/ntfy_local_hint" />
-
-        <Button
-            android:id="@+id/btnLocalNtfy"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/ntfy_local_learn" />
-
-        <TextView
-            style="@style/SectionSubLabel"
-            android:text="其他 App 的通知" />
-
-        <TextView
-            style="@style/HintText"
-            android:text="@string/hint_other_sources" />
+            <ImageButton
+                android:id="@+id/btnHelpOther"
+                style="@style/SettingsHelpButton"
+                android:contentDescription="看说明"
+                android:src="@drawable/ic_nav_help" />
+        </LinearLayout>
 
         <Button
             android:id="@+id/btnSaveNtfy"
