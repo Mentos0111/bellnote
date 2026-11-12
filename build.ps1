@@ -1,4 +1,4 @@
-﻿﻿# 一键构建脚本（Windows）：自动准备 JDK / Android SDK / Gradle 环境，免手敲环境变量
+﻿# 一键构建脚本（Windows）：自动准备 JDK / Android SDK / Gradle 环境，免手敲环境变量
 # 用法：
 #   .\build.cmd                    等价于 assembleDebug
 #   .\build.cmd testDebugUnitTest  只跑单元测试
