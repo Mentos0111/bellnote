@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <!-- 拍照存这里，再把 content:// 交给识别页 -->
+    <!-- 截屏识别：内部把截图交给识别页，或从识别页分享出去 -->
     <cache-path name="captures" path="captures/" />
-    <cache-path name="photos" path="photos/" />
     <cache-path name="images" path="images/" />
 </paths>
