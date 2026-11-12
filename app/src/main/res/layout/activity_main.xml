@@ -34,7 +34,7 @@
 
             <View
                 android:id="@+id/brandHalo"
-                android:layout_width="132dp"
+                android:layout_width="170dp"
                 android:layout_height="54dp"
                 android:layout_gravity="end|center_vertical"
                 android:background="@drawable/bg_brand_halo"
