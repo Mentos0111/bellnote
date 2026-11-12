@@ -120,6 +120,9 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, HealthActivity::class.java))
         }
         findViewById<View>(R.id.statusChip).setOnClickListener { showSyncDialog() }
+        findViewById<View>(R.id.btnNtfyQuick).setOnClickListener {
+            startActivity(Intent(this, NtfyActivity::class.java))
+        }
         maybeAskEngine()
     }
 
@@ -522,6 +525,24 @@ class MainActivity : AppCompatActivity() {
             StatusLines.Level.WARN -> R.drawable.dot_warn
         }
         styleChip(chip, dot, StatusLines.chipLabel(this))
+        renderNtfyQuick()
+    }
+
+    /**
+     * 首页输入框左边的 ntfy 入口：只有「模式开着 + 主题可用」时出现，
+     * 右下角小点跟同步灯同一套配色（绿=正常，橙=有没写进去的，灰=还没拉过）。
+     */
+    private fun renderNtfyQuick() {
+        val box = findViewById<View>(R.id.flNtfyQuick)
+        val available = Prefs.ntfyEnabled(this) && Prefs.ntfyTopic(this).isNotBlank()
+        box.visibility = if (available) View.VISIBLE else View.GONE
+        if (!available) return
+        val dot = when (StatusLines.level(this)) {
+            StatusLines.Level.OK -> R.drawable.dot_ok
+            StatusLines.Level.WARN -> R.drawable.dot_warn
+            StatusLines.Level.IDLE -> R.drawable.dot_idle
+        }
+        findViewById<View>(R.id.ntfyQuickDot).setBackgroundResource(dot)
     }
 
     /** 点「同步」灯：把对账 / 补查 / 写失败三行摊开，能直接去对账。 */
