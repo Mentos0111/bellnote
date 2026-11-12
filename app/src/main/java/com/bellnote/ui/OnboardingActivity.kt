@@ -53,7 +53,7 @@ class OnboardingActivity : AppCompatActivity() {
 
     private companion object {
         const val STAGE2_INTRO = "如何实现"
-        const val STAGE2_TITLE = "先开日历权限"
+        const val STAGE2_TITLE = "先授权，再开始"
     }
     private var pendingStage: Runnable? = null
 
@@ -111,7 +111,7 @@ class OnboardingActivity : AppCompatActivity() {
 
         btnNext.setOnClickListener {
             if (step == 1 && !hasBasicPermissions()) {
-                toast("先把「日历读写」开了才能继续")
+                toast("先把日历和相册权限开了才能继续")
                 return@setOnClickListener
             }
             if (step < steps.lastIndex) goTo(step + 1) else finishOnboarding()
@@ -138,6 +138,16 @@ class OnboardingActivity : AppCompatActivity() {
             else requestCalendar.launch(
                 arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR)
             )
+        }
+        findViewById<LinearLayout>(R.id.permMedia).setOnClickListener {
+            if (Permissions.hasMediaImages(this)) toast("相册权限已经有了")
+            else requestMediaPermission()
+        }
+        findViewById<LinearLayout>(R.id.permA11y).setOnClickListener {
+            if (a11yServiceEnabled()) toast("截屏服务已经开着")
+            else if (!DeviceVendor.openAccessibility(this)) {
+                toast("打不开无障碍页面，请手动到 设置 → 无障碍 → Bellnote 截屏")
+            }
         }
 
         setupSwipe()
@@ -315,7 +325,7 @@ class OnboardingActivity : AppCompatActivity() {
                 val target = if (dx < 0) step + 1 else step - 1
                 if (abs(dx) > width * 0.22f && target in steps.indices) {
                     if (step == 1 && target == 2 && !hasBasicPermissions()) {
-                        toast("先把「日历读写」开了才能继续")
+                        toast("先把日历和相册权限开了才能继续")
                         snapBack()
                     } else {
                         settleTo(target)
@@ -473,21 +483,49 @@ class OnboardingActivity : AppCompatActivity() {
 
     private fun refreshPermissionRows() {
         setState(R.id.permCalendarState, Permissions.hasCalendar(this))
+        setState(R.id.permMediaState, Permissions.hasMediaImages(this))
+        val a11y = findViewById<TextView>(R.id.permA11yState)
+        if (a11yServiceEnabled()) {
+            a11y.text = "已开启"
+            a11y.setTextColor(themeColor(R.attr.bnOk))
+        } else {
+            a11y.text = "建议开启"
+            a11y.setTextColor(themeColor(R.attr.bnTextSecondary))
+        }
         updatePermGate()
     }
 
-    /** 日历读写是「能跑起来」的最低要求，没它不让往下走。 */
-    private fun hasBasicPermissions(): Boolean = Permissions.hasCalendar(this)
+    /** 日历 + 相册是「能跑起来」的最低要求，缺一个都不让往下走。 */
+    private fun hasBasicPermissions(): Boolean =
+        Permissions.hasCalendar(this) && Permissions.hasMediaImages(this)
 
     private fun updatePermGate() {
         val missing = mutableListOf<String>()
         if (!Permissions.hasCalendar(this)) missing.add("日历读写")
+        if (!Permissions.hasMediaImages(this)) missing.add("读取相册")
 
         tvPermHint.text = if (missing.isEmpty()) "" else "还要开：" + missing.joinToString("、")
         if (step == 1) {
             btnNext.isEnabled = missing.isEmpty()
             btnNext.alpha = if (missing.isEmpty()) 1f else 0.4f
         }
+    }
+
+    private fun requestMediaPermission() {
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_IMAGES
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+        requestMedia.launch(permission)
+    }
+
+    private fun a11yServiceEnabled(): Boolean = try {
+        android.provider.Settings.Secure.getString(
+            contentResolver, android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        )?.contains(packageName) == true
+    } catch (e: Exception) {
+        false
     }
 
     private fun setState(viewId: Int, ok: Boolean) {
