@@ -153,11 +153,15 @@
                 android:layout_marginTop="4dp"
                 android:text="@string/btn_tile_guide" />
 
+            <TextView
+                style="@style/FormLabel"
+                android:text="高级" />
+
             <Button
                 android:id="@+id/btnNtfy"
                 style="@style/BtnTonal"
-                android:layout_marginTop="14dp"
-                android:text="推送通道 · ntfy 模式" />
+                android:layout_marginTop="4dp"
+                android:text="第三方" />
 
             <TextView
                 android:id="@+id/tvNtfySummary"

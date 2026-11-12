@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Bellnote</string>
 
@@ -148,7 +148,7 @@
     <string name="onboarding_2_hint">以后随时点首页标题旁的状态灯，它会告诉你哪一项还没开。</string>
     <string name="onboarding_3_title">可以开始了</string>
     <string name="onboarding_3_body">首页上方输入一句话，右边两个按钮分别是「发送」和「截屏识别」。</string>
-    <string name="onboarding_3_tip1">· 想让电脑上的待办自动进手机：设置 → 推送通道里打开 ntfy 模式并填主题</string>
+    <string name="onboarding_3_tip1">· 想让电脑上的待办自动进手机：设置 → 输入渠道 → 其他入口 → 第三方里打开 ntfy 模式并填主题</string>
     <string name="onboarding_3_tip2">· 想在任何 App 里点一下截屏：把「Bellnote 截屏记」加进系统侧边栏</string>
     <string name="onboarding_skip">跳过</string>
     <string name="onboarding_next">下一步</string>
