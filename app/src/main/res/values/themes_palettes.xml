@@ -111,10 +111,10 @@
     </style>
 
     <style name="ThemeOverlay.Bellnote.Sakura" parent="">
-        <item name="bnPrimary">#FFF2A6C4</item>
-        <item name="bnPrimaryDark">#FFC4708F</item>
-        <item name="bnOnPrimary">#FF3A1520</item>
-        <item name="bnAccent">#FFB85E79</item>
+        <item name="bnPrimary">#FFC24B70</item>
+        <item name="bnPrimaryDark">#FF93324F</item>
+        <item name="bnOnPrimary">#FFFFFFFF</item>
+        <item name="bnAccent">#FFA8506F</item>
         <item name="bnWindowBg">#FFFFF7FA</item>
         <item name="bnSurface">#FFFFFFFF</item>
         <item name="bnCard">#FFFFFFFF</item>
@@ -129,7 +129,7 @@
         <item name="bnWarn">#FFD97F6B</item>
         <item name="bnMuted">#FFB3A3A8</item>
         <item name="bnNavBg">#FFFFFFFF</item>
-        <item name="bnRipple">#14F2A6C4</item>
+        <item name="bnRipple">#14C24B70</item>
     </style>
 
 </resources>
