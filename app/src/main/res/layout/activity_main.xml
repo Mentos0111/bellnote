@@ -28,63 +28,57 @@
                 android:textColor="?attr/bnTextSecondary"
                 android:textSize="18sp" />
 
-            <LinearLayout
+            <FrameLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end|center_vertical"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:layout_gravity="end|center_vertical">
 
-                <TextView
+                <LinearLayout
+                    android:id="@+id/brandPill"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/app_name"
-                    android:textColor="?attr/bnTextPrimary"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
+                    android:background="@android:color/transparent"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingTop="5dp"
+                    android:paddingBottom="5dp">
 
-                <TextView
-                    android:id="@+id/tvVersionTop"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:textColor="?attr/bnTextSecondary"
-                    android:textSize="10sp" />
-            </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/app_name"
+                        android:textColor="?attr/bnTextPrimary"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvVersionTop"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:textColor="?attr/bnTextSecondary"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <View
+                    android:id="@+id/brandDot"
+                    android:layout_width="9dp"
+                    android:layout_height="9dp"
+                    android:layout_gravity="bottom|end"
+                    android:background="@drawable/dot_ok"
+                    android:visibility="gone" />
+            </FrameLayout>
         </FrameLayout>
 
-        <!-- 一句话记一条：输入 → 发送 → 截屏，三个并排；ntfy 模式开着时左边多一个通道入口 -->
+        <!-- 一句话记一条：输入 → 发送 → 截屏，三个并排 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
-
-            <FrameLayout
-                android:id="@+id/flNtfyQuick"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
-                android:layout_marginEnd="8dp"
-                android:visibility="gone">
-
-                <ImageButton
-                    android:id="@+id/btnNtfyQuick"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@android:color/transparent"
-                    android:contentDescription="ntfy 通道"
-                    android:padding="0dp"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/ic_ntfy" />
-
-                <View
-                    android:id="@+id/ntfyQuickDot"
-                    android:layout_width="9dp"
-                    android:layout_height="9dp"
-                    android:layout_gravity="bottom|end"
-                    android:background="@drawable/dot_ok" />
-            </FrameLayout>
 
             <EditText
                 android:id="@+id/etQuick"
