@@ -116,6 +116,7 @@ class TodoAdapter(
             holder.note.text = note
         }
         styleProgressFill(holder)
+        styleCardShadow(holder)
         bindProgress(holder, item)
         holder.itemView.setOnClickListener { onClick(item) }
         holder.itemView.setOnLongClickListener {
@@ -131,6 +132,19 @@ class TodoAdapter(
         val color = if (night) android.graphics.Color.WHITE else StatusColors.attr(context, R.attr.bnPrimary)
         holder.progressFill.background?.setTint(color)
         holder.progressFill.alpha = if (night) 0.10f else 0.14f
+    }
+
+    /**
+     * 卡片阴影：不用系统那层发灰的黑影，改成带主题色的柔和投影
+     * （Android 9+ 才能单独指定投影颜色，低版本退回系统默认）。
+     */
+    private fun styleCardShadow(holder: ItemHolder) {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.P) return
+        val context = holder.itemView.context
+        val tint = StatusColors.attr(context, R.attr.bnPrimary)
+        holder.itemView.outlineSpotShadowColor =
+            androidx.core.graphics.ColorUtils.setAlphaComponent(tint, 72)
+        holder.itemView.outlineAmbientShadowColor = android.graphics.Color.TRANSPARENT
     }
 
     /**
