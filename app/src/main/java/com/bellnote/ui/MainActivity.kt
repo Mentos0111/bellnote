@@ -1,4 +1,4 @@
-package com.bellnote.ui
+﻿package com.bellnote.ui
 
 import android.Manifest
 import android.content.Intent
@@ -583,7 +583,7 @@ class MainActivity : AppCompatActivity() {
                 )
                 // 背后一团椭圆光晕，横向慢慢铺开
                 halo.alpha = if (night) 0.14f + 0.20f * f else 0.08f + 0.14f * f
-                halo.scaleX = 1.20f + 0.22f * f
+                halo.scaleX = 1.05f + 0.12f * f
                 halo.scaleY = 0.94f + 0.08f * f
             }
             start()

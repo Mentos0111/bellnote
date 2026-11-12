@@ -110,6 +110,17 @@
         <item name="bnRipple">@color/ripple</item>
     </style>
 
+    <!-- 日期/时间选择器：系统弹窗只认 colorAccent，这里临时把它换成主色，
+         否则墨黑配色会跳出一块金褐色；关掉弹窗时再换回原来的强调色 -->
+    <style name="BellnotePickerAccent" parent="">
+        <item name="android:colorAccent">?attr/bnPrimary</item>
+        <item name="android:colorControlActivated">?attr/bnPrimary</item>
+    </style>
+
+    <style name="BellnotePickerAccentRestore" parent="">
+        <item name="android:colorAccent">?attr/bnAccent</item>
+        <item name="android:colorControlActivated">?attr/bnAccent</item>
+    </style>
     <!-- 文字 -->
 
     <style name="FormLabel">
