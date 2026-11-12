@@ -1,4 +1,4 @@
-package com.bellnote.ui
+﻿package com.bellnote.ui
 
 import android.Manifest
 import android.content.Intent
@@ -45,7 +45,6 @@ class MainActivity : AppCompatActivity() {
     private val repository by lazy { CalendarRepository(this) }
     private lateinit var adapter: TodoAdapter
     private var brandGlowAnimator: android.animation.ValueAnimator? = null
-    private var inputGlowAnimator: android.animation.ValueAnimator? = null
     private val glowHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private var glowColorCurrent = 0
     private var lastGlowLevel: StatusLines.Level? = null
@@ -459,7 +458,6 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         // 微光和光标只在页面上跑，切走就停，别在后台烧电
         stopBrandPulse()
-        stopInputGlow()
         ticker.removeCallbacks(tick)
     }
 
@@ -471,7 +469,6 @@ class MainActivity : AppCompatActivity() {
         // 回到前台先对齐一次时间，之后每分钟刷新进度条
         ticker.removeCallbacks(tick)
         ticker.postDelayed(tick, 60_000L)
-        startInputGlow()
         refreshHealthIfStale()
         if (ThemeManager.refreshIfNeeded(this)) {
             recreate()
@@ -654,30 +651,6 @@ class MainActivity : AppCompatActivity() {
             }
             start()
         }
-    }
-
-    /** 输入框四周一圈会呼吸的微光轮廓（不跟 ntfy，常驻）。 */
-    private fun startInputGlow() {
-        if (inputGlowAnimator?.isRunning == true) return
-        val outline = findViewById<View>(R.id.inputGlow)
-        val color = StatusColors.attr(this, R.attr.bnPrimary)
-        outline.background?.setTint(color)
-        inputGlowAnimator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 2800L
-            repeatMode = android.animation.ValueAnimator.REVERSE
-            repeatCount = android.animation.ValueAnimator.INFINITE
-            interpolator = android.view.animation.AccelerateDecelerateInterpolator()
-            addUpdateListener { animator ->
-                outline.alpha = 0.25f + 0.60f * (animator.animatedValue as Float)
-            }
-            start()
-        }
-    }
-
-    private fun stopInputGlow() {
-        inputGlowAnimator?.cancel()
-        inputGlowAnimator = null
-        findViewById<View>(R.id.inputGlow).alpha = 0f
     }
 
     private fun stopBrandPulse() {
