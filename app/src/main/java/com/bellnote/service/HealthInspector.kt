@@ -45,7 +45,7 @@ object HealthInspector {
             items.add(
                 HealthCheck.Item(
                     "ntfy_poll", "自动补查", HealthCheck.Status.UNKNOWN,
-                    "ntfy 模式开着但没填主题：进「第三方」填一个主题才会开始拉取",
+                    "ntfy 模式开着但没填主题：进「第三方通道 → ntfy 模式」填一个主题才会开始拉取",
                     HealthCheck.Action.SETTINGS
                 )
             )
