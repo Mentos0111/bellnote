@@ -141,7 +141,8 @@ class EditActivity : AppCompatActivity() {
 
     private fun pickDate() {
         val calendar = Calendar.getInstance().apply { timeInMillis = startMillis }
-        DatePickerDialog(
+        theme.applyStyle(R.style.BellnotePickerAccent, true)
+        val dialog = DatePickerDialog(
             this,
             { _, year, month, day ->
                 val updated = Calendar.getInstance().apply { timeInMillis = startMillis }
@@ -154,12 +155,15 @@ class EditActivity : AppCompatActivity() {
             calendar.get(Calendar.YEAR),
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
-        ).show()
+        )
+        dialog.setOnDismissListener { theme.applyStyle(R.style.BellnotePickerAccentRestore, true) }
+        dialog.show()
     }
 
     private fun pickTime() {
         val calendar = Calendar.getInstance().apply { timeInMillis = startMillis }
-        TimePickerDialog(
+        theme.applyStyle(R.style.BellnotePickerAccent, true)
+        val dialog = TimePickerDialog(
             this,
             { _, hour, minute ->
                 val updated = Calendar.getInstance().apply { timeInMillis = startMillis }
@@ -172,7 +176,9 @@ class EditActivity : AppCompatActivity() {
             calendar.get(Calendar.HOUR_OF_DAY),
             calendar.get(Calendar.MINUTE),
             true
-        ).show()
+        )
+        dialog.setOnDismissListener { theme.applyStyle(R.style.BellnotePickerAccentRestore, true) }
+        dialog.show()
     }
 
     private fun save() {

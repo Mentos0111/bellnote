@@ -149,7 +149,7 @@ class TodoAdapter(
 
     /**
      * 时间进度：开始前 2 小时内，卡片从左边开始逐渐涂上一块底色，越接近开始涂得越满；
-     * 进行中整张涂满并显示剩余时间。更早的（还有好几个小时）和已结束的都不涂。
+     * 进行中整张涂满并显示剩余时间；已经结束的也整张涂满（做完的样子）。
      */
     private fun bindProgress(holder: ItemHolder, item: TodoItem) {
         val now = System.currentTimeMillis()
@@ -158,7 +158,11 @@ class TodoAdapter(
         val window = 2 * 60 * 60 * 1000L
 
         when {
-            now >= end -> hideProgress(holder)
+            // 已经结束：整张涂满，不再显示剩余时间
+            now >= end -> {
+                holder.progressFill.scaleX = 1f
+                holder.progressLabel.visibility = View.GONE
+            }
 
             now >= start -> {
                 holder.progressFill.scaleX = 1f
