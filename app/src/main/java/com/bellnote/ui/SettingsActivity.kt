@@ -309,11 +309,6 @@ class SettingsActivity : AppCompatActivity() {
 
     /** 每个分组的问号：把原来铺在页面上的长说明收进弹窗。 */
     private fun setupHelp() {
-        help(R.id.btnHelpShot, "截图识别", "两种方式：从相册选图识别，或者截完图后提醒你识别。\n\n" +
-            "· 视觉模型：目前平台支持 deepseek-flash / deepseek-v4-pro，填错时识别会提示可用名称。\n" +
-            "· API Key：调用 DeepSeek 读图用，只存在本机。\n" +
-            "· 截完图提醒我识别：需要「读取相册」权限；没权限时只保留分享和手动选图。")
-
         help(R.id.btnHelpEntry, "其他入口", "除了首页输入框，还有两条更快的路：\n\n" +
             "· 侧边栏：系统侧边栏添加 App 时只认带桌面图标的，所以要先临时显示「Bellnote 截屏记」这个桌面入口，" +
             "加进侧边栏后再把它隐藏——它只是添加时的临时副产物，不用长期放在桌面上。已经加进侧边栏的入口不受影响。\n" +
@@ -330,10 +325,6 @@ class SettingsActivity : AppCompatActivity() {
 
         help(R.id.btnHelpBackup, "备份", "· 导出 .ics：把 Bellnote 里记的待办导成日历文件，可以导进别的日历 App。\n" +
             "· 备份账本：导出 JSON（待办 + 它们和系统日历事件的对应关系），换机或重装后拿来核对，不会自动还原。")
-
-        help(R.id.btnHelpTheme, "外观", "两套开关互不影响：\n\n" +
-            "· 配色主题：青绿 / 靛蓝 / 暖沙 / 墨黑四套调色板。\n" +
-            "· 明暗：跟随系统 / 浅色 / 深色，选浅色或深色后就不再跟系统变。")
     }
 
     private fun help(buttonId: Int, title: String, message: String) {
