@@ -156,6 +156,20 @@
             </intent-filter>
         </activity-alias>
 
+        <activity-alias
+            android:name=".ui.IconSakura"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@drawable/ic_launcher_sakura"
+            android:label="@string/app_name"
+            android:roundIcon="@drawable/ic_launcher_sakura"
+            android:targetActivity=".ui.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
         <activity
             android:name=".ui.ThirdPartyActivity"
             android:exported="false"

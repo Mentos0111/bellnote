@@ -15,9 +15,9 @@
         <item name="bnChipBg">#FFECF6F3</item>
         <item name="bnIconBg">#FFF1F5F4</item>
         <item name="bnDanger">#FFC94848</item>
-        <item name="bnOk">@color/ok</item>
-        <item name="bnWarn">@color/warn</item>
-        <item name="bnMuted">@color/muted</item>
+        <item name="bnOk">#FF2E9E6B</item>
+        <item name="bnWarn">#FFD98324</item>
+        <item name="bnMuted">#FF9AA5A1</item>
         <item name="bnNavBg">#FFFFFFFF</item>
         <item name="bnRipple">#140E7C6B</item>
     </style>
@@ -37,9 +37,9 @@
         <item name="bnChipBg">#FFEDF1FC</item>
         <item name="bnIconBg">#FFF1F4FB</item>
         <item name="bnDanger">#FFC94848</item>
-        <item name="bnOk">@color/ok</item>
-        <item name="bnWarn">@color/warn</item>
-        <item name="bnMuted">@color/muted</item>
+        <item name="bnOk">#FF2F9E8C</item>
+        <item name="bnWarn">#FFD39425</item>
+        <item name="bnMuted">#FF8E97AB</item>
         <item name="bnNavBg">#FFFFFFFF</item>
         <item name="bnRipple">#142F55C9</item>
     </style>
@@ -59,9 +59,9 @@
         <item name="bnChipBg">#FFF7EADF</item>
         <item name="bnIconBg">#FFF5EDE4</item>
         <item name="bnDanger">#FFC0503F</item>
-        <item name="bnOk">@color/ok</item>
-        <item name="bnWarn">@color/warn</item>
-        <item name="bnMuted">@color/muted</item>
+        <item name="bnOk">#FF6F8F4E</item>
+        <item name="bnWarn">#FFC56A2E</item>
+        <item name="bnMuted">#FFA79886</item>
         <item name="bnNavBg">#FFFFFCF8</item>
         <item name="bnRipple">#14B2603A</item>
     </style>
@@ -81,13 +81,12 @@
         <item name="bnChipBg">#FFF0F1F0</item>
         <item name="bnIconBg">#FFF2F3F2</item>
         <item name="bnDanger">#FFB03A3A</item>
-        <item name="bnOk">@color/ok</item>
-        <item name="bnWarn">@color/warn</item>
-        <item name="bnMuted">@color/muted</item>
+        <item name="bnOk">#FF5E8F73</item>
+        <item name="bnWarn">#FFA87F2E</item>
+        <item name="bnMuted">#FF8A9290</item>
         <item name="bnNavBg">#FFFFFFFF</item>
         <item name="bnRipple">#141F2321</item>
     </style>
-
 
     <style name="ThemeOverlay.Bellnote.Pink" parent="">
         <item name="bnPrimary">#FFC2185B</item>
@@ -98,16 +97,39 @@
         <item name="bnSurface">#FFFFFFFF</item>
         <item name="bnCard">#FFFFFFFF</item>
         <item name="bnCardStroke">#FFF3E1E8</item>
-        <item name="bnDivider">#FFF7E9EE</item>
-        <item name="bnTextPrimary">#FF241218</item>
-        <item name="bnTextSecondary">#FF7C5F68</item>
-        <item name="bnChipBg">#FFFBE9F0</item>
-        <item name="bnIconBg">#FFF9EEF2</item>
+        <item name="bnDivider">#FFF7ECF1</item>
+        <item name="bnTextPrimary">#FF241419</item>
+        <item name="bnTextSecondary">#FF7C6670</item>
+        <item name="bnChipBg">#FFFCEDF1</item>
+        <item name="bnIconBg">#FFFAF0F3</item>
         <item name="bnDanger">#FFC94848</item>
-        <item name="bnOk">@color/ok</item>
-        <item name="bnWarn">@color/warn</item>
-        <item name="bnMuted">@color/muted</item>
+        <item name="bnOk">#FF3E9E82</item>
+        <item name="bnWarn">#FFD96F4E</item>
+        <item name="bnMuted">#FFA8939B</item>
         <item name="bnNavBg">#FFFFFFFF</item>
         <item name="bnRipple">#14C2185B</item>
     </style>
+
+    <style name="ThemeOverlay.Bellnote.Sakura" parent="">
+        <item name="bnPrimary">#FFE58FA8</item>
+        <item name="bnPrimaryDark">#FFB85E79</item>
+        <item name="bnOnPrimary">#FF3A1520</item>
+        <item name="bnAccent">#FFA8516B</item>
+        <item name="bnWindowBg">#FFFDF7F9</item>
+        <item name="bnSurface">#FFFFFFFF</item>
+        <item name="bnCard">#FFFFFFFF</item>
+        <item name="bnCardStroke">#FFF2E2E8</item>
+        <item name="bnDivider">#FFF7EBEF</item>
+        <item name="bnTextPrimary">#FF2B171D</item>
+        <item name="bnTextSecondary">#FF7E6670</item>
+        <item name="bnChipBg">#FFFBEDF2</item>
+        <item name="bnIconBg">#FFFAF1F4</item>
+        <item name="bnDanger">#FFC94848</item>
+        <item name="bnOk">#FF4E9E8F</item>
+        <item name="bnWarn">#FFD97F6B</item>
+        <item name="bnMuted">#FFB3A3A8</item>
+        <item name="bnNavBg">#FFFFFFFF</item>
+        <item name="bnRipple">#14E58FA8</item>
+    </style>
+
 </resources>
