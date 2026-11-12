@@ -120,8 +120,11 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, HealthActivity::class.java))
         }
         findViewById<View>(R.id.statusChip).setOnClickListener { showSyncDialog() }
-        findViewById<View>(R.id.btnNtfyQuick).setOnClickListener {
-            startActivity(Intent(this, NtfyActivity::class.java))
+        findViewById<View>(R.id.brandPill).setOnClickListener {
+            // 只有 ntfy 可用时它才是入口；否则点了不动
+            if (Prefs.ntfyEnabled(this) && Prefs.ntfyTopic(this).isNotBlank()) {
+                startActivity(Intent(this, NtfyActivity::class.java))
+            }
         }
         maybeAskEngine()
     }
@@ -529,20 +532,35 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * 首页输入框左边的 ntfy 入口：只有「模式开着 + 主题可用」时出现，
-     * 右下角小点跟同步灯同一套配色（绿=正常，橙=有没写进去的，灰=还没拉过）。
+     * 首页右上角的 ntfy 入口：模式开着且主题可用时，给「Bellnote + 版本号」套一颗胶囊，
+     * 右下角点一颗状态灯（配色同同步灯）；点胶囊进 ntfy 模式页。关掉就还原成裸标题。
      */
     private fun renderNtfyQuick() {
-        val box = findViewById<View>(R.id.flNtfyQuick)
+        val pill = findViewById<View>(R.id.brandPill)
+        val dot = findViewById<View>(R.id.brandDot)
         val available = Prefs.ntfyEnabled(this) && Prefs.ntfyTopic(this).isNotBlank()
-        box.visibility = if (available) View.VISIBLE else View.GONE
-        if (!available) return
-        val dot = when (StatusLines.level(this)) {
-            StatusLines.Level.OK -> R.drawable.dot_ok
-            StatusLines.Level.WARN -> R.drawable.dot_warn
-            StatusLines.Level.IDLE -> R.drawable.dot_idle
+        val density = resources.displayMetrics.density
+        val padH = (12 * density).toInt()
+        val padV = (5 * density).toInt()
+
+        if (available) {
+            pill.setBackgroundResource(R.drawable.bg_status_pill)
+            pill.setPadding(padH, padV, padH, padV)
+            dot.visibility = View.VISIBLE
+            dot.setBackgroundResource(
+                when (StatusLines.level(this)) {
+                    StatusLines.Level.OK -> R.drawable.dot_ok
+                    StatusLines.Level.WARN -> R.drawable.dot_warn
+                    StatusLines.Level.IDLE -> R.drawable.dot_idle
+                }
+            )
+            pill.contentDescription = "Bellnote，ntfy 通道"
+        } else {
+            pill.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            pill.setPadding(0, padV, 0, padV)
+            dot.visibility = View.GONE
+            pill.contentDescription = "Bellnote"
         }
-        findViewById<View>(R.id.ntfyQuickDot).setBackgroundResource(dot)
     }
 
     /** 点「同步」灯：把对账 / 补查 / 写失败三行摊开，能直接去对账。 */
