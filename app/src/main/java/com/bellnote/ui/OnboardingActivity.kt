@@ -1,4 +1,4 @@
-package com.bellnote.ui
+﻿package com.bellnote.ui
 
 import android.Manifest
 import android.content.Intent
@@ -520,7 +520,7 @@ class OnboardingActivity : AppCompatActivity() {
     private fun setState(viewId: Int, ok: Boolean) {
         val view = findViewById<TextView>(viewId)
         view.text = if (ok) "已开启" else "未开启"
-        view.setTextColor(themeColor(if (ok) R.attr.bnPrimary else R.attr.bnDanger))
+        view.setTextColor(themeColor(if (ok) R.attr.bnOk else R.attr.bnDanger))
     }
 
     private fun themeColor(attr: Int): Int {
@@ -542,3 +542,4 @@ class OnboardingActivity : AppCompatActivity() {
         android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT).show()
     }
 }
+

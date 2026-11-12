@@ -20,6 +20,10 @@
 
     <color name="chip_bg">#FF1A2A26</color>
     <color name="danger">#FFFF8A8A</color>
+    <!-- 语义状态色（暗色）：绿/橙/灰固定，不跟配色主题变 -->
+    <color name="ok">#FF4FD39A</color>
+    <color name="warn">#FFF2B45C</color>
+    <color name="muted">#FF5C6663</color>
     <color name="nav_bg">#FF101715</color>
     <color name="nav_header_start">#FF101715</color>
     <color name="ripple">#22E9F2EF</color>

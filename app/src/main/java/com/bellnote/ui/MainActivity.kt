@@ -36,6 +36,7 @@ import com.bellnote.service.ReconcileRunner
 import com.bellnote.service.ScreenshotWatcher
 import com.bellnote.util.DeviceVendor
 import com.bellnote.util.Permissions
+import com.bellnote.util.StatusColors
 import com.bellnote.util.TimeFormat
 import java.io.File
 
@@ -554,17 +555,17 @@ class MainActivity : AppCompatActivity() {
             pill.setBackgroundColor(android.graphics.Color.TRANSPARENT)
             pill.setPadding((10 * density).toInt(), (4 * density).toInt(), (18 * density).toInt(), (4 * density).toInt())
             glyph.visibility = View.VISIBLE
-            val color = when (StatusLines.level(this)) {
-                StatusLines.Level.OK -> attrColor(R.attr.bnPrimary)
-                StatusLines.Level.WARN -> attrColor(R.attr.bnAccent)
-                StatusLines.Level.IDLE -> attrColor(R.attr.bnCardStroke)
-            }
-            glyph.imageTintList = android.content.res.ColorStateList.valueOf(attrColor(R.attr.bnPrimary))
+            val level = StatusLines.level(this)
+            val color = StatusColors.status(this, level)
+            // 徽章不跟主题也不跟状态，用最稳的前景色；状态交给微光
+            glyph.imageTintList = android.content.res.ColorStateList.valueOf(
+                StatusColors.attr(this, R.attr.bnTextPrimary)
+            )
             pill.contentDescription = "Bellnote，ntfy 通道"
             val halo = findViewById<View>(R.id.brandHalo)
             halo.visibility = View.VISIBLE
-            halo.background?.setTint(color)
-            startBrandPulse(color)
+            halo.background?.setTint(StatusColors.glow(this, color))
+            startBrandPulse(level)
         } else {
             pill.setBackgroundColor(android.graphics.Color.TRANSPARENT)
             pill.setPadding(0, padV, 0, padV)
@@ -576,15 +577,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     /** 只有背景光晕在动：整团椭圆光晕的透明度/横向尺度 + 文字描边光一起呼吸。>_ 保持静止。 */
-    private fun startBrandPulse(color: Int) {
+    private fun startBrandPulse(level: StatusLines.Level) {
         if (brandGlowAnimator?.isRunning == true) return
         val name = findViewById<TextView>(R.id.tvBrandName)
         val halo = findViewById<View>(R.id.brandHalo)
         val density = resources.displayMetrics.density
-        // 纯主色在深色背景上不够跳，掺一点白让它像真的发光
-        val glowColor = androidx.core.graphics.ColorUtils.blendARGB(
-            color, android.graphics.Color.WHITE, 0.5f
-        )
+        val night = StatusColors.isNight(this)
+        val glowColor = StatusColors.glow(this, StatusColors.status(this, level))
 
         brandGlowAnimator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
             duration = 2800L
@@ -593,16 +592,16 @@ class MainActivity : AppCompatActivity() {
             interpolator = android.view.animation.AccelerateDecelerateInterpolator()
             addUpdateListener { animator ->
                 val f = animator.animatedValue as Float
-                // 字周围一层紧的光
-                val radius = (5f + 6f * f) * density
-                val alpha = (90 + 100 * f).toInt()
+                // 字周围一层紧的光：深色掺白发光，浅色掺黑做投影感
+                val radius = ((if (night) 5f else 4f) + (if (night) 6f else 5f) * f) * density
+                val alpha = ((if (night) 90 else 60) + (if (night) 100 else 70) * f).toInt()
                 name.setShadowLayer(
                     radius, 0f, 0f,
                     androidx.core.graphics.ColorUtils.setAlphaComponent(glowColor, alpha)
                 )
                 // 背后一团椭圆光晕，横向慢慢铺开
-                halo.alpha = 0.12f + 0.22f * f
-                halo.scaleX = 1.22f + 0.26f * f
+                halo.alpha = if (night) 0.14f + 0.20f * f else 0.08f + 0.14f * f
+                halo.scaleX = 1.20f + 0.22f * f
                 halo.scaleY = 0.94f + 0.08f * f
             }
             start()
@@ -614,16 +613,6 @@ class MainActivity : AppCompatActivity() {
         brandGlowAnimator = null
         findViewById<TextView>(R.id.tvBrandName).setShadowLayer(0f, 0f, 0f, 0)
         findViewById<View>(R.id.brandHalo).alpha = 0f
-    }
-
-    private fun attrColor(attr: Int): Int {
-        val value = android.util.TypedValue()
-        theme.resolveAttribute(attr, value, true)
-        return if (value.resourceId != 0) {
-            androidx.core.content.ContextCompat.getColor(this, value.resourceId)
-        } else {
-            value.data
-        }
     }
 
     /** 点「同步」灯：把对账 / 补查 / 写失败三行摊开，能直接去对账。 */

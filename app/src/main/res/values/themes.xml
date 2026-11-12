@@ -28,6 +28,9 @@
         <item name="bnChipBg">@color/chip_bg</item>
         <item name="bnIconBg">@color/icon_bg</item>
         <item name="bnDanger">@color/danger</item>
+        <item name="bnOk">@color/ok</item>
+        <item name="bnWarn">@color/warn</item>
+        <item name="bnMuted">@color/muted</item>
         <item name="bnNavBg">@color/nav_bg</item>
         <item name="bnRipple">@color/ripple</item>
     </style>
@@ -69,6 +72,9 @@
         <item name="bnChipBg">@color/chip_bg</item>
         <item name="bnIconBg">@color/icon_bg</item>
         <item name="bnDanger">@color/danger</item>
+        <item name="bnOk">@color/ok</item>
+        <item name="bnWarn">@color/warn</item>
+        <item name="bnMuted">@color/muted</item>
         <item name="bnNavBg">@color/nav_bg</item>
         <item name="bnRipple">@color/ripple</item>
     </style>
@@ -94,6 +100,9 @@
         <item name="bnChipBg">@color/chip_bg</item>
         <item name="bnIconBg">@color/icon_bg</item>
         <item name="bnDanger">@color/danger</item>
+        <item name="bnOk">@color/ok</item>
+        <item name="bnWarn">@color/warn</item>
+        <item name="bnMuted">@color/muted</item>
         <item name="bnNavBg">@color/nav_bg</item>
         <item name="bnRipple">@color/ripple</item>
     </style>
