@@ -108,6 +108,15 @@
                 android:clipChildren="false"
                 android:clipToPadding="false">
 
+                <!-- 输入框四周的呼吸微光轮廓 -->
+                <View
+                    android:id="@+id/inputGlow"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="-2dp"
+                    android:background="@drawable/bg_input_glow_outline"
+                    android:alpha="0" />
+
                 <EditText
                     android:id="@+id/etQuick"
                     android:layout_width="match_parent"
@@ -122,17 +131,6 @@
                     android:textColor="?attr/bnTextPrimary"
                     android:textColorHint="?attr/bnTextSecondary"
                     android:textSize="15sp" />
-
-                <!-- 输入框右上角的同款微光，一小团盖在角上 -->
-                <View
-                    android:id="@+id/inputHalo"
-                    android:layout_width="70dp"
-                    android:layout_height="34dp"
-                    android:layout_gravity="top|end"
-                    android:layout_marginTop="1dp"
-                    android:layout_marginEnd="3dp"
-                    android:background="@drawable/bg_brand_halo"
-                    android:visibility="gone" />
             </FrameLayout>
 
             <ImageButton
@@ -158,122 +156,56 @@
                 android:src="@drawable/ic_screenshot" />
         </LinearLayout>
 
-        <!-- 两颗指示灯胶囊：LED 点 + 文案，点开还是原来的详情 -->
+        <!-- 两颗指示灯：体检结果 + 同步状态，点了都进详情（小一号） -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="8dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <LinearLayout
-                android:id="@+id/healthTap"
+            <TextView
+                android:id="@+id/healthChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_status_pill"
                 android:clickable="true"
-                android:contentDescription="运行体检"
+                android:drawableStart="@drawable/dot_ok"
+                android:drawableEnd="@drawable/ic_chevron_right"
+                android:drawablePadding="4dp"
                 android:focusable="true"
                 android:foreground="?android:attr/selectableItemBackground"
                 android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:maxLines="1"
                 android:paddingLeft="9dp"
-                android:paddingTop="5dp"
+                android:paddingTop="4dp"
                 android:paddingRight="7dp"
-                android:paddingBottom="5dp">
+                android:paddingBottom="4dp"
+                android:text="检测中"
+                android:textColor="?attr/bnTextSecondary"
+                android:textSize="11sp" />
 
-                <FrameLayout
-                    android:layout_width="16dp"
-                    android:layout_height="16dp">
-
-                    <View
-                        android:id="@+id/healthGlow"
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_gravity="center"
-                        android:background="@drawable/bg_indicator_glow" />
-
-                    <View
-                        android:id="@+id/healthDot"
-                        android:layout_width="7dp"
-                        android:layout_height="7dp"
-                        android:layout_gravity="center"
-                        android:background="@drawable/bg_indicator_core" />
-                </FrameLayout>
-
-                <TextView
-                    android:id="@+id/healthLabel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="5dp"
-                    android:maxLines="1"
-                    android:text="检测中"
-                    android:textColor="?attr/bnTextSecondary"
-                    android:textSize="12sp" />
-
-                <ImageView
-                    android:layout_width="12dp"
-                    android:layout_height="12dp"
-                    android:layout_marginStart="2dp"
-                    android:contentDescription="查看"
-                    android:src="@drawable/ic_chevron_right"
-                    android:tint="?attr/bnTextSecondary" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/statusTap"
+            <TextView
+                android:id="@+id/statusChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="7dp"
                 android:background="@drawable/bg_status_pill"
                 android:clickable="true"
-                android:contentDescription="同步状态"
+                android:drawableStart="@drawable/dot_ok"
+                android:drawableEnd="@drawable/ic_chevron_right"
+                android:drawablePadding="4dp"
                 android:focusable="true"
                 android:foreground="?android:attr/selectableItemBackground"
                 android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:maxLines="1"
                 android:paddingLeft="9dp"
-                android:paddingTop="5dp"
+                android:paddingTop="4dp"
                 android:paddingRight="7dp"
-                android:paddingBottom="5dp">
-
-                <FrameLayout
-                    android:layout_width="16dp"
-                    android:layout_height="16dp">
-
-                    <View
-                        android:id="@+id/statusGlow"
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_gravity="center"
-                        android:background="@drawable/bg_indicator_glow" />
-
-                    <View
-                        android:id="@+id/statusDot"
-                        android:layout_width="7dp"
-                        android:layout_height="7dp"
-                        android:layout_gravity="center"
-                        android:background="@drawable/bg_indicator_core" />
-                </FrameLayout>
-
-                <TextView
-                    android:id="@+id/statusLabel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="5dp"
-                    android:maxLines="1"
-                    android:text="一切就绪"
-                    android:textColor="?attr/bnTextSecondary"
-                    android:textSize="12sp" />
-
-                <ImageView
-                    android:layout_width="12dp"
-                    android:layout_height="12dp"
-                    android:layout_marginStart="2dp"
-                    android:contentDescription="查看"
-                    android:src="@drawable/ic_chevron_right"
-                    android:tint="?attr/bnTextSecondary" />
-            </LinearLayout>
+                android:paddingBottom="4dp"
+                android:text="一切就绪"
+                android:textColor="?attr/bnTextSecondary"
+                android:textSize="11sp" />
         </LinearLayout>
 
         <TextView

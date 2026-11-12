@@ -45,6 +45,7 @@ class MainActivity : AppCompatActivity() {
     private val repository by lazy { CalendarRepository(this) }
     private lateinit var adapter: TodoAdapter
     private var brandGlowAnimator: android.animation.ValueAnimator? = null
+    private var inputGlowAnimator: android.animation.ValueAnimator? = null
     private val glowHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private var glowColorCurrent = 0
     private var lastGlowLevel: StatusLines.Level? = null
@@ -132,10 +133,10 @@ class MainActivity : AppCompatActivity() {
         if (!Prefs.onboardingDone(this)) {
             startActivity(Intent(this, OnboardingActivity::class.java))
         }
-        findViewById<View>(R.id.healthTap).setOnClickListener {
+        findViewById<View>(R.id.healthChip).setOnClickListener {
             startActivity(Intent(this, HealthActivity::class.java))
         }
-        findViewById<View>(R.id.statusTap).setOnClickListener { showSyncDialog() }
+        findViewById<View>(R.id.statusChip).setOnClickListener { showSyncDialog() }
         findViewById<View>(R.id.brandPill).setOnClickListener {
             // 只有 ntfy 可用时它才是入口；否则点了不动
             if (Prefs.ntfyEnabled(this) && Prefs.ntfyTopic(this).isNotBlank()) {
@@ -403,54 +404,35 @@ class MainActivity : AppCompatActivity() {
 
     /** 标题右侧那颗灯：只读缓存结果，过期了才后台重算。 */
     private fun renderHealth() {
-        val dotView = findViewById<View>(R.id.healthDot)
-        val glow = findViewById<View>(R.id.healthGlow)
-        val tap = findViewById<View>(R.id.healthTap)
         val items = HealthInspector.cached(this)
+        val chip = findViewById<TextView>(R.id.healthChip)
         val worst = HealthCheck.indicator(items)
-        val labelView = findViewById<TextView>(R.id.healthLabel)
         if (worst == null) {
-            styleDot(
-                dotView, glow, labelView, tap,
-                StatusColors.attr(this, R.attr.bnWarn),
-                "检测中", "运行体检：检测中"
-            )
+            styleChip(chip, R.drawable.dot_warn, "检测中")
             return
         }
-        val color = when (worst.status) {
-            HealthCheck.Status.BAD -> StatusColors.attr(this, R.attr.bnDanger)
-            HealthCheck.Status.OK -> StatusColors.attr(this, R.attr.bnOk)
-            else -> StatusColors.attr(this, R.attr.bnWarn)
+        val dot = when (worst.status) {
+            HealthCheck.Status.BAD -> R.drawable.dot_bad
+            HealthCheck.Status.WARN -> R.drawable.dot_warn
+            HealthCheck.Status.UNKNOWN -> R.drawable.dot_warn
+            HealthCheck.Status.OK -> R.drawable.dot_ok
         }
-        val label = if (worst.status == HealthCheck.Status.OK) {
-            "正常"
-        } else {
-            "${HealthCheck.pending(items).size} 项可优化"
-        }
-        styleDot(dotView, glow, labelView, tap, color, label, "运行体检：$label")
+        styleChip(
+            chip,
+            dot,
+            if (worst.status == HealthCheck.Status.OK) "正常" else "${HealthCheck.pending(items).size} 项可优化"
+        )
     }
 
-    /** 指示灯：核心点 + 外圈微光，颜色跟着状态走；胶囊里保留一句文案，点开还是原来的详情。 */
-    private fun styleDot(
-        dot: View,
-        glow: View,
-        labelView: TextView,
-        tap: View,
-        color: Int,
-        label: String,
-        description: String
-    ) {
-        val changed = tap.contentDescription?.toString() != description
-        dot.background?.setTint(color)
-        glow.background?.setTint(color)
-        glow.alpha = 0.38f
-        labelView.text = label
-        tap.contentDescription = description
+    /** 两颗灯同一个样子：圆点 + 文字 + 右侧箭头，点开都是「运行体检」。 */
+    private fun styleChip(chip: TextView, dot: Int, label: String) {
+        val changed = chip.text.toString() != label
+        chip.text = label
+        chip.setCompoundDrawablesRelativeWithIntrinsicBounds(dot, 0, R.drawable.ic_chevron_right, 0)
         if (changed) {
-            dot.alpha = 0.35f
-            dot.animate().alpha(1f).setDuration(200L).start()
-            glow.alpha = 0.12f
-            glow.animate().alpha(0.38f).setDuration(350L).start()
+            // 状态变了就淡入一下，别硬切
+            chip.alpha = 0.35f
+            chip.animate().alpha(1f).setDuration(200L).start()
         }
     }
 
@@ -477,6 +459,7 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         // 微光和光标只在页面上跑，切走就停，别在后台烧电
         stopBrandPulse()
+        stopInputGlow()
         ticker.removeCallbacks(tick)
     }
 
@@ -488,6 +471,7 @@ class MainActivity : AppCompatActivity() {
         // 回到前台先对齐一次时间，之后每分钟刷新进度条
         ticker.removeCallbacks(tick)
         ticker.postDelayed(tick, 60_000L)
+        startInputGlow()
         refreshHealthIfStale()
         if (ThemeManager.refreshIfNeeded(this)) {
             recreate()
@@ -566,19 +550,13 @@ class MainActivity : AppCompatActivity() {
 
     /** 右边那颗灯：同步状态（对账 / 补查 / 写失败），和左边「体检」不是一回事。 */
     private fun updateStatus() {
-        val dotView = findViewById<View>(R.id.statusDot)
-        val glow = findViewById<View>(R.id.statusGlow)
-        val tap = findViewById<View>(R.id.statusTap)
-        val color = when (StatusLines.level(this)) {
-            StatusLines.Level.OK -> StatusColors.attr(this, R.attr.bnOk)
-            StatusLines.Level.IDLE -> StatusColors.attr(this, R.attr.bnMuted)
-            StatusLines.Level.WARN -> StatusColors.attr(this, R.attr.bnWarn)
+        val chip = findViewById<TextView>(R.id.statusChip)
+        val dot = when (StatusLines.level(this)) {
+            StatusLines.Level.OK -> R.drawable.dot_ok
+            StatusLines.Level.IDLE -> R.drawable.dot_idle
+            StatusLines.Level.WARN -> R.drawable.dot_warn
         }
-        val label = StatusLines.chipLabel(this)
-        styleDot(
-            dotView, glow, findViewById(R.id.statusLabel), tap,
-            color, label, "同步：$label"
-        )
+        styleChip(chip, dot, StatusLines.chipLabel(this))
         renderNtfyQuick()
     }
 
@@ -606,7 +584,6 @@ class MainActivity : AppCompatActivity() {
             pill.contentDescription = "Bellnote，ntfy 通道"
             val halo = findViewById<View>(R.id.brandHalo)
             halo.visibility = View.VISIBLE
-            findViewById<View>(R.id.inputHalo).visibility = View.VISIBLE
             applyBrandGlow(level)
         } else {
             pill.setBackgroundColor(android.graphics.Color.TRANSPARENT)
@@ -614,7 +591,6 @@ class MainActivity : AppCompatActivity() {
             glyph.visibility = View.GONE
             pill.contentDescription = "Bellnote"
             findViewById<View>(R.id.brandHalo).visibility = View.GONE
-            findViewById<View>(R.id.inputHalo).visibility = View.GONE
             stopBrandPulse()
         }
     }
@@ -651,13 +627,11 @@ class MainActivity : AppCompatActivity() {
         brandGlowAnimator?.cancel()
         val name = findViewById<TextView>(R.id.tvBrandName)
         val halo = findViewById<View>(R.id.brandHalo)
-        val inputHalo = findViewById<View>(R.id.inputHalo)
         val density = resources.displayMetrics.density
         val night = StatusColors.isNight(this)
         glowColorCurrent = color
         val glowColor = StatusColors.glow(this, color)
         halo.background?.setTint(glowColor)
-        inputHalo.background?.setTint(glowColor)
 
         brandGlowAnimator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
             duration = 2800L
@@ -677,13 +651,33 @@ class MainActivity : AppCompatActivity() {
                 halo.alpha = if (night) 0.14f + 0.20f * f else 0.08f + 0.14f * f
                 halo.scaleX = 1.20f + 0.22f * f
                 halo.scaleY = 0.94f + 0.08f * f
-                // 输入框右上角同款微光，跟着同一口气呼吸
-                inputHalo.alpha = (halo.alpha * 1.25f).coerceAtMost(0.45f)
-                inputHalo.scaleX = halo.scaleX
-                inputHalo.scaleY = halo.scaleY
             }
             start()
         }
+    }
+
+    /** 输入框四周一圈会呼吸的微光轮廓（不跟 ntfy，常驻）。 */
+    private fun startInputGlow() {
+        if (inputGlowAnimator?.isRunning == true) return
+        val outline = findViewById<View>(R.id.inputGlow)
+        val color = StatusColors.glow(this, StatusColors.attr(this, R.attr.bnPrimary))
+        outline.background?.setTint(color)
+        inputGlowAnimator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 2800L
+            repeatMode = android.animation.ValueAnimator.REVERSE
+            repeatCount = android.animation.ValueAnimator.INFINITE
+            interpolator = android.view.animation.AccelerateDecelerateInterpolator()
+            addUpdateListener { animator ->
+                outline.alpha = 0.15f + 0.50f * (animator.animatedValue as Float)
+            }
+            start()
+        }
+    }
+
+    private fun stopInputGlow() {
+        inputGlowAnimator?.cancel()
+        inputGlowAnimator = null
+        findViewById<View>(R.id.inputGlow).alpha = 0f
     }
 
     private fun stopBrandPulse() {
@@ -694,7 +688,6 @@ class MainActivity : AppCompatActivity() {
         lastGlowLevel = null
         findViewById<TextView>(R.id.tvBrandName).setShadowLayer(0f, 0f, 0f, 0)
         findViewById<View>(R.id.brandHalo).alpha = 0f
-        findViewById<View>(R.id.inputHalo).alpha = 0f
     }
 
     /** 点「同步」灯：把对账 / 补查 / 写失败三行摊开，能直接去对账。 */
@@ -746,4 +739,5 @@ class MainActivity : AppCompatActivity() {
         private var askedNotifications = false
     }
 }
+
 
