@@ -111,7 +111,7 @@ class OnboardingActivity : AppCompatActivity() {
 
         btnNext.setOnClickListener {
             if (step == 1 && !hasBasicPermissions()) {
-                toast("先把日历和相册权限开了才能继续")
+                toast("先把日历权限开了才能继续")
                 return@setOnClickListener
             }
             if (step < steps.lastIndex) goTo(step + 1) else finishOnboarding()
@@ -325,7 +325,7 @@ class OnboardingActivity : AppCompatActivity() {
                 val target = if (dx < 0) step + 1 else step - 1
                 if (abs(dx) > width * 0.22f && target in steps.indices) {
                     if (step == 1 && target == 2 && !hasBasicPermissions()) {
-                        toast("先把日历和相册权限开了才能继续")
+                        toast("先把日历权限开了才能继续")
                         snapBack()
                     } else {
                         settleTo(target)
@@ -483,7 +483,14 @@ class OnboardingActivity : AppCompatActivity() {
 
     private fun refreshPermissionRows() {
         setState(R.id.permCalendarState, Permissions.hasCalendar(this))
-        setState(R.id.permMediaState, Permissions.hasMediaImages(this))
+        val media = findViewById<TextView>(R.id.permMediaState)
+        if (Permissions.hasMediaImages(this)) {
+            media.text = "已开启"
+            media.setTextColor(themeColor(R.attr.bnOk))
+        } else {
+            media.text = "建议开启"
+            media.setTextColor(themeColor(R.attr.bnTextSecondary))
+        }
         val a11y = findViewById<TextView>(R.id.permA11yState)
         if (a11yServiceEnabled()) {
             a11y.text = "已开启"
@@ -495,14 +502,12 @@ class OnboardingActivity : AppCompatActivity() {
         updatePermGate()
     }
 
-    /** 日历 + 相册是「能跑起来」的最低要求，缺一个都不让往下走。 */
-    private fun hasBasicPermissions(): Boolean =
-        Permissions.hasCalendar(this) && Permissions.hasMediaImages(this)
+    /** 日历读写是「能跑起来」的最低要求，没它不让往下走；相册和无障碍都只是建议。 */
+    private fun hasBasicPermissions(): Boolean = Permissions.hasCalendar(this)
 
     private fun updatePermGate() {
         val missing = mutableListOf<String>()
         if (!Permissions.hasCalendar(this)) missing.add("日历读写")
-        if (!Permissions.hasMediaImages(this)) missing.add("读取相册")
 
         tvPermHint.text = if (missing.isEmpty()) "" else "还要开：" + missing.joinToString("、")
         if (step == 1) {
