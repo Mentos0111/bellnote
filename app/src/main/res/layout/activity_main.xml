@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/drawer"
     android:layout_width="match_parent"
@@ -299,30 +299,6 @@
                 <TextView
                     style="@style/NavLabel"
                     android:text="语音说一条" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/navClip"
-                style="@style/NavRow">
-                <ImageView
-                    style="@style/NavIcon"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_nav_clip" />
-                <TextView
-                    style="@style/NavLabel"
-                    android:text="从剪贴板记" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/navCamera"
-                style="@style/NavRow">
-                <ImageView
-                    style="@style/NavIcon"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_nav_camera" />
-                <TextView
-                    style="@style/NavLabel"
-                    android:text="@string/nav_camera" />
             </LinearLayout>
 
             <TextView

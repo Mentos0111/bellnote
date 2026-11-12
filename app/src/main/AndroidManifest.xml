@@ -275,7 +275,7 @@
             </intent-filter>
         </service>
 
-        <!-- 给相机拍照和内部传图用 -->
+        <!-- 内部传图用（截屏识别） -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
