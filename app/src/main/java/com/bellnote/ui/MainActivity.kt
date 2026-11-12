@@ -576,19 +576,23 @@ class MainActivity : AppCompatActivity() {
         if (brandGlowAnimator?.isRunning == true) return
         val name = findViewById<TextView>(R.id.tvBrandName)
         val density = resources.displayMetrics.density
+        // 纯主色在深色背景上不够跳，掺一点白让它像真的发光
+        val glowColor = androidx.core.graphics.ColorUtils.blendARGB(
+            color, android.graphics.Color.WHITE, 0.35f
+        )
 
         brandGlowAnimator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 2600L
+            duration = 2800L
             repeatMode = android.animation.ValueAnimator.REVERSE
             repeatCount = android.animation.ValueAnimator.INFINITE
             interpolator = android.view.animation.AccelerateDecelerateInterpolator()
             addUpdateListener { animator ->
                 val f = animator.animatedValue as Float
-                val radius = (4f + 6f * f) * density
-                val alpha = (45 + 85 * f).toInt()
+                val radius = (6f + 8f * f) * density
+                val alpha = (75 + 125 * f).toInt()
                 name.setShadowLayer(
                     radius, 0f, 0f,
-                    androidx.core.graphics.ColorUtils.setAlphaComponent(color, alpha)
+                    androidx.core.graphics.ColorUtils.setAlphaComponent(glowColor, alpha)
                 )
             }
             start()
