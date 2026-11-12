@@ -179,9 +179,17 @@
     <string name="ntfy_log_cleared">已清空</string>
     <string name="ntfy_log_retry">重试</string>
     <string name="ntfy_log_retry_done">已重试，看上面的结果</string>
-    <string name="ntfy_local_title">本机简易版 ntfy</string>
-    <string name="ntfy_local_hint">下一步：让手机自己开一个接收端口，电脑直接发到手机，不用经过任何第三方服务器。只限同一 Wi-Fi，且要常驻一条通知；这一版还没做。</string>
-    <string name="ntfy_local_learn">了解会怎么工作</string>
-    <string name="ntfy_local_dialog_title">本机简易版 ntfy</string>
-    <string name="ntfy_local_dialog_body">做法：App 内起一个只对局域网开放的小服务，电脑用 curl 直接发到手机地址，收到就写日历，延迟 1 秒内。\n\n三条硬边界：\n1. 只有同一个 Wi-Fi 能连，出门或热点以外不行；\n2. 通知栏要常驻一条，不然 realme 会把服务冻掉；\n3. 手机不在线时发来的消息会直接失败，没有云端暂存，发送方要重试。\n\n这一版先把界面和收件箱做好，服务端下一步提供。</string>
+    <string name="help_mode_title">ntfy 模式</string>
+    <string name="help_channel_title">消息从哪来</string>
+    <string name="help_channel_body">ntfy 是一条「电脑 → 手机」的通道，Bellnote 借它把电脑上生成的待办送到手机日历。\n\n· 电脑上：往一个主题发一条消息，内容是标题 + 时间，例如\ncurl -d \'{\"title\":\"备课\",\"time\":\"2026-11-13 20:00\"}\' ntfy.sh/你的主题\n\n· 手机上：Bellnote 自己每 15 分钟去服务器拉一次，拉到就写进日历，不需要装 ntfy App。\n\n· 也可以用自己搭的 ntfy 服务器，在下面填地址。</string>
+    <string name="help_server_title">服务器地址</string>
+    <string name="help_topic_title">ntfy 主题</string>
+    <string name="help_catchup_title">立即补查</string>
+    <string name="help_catchup_body">马上问一次服务器有没有新消息。平时每 15 分钟自动拉一次，打开 App 时也会顺手补一次。</string>
+    <string name="help_test_title">测试推送</string>
+    <string name="help_test_body">从手机往主题发一条 10 分钟后的测试待办，用来确认整条链路通不通；发完会记进消息记录。</string>
+    <string name="help_log_title">消息记录</string>
+    <string name="help_rules_title">推送怎么处理</string>
+    <string name="help_rules_body">自动把推送写进日历：关掉后只记录，不写日历。\n\n只收带时间的待办（推荐）：不开的话，认不出「标题 / 时间」的推送也会按「当前时间 + 1 小时」塞进日历，很容易堆一堆没用的条目。</string>
+    <string name="help_other_title">其他 App 的通知</string>
 </resources>

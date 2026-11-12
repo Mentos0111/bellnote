@@ -12,7 +12,6 @@ import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
 import com.bellnote.R
@@ -21,6 +20,7 @@ import com.bellnote.data.Prefs
 import com.bellnote.service.NtfyFetcher
 import com.bellnote.service.NtfyPollScheduler
 import com.bellnote.service.NtfySender
+import com.bellnote.util.Help
 import com.bellnote.util.NtfyEndpoint
 import com.bellnote.util.ThemeManager
 import com.bellnote.util.TimeFormat
@@ -30,7 +30,8 @@ import com.bellnote.util.handleHomeUp
 /**
  * 「ntfy 模式」：把原来散在「第三方推送」里的东西收在一页。
  *
- * 页面结构：模式开关 → 消息从哪来（服务器 / 主题）→ 消息记录 → 处理规则 → 本机简易版（下一步）。
+ * 页面结构：模式开关 → 消息从哪来（服务器 / 主题）→ 消息记录 → 处理规则。
+ * 说明文字一律挂控件旁边的「?」，页面上只留状态和操作。
  * 关掉开关 = 完全不联网；填了主题才会开始定时拉取。
  */
 class NtfyActivity : AppCompatActivity() {
@@ -38,9 +39,8 @@ class NtfyActivity : AppCompatActivity() {
     private lateinit var swMode: SwitchCompat
     private lateinit var tvStatus: TextView
     private lateinit var spChannel: Spinner
-    private lateinit var tvServerLabel: TextView
+    private lateinit var groupServer: View
     private lateinit var etServer: EditText
-    private lateinit var tvServerHint: TextView
     private lateinit var etTopic: EditText
     private lateinit var cbAutoImport: CheckBox
     private lateinit var cbStrictParse: CheckBox
@@ -57,9 +57,8 @@ class NtfyActivity : AppCompatActivity() {
         swMode = findViewById(R.id.swNtfyMode)
         tvStatus = findViewById(R.id.tvNtfyStatus)
         spChannel = findViewById(R.id.spNtfyChannel)
-        tvServerLabel = findViewById(R.id.tvServerLabel)
+        groupServer = findViewById(R.id.groupServer)
         etServer = findViewById(R.id.etNtfyServer)
-        tvServerHint = findViewById(R.id.tvServerHint)
         etTopic = findViewById(R.id.etNtfyTopic)
         cbAutoImport = findViewById(R.id.cbAutoImport)
         cbStrictParse = findViewById(R.id.cbStrictParse)
@@ -72,6 +71,7 @@ class NtfyActivity : AppCompatActivity() {
         swMode.isChecked = Prefs.ntfyEnabled(this)
         setupChannelSpinner()
         bindActions()
+        attachHelp()
         renderStatus()
     }
 
@@ -100,17 +100,28 @@ class NtfyActivity : AppCompatActivity() {
             renderStatus()
         }
 
-        findViewById<Button>(R.id.btnWhatIsNtfy).setOnClickListener { showWhatIsNtfy() }
         findViewById<Button>(R.id.btnMessageLog).setOnClickListener {
             startActivity(Intent(this, MessageLogActivity::class.java))
         }
-        findViewById<Button>(R.id.btnLocalNtfy).setOnClickListener { showLocalNtfyPlan() }
         btnCatchUp.setOnClickListener { catchUpNow() }
         btnSendTest.setOnClickListener { sendTestPush() }
         findViewById<Button>(R.id.btnSaveNtfy).setOnClickListener { saveAndFinish() }
     }
 
-    /** 通道只有两种：官方 ntfy.sh（免配置）和自己搭的服务器。本机简易版在下面单独一块。 */
+    /** 所有说明都挂在「?」上，页面上不再铺大段解释。 */
+    private fun attachHelp() {
+        Help.attach(this, R.id.btnHelpMode, getString(R.string.help_mode_title), getString(R.string.ntfy_mode_hint))
+        Help.attach(this, R.id.btnHelpChannel, getString(R.string.help_channel_title), getString(R.string.help_channel_body))
+        Help.attach(this, R.id.btnHelpServer, getString(R.string.help_server_title), getString(R.string.ntfy_server_hint))
+        Help.attach(this, R.id.btnHelpTopic, getString(R.string.help_topic_title), getString(R.string.hint_push_topic))
+        Help.attach(this, R.id.btnHelpCatchUp, getString(R.string.help_catchup_title), getString(R.string.help_catchup_body))
+        Help.attach(this, R.id.btnHelpTest, getString(R.string.help_test_title), getString(R.string.help_test_body))
+        Help.attach(this, R.id.btnHelpLog, getString(R.string.help_log_title), getString(R.string.ntfy_log_hint))
+        Help.attach(this, R.id.btnHelpRules, getString(R.string.help_rules_title), getString(R.string.help_rules_body))
+        Help.attach(this, R.id.btnHelpOther, getString(R.string.help_other_title), getString(R.string.hint_other_sources))
+    }
+
+    /** 通道只有两种：官方 ntfy.sh（免配置）和自己搭的服务器。 */
     private fun setupChannelSpinner() {
         val labels = listOf(
             getString(R.string.ntfy_channel_cloud),
@@ -131,9 +142,7 @@ class NtfyActivity : AppCompatActivity() {
         spChannel.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val showServer = position == 1
-                tvServerLabel.visibility = if (showServer) View.VISIBLE else View.GONE
-                etServer.visibility = if (showServer) View.VISIBLE else View.GONE
-                tvServerHint.visibility = if (showServer) View.VISIBLE else View.GONE
+                groupServer.visibility = if (showServer) View.VISIBLE else View.GONE
                 if (showServer && etServer.text.isBlank()) etServer.setText(NtfyEndpoint.DEFAULT)
                 if (initial) {
                     initial = false
@@ -176,31 +185,6 @@ class NtfyActivity : AppCompatActivity() {
         } else {
             getString(R.string.ntfy_log_entry)
         }
-    }
-
-    /** 解释这条通道：Bellnote 自己拉，不需要装 ntfy App。 */
-    private fun showWhatIsNtfy() {
-        AlertDialog.Builder(this)
-            .setTitle("ntfy 是干什么的")
-            .setMessage(
-                "ntfy 是一条「电脑 → 手机」的通道，Bellnote 借它把电脑上生成的待办送到手机日历。\n\n" +
-                    "· 电脑上：往一个主题发一条消息，内容是标题 + 时间，例如\n" +
-                    "  curl -d '{\"title\":\"备课\",\"time\":\"2026-11-13 20:00\"}' ntfy.sh/你的主题\n\n" +
-                    "· 手机上：Bellnote 自己每 15 分钟去服务器拉一次，拉到就写进日历，" +
-                    "不需要装 ntfy App，也不依赖任何通知权限。\n\n" +
-                    "· 关掉 ntfy 模式：完全不访问网络，只用「一句话 / 截图 / 分享」这些本地入口。"
-            )
-            .setPositiveButton("知道了", null)
-            .show()
-    }
-
-    /** 本机简易版还没做，但先把「做出来是什么样、有什么代价」说清楚。 */
-    private fun showLocalNtfyPlan() {
-        AlertDialog.Builder(this)
-            .setTitle(getString(R.string.ntfy_local_dialog_title))
-            .setMessage(getString(R.string.ntfy_local_dialog_body))
-            .setPositiveButton("知道了", null)
-            .show()
     }
 
     private fun saveAndFinish() {
