@@ -103,7 +103,7 @@
 
             <FrameLayout
                 android:layout_width="0dp"
-                android:layout_height="48dp"
+                android:layout_height="60dp"
                 android:layout_weight="1"
                 android:clipChildren="false"
                 android:clipToPadding="false">
@@ -113,7 +113,6 @@
                     android:id="@+id/inputGlow"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_margin="-2dp"
                     android:background="@drawable/bg_input_glow_outline"
                     android:alpha="0" />
 
@@ -121,6 +120,9 @@
                     android:id="@+id/etQuick"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="6dp"
+                    android:layout_marginRight="6dp"
                     android:background="@drawable/bg_input_hero"
                     android:hint="@string/quick_hint"
                     android:imeOptions="actionGo"
