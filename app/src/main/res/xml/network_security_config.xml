@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  默认仍按 Android 的「禁明文」走；只有用户自己填了局域网 ntfy 服务器时才需要 http。
+  这里放开的范围由 util/NtfyEndpoint.kt 在代码里把关：http:// 只允许本机 / 私有网段，
+  公网地址仍必须 https://。别因为图省事把校验删掉，那等于全 App 允许明文。
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

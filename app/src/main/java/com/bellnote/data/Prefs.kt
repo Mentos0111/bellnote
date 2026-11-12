@@ -40,6 +40,7 @@ object Prefs {
     private const val KEY_IGNORED = "ignored_notices"
     private const val KEY_NTFY_TOPIC = "ntfy_topic"
     private const val KEY_NTFY_SERVER = "ntfy_server"
+    private const val KEY_NTFY_ENABLED = "ntfy_enabled"
     private const val KEY_NTFY_SINCE = "ntfy_since"
     private const val KEY_CATCHUP_AT = "catchup_last_at"
     private const val KEY_CATCHUP_SUMMARY = "catchup_last_summary"
@@ -216,6 +217,20 @@ object Prefs {
 
     fun setNtfyTopic(context: Context, topic: String) {
         sp(context).edit().putString(KEY_NTFY_TOPIC, topic.trim()).apply()
+    }
+
+    /**
+     * ntfy 模式总开关（3.17 起独立于「有没有填主题」）。没写过这个值的老用户按
+     * 「填了主题就是开」推断，升级后行为不变。
+     */
+    fun ntfyEnabled(context: Context): Boolean {
+        val p = sp(context)
+        if (!p.contains(KEY_NTFY_ENABLED)) return ntfyTopic(context).isNotBlank()
+        return p.getBoolean(KEY_NTFY_ENABLED, true)
+    }
+
+    fun setNtfyEnabled(context: Context, on: Boolean) {
+        sp(context).edit().putBoolean(KEY_NTFY_ENABLED, on).apply()
     }
 
     fun ntfyServer(context: Context): String =

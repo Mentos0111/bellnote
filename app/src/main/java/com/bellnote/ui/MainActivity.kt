@@ -464,6 +464,7 @@ class MainActivity : AppCompatActivity() {
      * 这里顺手补查一次 ntfy（3 分钟内刚查过就跳过）。
      */
     private fun runCatchUpIfDue() {
+        if (!Prefs.ntfyEnabled(this)) return
         if (Prefs.ntfyTopic(this).isBlank()) return
         if (System.currentTimeMillis() - Prefs.lastCatchUpAt(this) < 3 * 60_000L) return
         Thread {

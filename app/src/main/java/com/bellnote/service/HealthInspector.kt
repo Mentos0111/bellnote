@@ -32,11 +32,20 @@ object HealthInspector {
 
         // 1) 自动补查（不再依赖通知使用权：直接问 ntfy 服务器）
         val topic = Prefs.ntfyTopic(app)
-        if (topic.isBlank()) {
+        val modeOn = Prefs.ntfyEnabled(app)
+        if (!modeOn) {
             items.add(
                 HealthCheck.Item(
                     "ntfy_poll", "自动补查", HealthCheck.Status.UNKNOWN,
-                    "没配 ntfy 主题：走「一句话 / 截图 / 分享」就够用，不需要它",
+                    "ntfy 模式没开：走「一句话 / 截图 / 分享」就够用，不需要它",
+                    HealthCheck.Action.SETTINGS
+                )
+            )
+        } else if (topic.isBlank()) {
+            items.add(
+                HealthCheck.Item(
+                    "ntfy_poll", "自动补查", HealthCheck.Status.UNKNOWN,
+                    "ntfy 模式开着但没填主题：在「推送通道」里填一个主题才会开始拉取",
                     HealthCheck.Action.SETTINGS
                 )
             )

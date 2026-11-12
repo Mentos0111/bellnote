@@ -16,7 +16,7 @@ object StatusLines {
         if (Prefs.ignoredNotices(context).isNotEmpty()) return Level.WARN
         val reconciled = Prefs.lastReconcileAt(context)
         if (reconciled > 0 && Prefs.lastReconcileSummary(context) != "一致") return Level.WARN
-        if (Prefs.ntfyTopic(context).isBlank()) return Level.IDLE
+        if (!Prefs.ntfyEnabled(context) || Prefs.ntfyTopic(context).isBlank()) return Level.IDLE
         return Level.OK
     }
 
@@ -25,6 +25,7 @@ object StatusLines {
         if (ignored > 0) return "$ignored 条未写入"
         val reconciled = Prefs.lastReconcileAt(context)
         if (reconciled > 0 && Prefs.lastReconcileSummary(context) != "一致") return "对账有差"
+        if (!Prefs.ntfyEnabled(context)) return "推送未开"
         if (Prefs.ntfyTopic(context).isBlank()) return "补查未开"
         return "同步正常"
     }
@@ -40,8 +41,10 @@ object StatusLines {
             "还没跑过对账，点抽屉里「对账」看清单和日历差在哪"
         }
 
-        lines += if (Prefs.ntfyTopic(context).isBlank()) {
-            "补查：没开（设置里填 ntfy 主题后，ntfy 没弹通知也能补回来）"
+        lines += if (!Prefs.ntfyEnabled(context)) {
+            "补查：ntfy 模式关着（打开后才会去服务器拉消息）"
+        } else if (Prefs.ntfyTopic(context).isBlank()) {
+            "补查：没填主题（设置 → 推送通道里填上才会开始拉）"
         } else {
             val catchAt = Prefs.lastCatchUpAt(context)
             val catchSummary = Prefs.lastCatchUpSummary(context)
@@ -55,7 +58,7 @@ object StatusLines {
 
         val ignored = Prefs.ignoredNotices(context).size
         lines += if (ignored > 0) {
-            "有 $ignored 条推送没写进日历（设置页可看原因）"
+            "有 $ignored 条推送没写进日历（推送通道 → 消息记录里可看原因）"
         } else {
             "最近没有写失败的推送"
         }

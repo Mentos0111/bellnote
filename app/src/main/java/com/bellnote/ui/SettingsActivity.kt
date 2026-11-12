@@ -319,8 +319,8 @@ class SettingsActivity : AppCompatActivity() {
             "加进侧边栏后再把它隐藏——它只是添加时的临时副产物，不用长期放在桌面上。已经加进侧边栏的入口不受影响。\n" +
             "· 通知栏：下拉通知栏点「记一条」，直接回首页并聚焦输入框。")
 
-        help(R.id.btnHelpA11y, "系统权限", "· 通知使用权：读不到第三方推送就收不到 ntfy 的消息，补查也没法给你提醒。\n" +
-            "· 截屏服务（无障碍）：只用来截当前屏幕，不读输入内容；不开就不能从侧边栏点一下截屏。")
+        help(R.id.btnHelpA11y, "系统权限", "· 截屏服务（无障碍）：只用来截当前屏幕，不读输入内容；不开就不能从侧边栏点一下截屏。\n" +
+            "· 推送不需要任何系统权限：Bellnote 自己定时去 ntfy 服务器拉。")
 
         help(R.id.btnHelpReconcile, "对账", "定时把本地的待办清单和系统日历对一遍，" +
             "发现「清单有、日历没有」「日历被删了」「时间被改了」会提醒你。\n\n" +
@@ -348,10 +348,17 @@ class SettingsActivity : AppCompatActivity() {
 
     /** 状态行只在启用了 ntfy 时出现；没启用就完全不占地方。 */
     private fun renderNtfyEntry() {
-        val on = Prefs.ntfyTopic(this).isNotBlank()
+        val on = Prefs.ntfyEnabled(this)
+        val hasTopic = Prefs.ntfyTopic(this).isNotBlank()
         val line = findViewById<TextView>(R.id.tvNtfySummary)
         line.visibility = if (on) View.VISIBLE else View.GONE
-        if (on) line.text = "已启用：电脑上的待办会推到这里"
+        if (on) {
+            line.text = if (hasTopic) {
+                "已开启：电脑上的待办会同步进日历"
+            } else {
+                "已开启，还没填主题"
+            }
+        }
     }
 
     /** 间隔做成选项，避免手输数字；当前值不在列表里时补进去，不动用户已有设置。 */

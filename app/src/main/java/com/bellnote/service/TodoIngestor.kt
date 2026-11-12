@@ -3,6 +3,7 @@ package com.bellnote.service
 import android.content.Context
 import android.util.Log
 import com.bellnote.data.CalendarRepository
+import com.bellnote.data.MessageLog
 import com.bellnote.data.Prefs
 import com.bellnote.data.SOURCE_NTFY
 import com.bellnote.data.SpecDiff
@@ -41,13 +42,37 @@ object TodoIngestor {
     /**
      * @param messageTime 这条消息本身的时间（通知到达时间，或补查拿到的消息时间）。
      *        补查会重放旧消息，靠它挡住「用三天前的删除指令删掉昨天新建的事件」。
+     * @param source 消息从哪来（通知 / 补查 / 重试），只写进消息记录，不参与解析。
      */
     fun handle(
         context: Context,
         title: String,
         text: String,
         messageTime: Long = System.currentTimeMillis(),
-        now: Long = System.currentTimeMillis()
+        now: Long = System.currentTimeMillis(),
+        source: String = "ntfy"
+    ): Outcome {
+        val app = context.applicationContext
+        val outcome = handleInternal(app, title, text, messageTime, now)
+        // 每条消息都留一笔：界面上「这条为什么没进日历」全靠它
+        MessageLog.log(
+            app,
+            MessageLog.DIR_IN,
+            source,
+            title.ifBlank { "（无标题）" },
+            text,
+            resultOf(outcome),
+            detailOf(outcome)
+        )
+        return outcome
+    }
+
+    private fun handleInternal(
+        context: Context,
+        title: String,
+        text: String,
+        messageTime: Long,
+        now: Long
     ): Outcome {
         val app = context.applicationContext
         if (!Permissions.hasCalendar(app)) {
@@ -337,6 +362,21 @@ object TodoIngestor {
             )
         }
     }
+
+    /** 消息记录里的结果标签。写失败要单列出来，不能和「没认出时间」混成一档。 */
+    private fun resultOf(outcome: Outcome): String {
+        val notice = outcome.noticeTitle.orEmpty()
+        val failed = notice.contains("失败") || notice.contains("没能")
+        return when {
+            failed -> MessageLog.RESULT_FAILED
+            outcome.wrote > 0 || outcome.updated > 0 -> MessageLog.RESULT_OK
+            outcome.dropped > 0 -> MessageLog.RESULT_DROPPED
+            else -> MessageLog.RESULT_INFO
+        }
+    }
+
+    private fun detailOf(outcome: Outcome): String =
+        listOfNotNull(outcome.noticeTitle, outcome.noticeBody).joinToString("\n")
 
     private fun preview(text: String): String {
         val oneLine = text.replace('\n', ' ').trim()

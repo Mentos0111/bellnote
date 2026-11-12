@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -13,14 +13,68 @@
         android:paddingTop="12dp"
         android:paddingBottom="28dp">
 
-        <Button
-            android:id="@+id/btnWhatIsNtfy"
-            style="@style/BtnTonal"
-            android:text="什么是 ntfy，为什么要填主题" />
+        <TextView
+            style="@style/SectionSubLabel"
+            android:layout_marginTop="0dp"
+            android:text="总开关" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/swNtfyMode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:minHeight="44dp"
+            android:text="@string/ntfy_mode_switch"
+            android:textColor="?attr/bnTextPrimary"
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
         <TextView
             style="@style/HintText"
-            android:text="ntfy 是把电脑上的待办推到手机的通道：电脑或脚本往同一个主题发一条消息，手机收到就写进日历。截图和分享这两种入口不用配这里。" />
+            android:text="@string/ntfy_mode_hint" />
+
+        <TextView
+            android:id="@+id/tvNtfyStatus"
+            style="@style/HintText"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_input"
+            android:padding="12dp"
+            android:text="还没配置" />
+
+        <Button
+            android:id="@+id/btnWhatIsNtfy"
+            style="@style/BtnTonal"
+            android:layout_marginTop="12dp"
+            android:text="什么是 ntfy，为什么要填主题" />
+
+        <TextView
+            style="@style/SectionSubLabel"
+            android:text="消息从哪来" />
+
+        <Spinner
+            android:id="@+id/spNtfyChannel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp" />
+
+        <TextView
+            android:id="@+id/tvServerLabel"
+            style="@style/FieldCaption"
+            android:layout_marginTop="10dp"
+            android:text="@string/ntfy_server_label" />
+
+        <EditText
+            android:id="@+id/etNtfyServer"
+            style="@style/FormInput"
+            android:hint="https://ntfy.sh"
+            android:inputType="textUri"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvServerHint"
+            style="@style/HintText"
+            android:text="@string/ntfy_server_hint"
+            android:visibility="gone" />
 
         <TextView
             style="@style/FormLabel"
@@ -50,7 +104,21 @@
 
         <TextView
             style="@style/HintText"
-            android:text="测试推送会在 10 分钟后发出，用来确认整条链路通不通。" />
+            android:text="测试推送会在 10 分钟后发出，用来确认整条链路通不通；发完也会记进下面的消息记录。" />
+
+        <TextView
+            style="@style/SectionSubLabel"
+            android:text="消息记录" />
+
+        <Button
+            android:id="@+id/btnMessageLog"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
+            android:text="@string/ntfy_log_entry" />
+
+        <TextView
+            style="@style/HintText"
+            android:text="@string/ntfy_log_hint" />
 
         <TextView
             style="@style/SectionSubLabel"
@@ -77,20 +145,17 @@
 
         <TextView
             style="@style/SectionSubLabel"
-            android:text="没写进日历的推送" />
+            android:text="@string/ntfy_local_title" />
 
         <TextView
-            android:id="@+id/tvIgnored"
             style="@style/HintText"
-            android:background="@drawable/bg_input"
-            android:padding="12dp"
-            android:text="@string/hint_ignored_empty" />
+            android:text="@string/ntfy_local_hint" />
 
         <Button
-            android:id="@+id/btnClearIgnored"
+            android:id="@+id/btnLocalNtfy"
             style="@style/BtnTonal"
             android:layout_marginTop="10dp"
-            android:text="@string/btn_clear_ignored" />
+            android:text="@string/ntfy_local_learn" />
 
         <TextView
             style="@style/SectionSubLabel"

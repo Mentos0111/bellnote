@@ -21,7 +21,7 @@ object NtfyPollScheduler {
         val app = context.applicationContext
         val scheduler = app.getSystemService(JobScheduler::class.java) ?: return
 
-        if (Prefs.ntfyTopic(app).isBlank()) {
+        if (!Prefs.ntfyEnabled(app) || Prefs.ntfyTopic(app).isBlank()) {
             scheduler.cancel(JOB_ID)
             return
         }

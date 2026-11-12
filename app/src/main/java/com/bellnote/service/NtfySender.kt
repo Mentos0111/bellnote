@@ -2,7 +2,9 @@ package com.bellnote.service
 
 import android.content.Context
 import android.util.Log
+import com.bellnote.data.MessageLog
 import com.bellnote.data.Prefs
+import com.bellnote.util.NtfyEndpoint
 import com.bellnote.util.TimeFormat
 import java.net.HttpURLConnection
 import java.net.URL
@@ -37,13 +39,17 @@ object NtfySender {
 
     /** 同步发送（调用方自己放后台线程）。 */
     fun sendTest(context: Context, now: Long = System.currentTimeMillis()): Result {
+        if (!Prefs.ntfyEnabled(context)) return Result(false, "ntfy 模式关着，先在设置里打开")
         val topic = Prefs.ntfyTopic(context)
         if (topic.isBlank()) return Result(false, "设置里还没填 ntfy 主题")
         val server = Prefs.ntfyServer(context)
-        val body = buildRequestBody(topic, "Bellnote 自测", buildTestMessage(now))
+        val endpoint = NtfyEndpoint.check(server)
+        if (!endpoint.ok) return Result(false, endpoint.reason ?: "服务器地址不对")
+        val message = buildTestMessage(now)
+        val body = buildRequestBody(topic, "Bellnote 自测", message)
         var connection: HttpURLConnection? = null
-        return try {
-            connection = (URL("$server/").openConnection() as HttpURLConnection).apply {
+        val result = try {
+            connection = (URL("${endpoint.normalized}/").openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
                 connectTimeout = TIMEOUT_MS
                 readTimeout = TIMEOUT_MS
@@ -66,6 +72,16 @@ object NtfySender {
         } finally {
             connection?.disconnect()
         }
+        MessageLog.log(
+            context.applicationContext,
+            MessageLog.DIR_OUT,
+            "测试",
+            "Bellnote 自测",
+            message,
+            if (result.ok) MessageLog.RESULT_SENT else MessageLog.RESULT_FAILED,
+            result.detail
+        )
+        return result
     }
 
     /** 纯函数，方便单测：ntfy 的 JSON POST 体。 */
