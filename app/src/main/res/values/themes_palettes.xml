@@ -118,8 +118,8 @@
         <item name="bnWindowBg">#FFFFF7FA</item>
         <item name="bnSurface">#FFFFFFFF</item>
         <item name="bnCard">#FFFFFFFF</item>
-        <item name="bnCardStroke">#FFF6E3EB</item>
-        <item name="bnDivider">#FFFAEDF3</item>
+        <item name="bnCardStroke">#FFEFD7E1</item>
+        <item name="bnDivider">#FFF8EAF0</item>
         <item name="bnTextPrimary">#FF2B171D</item>
         <item name="bnTextSecondary">#FF7E6670</item>
         <item name="bnChipBg">#FFFDEEF4</item>

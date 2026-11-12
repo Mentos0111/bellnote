@@ -2,30 +2,31 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
+    android:layout_marginBottom="10dp"
     android:background="@drawable/bg_card"
     android:elevation="@dimen/elevation_card"
     android:foreground="?android:attr/selectableItemBackground"
     android:orientation="vertical"
-    android:paddingLeft="14dp"
-    android:paddingRight="14dp"
-    android:paddingTop="11dp"
-    android:paddingBottom="11dp">
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingTop="13dp"
+    android:paddingBottom="13dp">
 
     <TextView
         android:id="@+id/itemTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ellipsize="end"
+        android:letterSpacing="0.01"
         android:maxLines="1"
         android:textColor="?attr/bnTextPrimary"
-        android:textSize="15sp"
+        android:textSize="16sp"
         android:textStyle="bold" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="3dp"
+        android:layout_marginTop="5dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
@@ -34,7 +35,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ellipsize="end"
-            android:letterSpacing="0.03"
+            android:letterSpacing="0.06"
             android:maxLines="1"
             android:textColor="?attr/bnTextSecondary"
             android:textSize="11sp" />
@@ -44,9 +45,10 @@
         android:id="@+id/itemNote"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="3dp"
+        android:layout_marginTop="4dp"
         android:ellipsize="end"
-        android:maxLines="1"
+        android:lineSpacingExtra="2dp"
+        android:maxLines="2"
         android:textColor="?attr/bnTextSecondary"
         android:textSize="12sp" />
 </LinearLayout>
