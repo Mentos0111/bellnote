@@ -89,41 +89,41 @@
     </style>
 
     <style name="ThemeOverlay.Bellnote.Pink" parent="">
-        <item name="bnPrimary">#FFFF9EC4</item>
-        <item name="bnPrimaryDark">#FF6E2340</item>
-        <item name="bnOnPrimary">#FF2A0E1A</item>
+        <item name="bnPrimary">#FFFF8397</item>
+        <item name="bnPrimaryDark">#FF6E1F2A</item>
+        <item name="bnOnPrimary">#FF2A0E14</item>
         <item name="bnAccent">#FFF2B65C</item>
-        <item name="bnWindowBg">#FF120A0F</item>
-        <item name="bnSurface">#FF1A1116</item>
-        <item name="bnCard">#FF1E1419</item>
+        <item name="bnWindowBg">#FF120A0D</item>
+        <item name="bnSurface">#FF1A1115</item>
+        <item name="bnCard">#FF1E1418</item>
         <item name="bnCardStroke">#FF33202A</item>
-        <item name="bnDivider">#FF27171E</item>
+        <item name="bnDivider">#FF271720</item>
         <item name="bnTextPrimary">#FFF4E7EC</item>
         <item name="bnTextSecondary">#FFB79AA5</item>
-        <item name="bnChipBg">#FF2E1B24</item>
-        <item name="bnIconBg">#FF241820</item>
+        <item name="bnChipBg">#FF2E1B22</item>
+        <item name="bnIconBg">#FF24181E</item>
         <item name="bnDanger">#FFFF8A8A</item>
         <item name="bnOk">#FF62C9AC</item>
-        <item name="bnWarn">#FFF09A78</item>
+        <item name="bnWarn">#FFF0B65C</item>
         <item name="bnMuted">#FF7C6A72</item>
         <item name="bnNavBg">#FF150D11</item>
         <item name="bnRipple">#22F4E7EC</item>
     </style>
 
     <style name="ThemeOverlay.Bellnote.Sakura" parent="">
-        <item name="bnPrimary">#FFF4A9BD</item>
-        <item name="bnPrimaryDark">#FF5E2F3E</item>
+        <item name="bnPrimary">#FFF7B0CA</item>
+        <item name="bnPrimaryDark">#FF6B3550</item>
         <item name="bnOnPrimary">#FF33141E</item>
         <item name="bnAccent">#FFEFB27E</item>
-        <item name="bnWindowBg">#FF140F11</item>
-        <item name="bnSurface">#FF1C1518</item>
-        <item name="bnCard">#FF20181B</item>
+        <item name="bnWindowBg">#FF140F12</item>
+        <item name="bnSurface">#FF1C1519</item>
+        <item name="bnCard">#FF20181D</item>
         <item name="bnCardStroke">#FF362830</item>
         <item name="bnDivider">#FF291F24</item>
         <item name="bnTextPrimary">#FFF6E9EE</item>
         <item name="bnTextSecondary">#FFBEA3AD</item>
-        <item name="bnChipBg">#FF2E2127</item>
-        <item name="bnIconBg">#FF261C21</item>
+        <item name="bnChipBg">#FF2E2128</item>
+        <item name="bnIconBg">#FF261C22</item>
         <item name="bnDanger">#FFFF8A8A</item>
         <item name="bnOk">#FF75CFC0</item>
         <item name="bnWarn">#FFF2A08C</item>

@@ -7,7 +7,7 @@
 
     <!-- 底：樱粉 -->
     <path
-        android:fillColor="#E58FA8"
+        android:fillColor="#F2A6C4"
         android:pathData="M14,0H94A14,14 0,0 1,108 14V94A14,14 0,0 1,94 108H14A14,14 0,0 1,0 94V14A14,14 0,0 1,14 0Z" />
 
     <!-- 白纸 -->
@@ -17,7 +17,7 @@
 
     <!-- 页眉 -->
     <path
-        android:fillColor="#B85E79"
+        android:fillColor="#C4708F"
         android:pathData="M30.5,26H76.5A4.5,4.5 0,0 1,81 30.5V38H26V30.5A4.5,4.5 0,0 1,30.5 26Z" />
 
     <!-- 橙色块 -->
