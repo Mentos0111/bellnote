@@ -96,6 +96,7 @@ class SettingsActivity : AppCompatActivity() {
         btnMediaPerm = findViewById(R.id.btnMediaPerm)
         setupThemeSpinner()
         setupThemeModeSpinner()
+        setupEngineSpinner()
 
         etRemind.setText(Prefs.remindMinutes(this).ifEmpty { listOf(1440, 60) }.joinToString(","))
         etApiKey.setText(Prefs.apiKey(this))
@@ -175,9 +176,48 @@ class SettingsActivity : AppCompatActivity() {
         loadCalendars()
     }
 
+    /**
+     * 识别方式：自动 / 只用本地 / 只用云端。
+     * 默认按「自动」显示，但没选过时不写入——首次启动会单独问一次。
+     */
+    private fun setupEngineSpinner() {
+        val spinner = findViewById<Spinner>(R.id.spEngine)
+        val options = listOf(
+            Prefs.ENGINE_AUTO to "自动（联网走云端，断网用本地）",
+            Prefs.ENGINE_LOCAL to "只用本地（不联网）",
+            Prefs.ENGINE_CLOUD to "只用云端（要 Key 和网络）"
+        )
+        spinner.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            options.map { it.second }
+        ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+
+        val current = Prefs.ocrEngine(this).ifBlank { Prefs.ENGINE_AUTO }
+        spinner.setSelection(options.indexOfFirst { it.first == current }.coerceAtLeast(0))
+        var initial = true
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: android.view.View?,
+                position: Int,
+                id: Long
+            ) {
+                if (initial) {
+                    initial = false
+                    return
+                }
+                val picked = options.getOrNull(position) ?: return
+                Prefs.setOcrEngine(this@SettingsActivity, picked.first)
+                toast("识别方式：${picked.second}")
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
+    }
+
     /** 配色主题：选中即生效，直接 recreate 让整页换成新调色板。 */
-    private fun setupThemeSpinner() {
-        val spinner = findViewById<Spinner>(R.id.spTheme)
+    private fun setupThemeSpinner() {        val spinner = findViewById<Spinner>(R.id.spTheme)
         val palettes = ThemeManager.palettes
         spinner.adapter = ArrayAdapter(
             this,

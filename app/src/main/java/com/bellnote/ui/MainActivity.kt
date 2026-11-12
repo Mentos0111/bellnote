@@ -120,6 +120,35 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, HealthActivity::class.java))
         }
         findViewById<View>(R.id.statusChip).setOnClickListener { showSyncDialog() }
+        maybeAskEngine()
+    }
+
+    /**
+     * 首次问一次「截图识别用哪种方式」。
+     * 只问一次：选了就记住，之后要改去设置页。
+     */
+    private fun maybeAskEngine() {
+        if (Prefs.ocrEngineChosen(this)) return
+        if (!Prefs.onboardingDone(this)) return
+        val options = arrayOf(
+            "自动：有网走云端，断网用本地（推荐）",
+            "只用本地：绝不联网",
+            "只用云端：要 Key 和网络"
+        )
+        AlertDialog.Builder(this)
+            .setTitle("截图识别用哪种方式？")
+            .setItems(options) { _, which ->
+                Prefs.setOcrEngine(
+                    this,
+                    when (which) {
+                        1 -> Prefs.ENGINE_LOCAL
+                        2 -> Prefs.ENGINE_CLOUD
+                        else -> Prefs.ENGINE_AUTO
+                    }
+                )
+            }
+            .setCancelable(false)
+            .show()
     }
 
     /**

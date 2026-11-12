@@ -173,14 +173,6 @@
             android:launchMode="singleTop"
             android:parentActivityName=".ui.MainActivity" />
 
-        <!-- 诊断用：透明页面，起来就截屏 OCR 落盘（走侧边栏同一条路径） -->
-        <activity
-            android:name=".ui.ProbeOcrActivity"
-            android:excludeFromRecents="true"
-            android:exported="true"
-            android:noHistory="true"
-            android:theme="@style/Theme.Bellnote.Transparent" />
-
         <!-- 系统侧边栏（智能侧边栏）里添加的那个入口：点一下截当前屏幕并去识别。
              桌面图标不再是 Activity 自带，而是下面这个 activity-alias，默认 disabled：
              需要在系统侧边栏里添加时，去「设置 → 侧边栏入口」一键打开，加完再关掉。 -->
@@ -238,27 +230,6 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_service" />
         </service>
-
-        <!-- 诊断用：采集通知文本，验证「微信消息能不能从通知里读到」 -->
-        <service
-            android:name=".service.ProbeNotifications"
-            android:exported="true"
-            android:label="Bellnote 通知采集"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
-            <intent-filter>
-                <action android:name="android.service.notification.NotificationListenerService" />
-            </intent-filter>
-        </service>
-
-        <!-- 诊断用：adb 广播触发一次「导出当前窗口文字」 -->
-        <receiver
-            android:name=".service.ProbeReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.bellnote.PROBE_SCREEN" />
-                <action android:name="com.bellnote.PROBE_OCR" />
-            </intent-filter>
-        </receiver>
 
         <!-- 通知栏磁贴：点一下回首页并聚焦「一句话记」 -->
         <service
