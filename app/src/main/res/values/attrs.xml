@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <attr name="bnPrimary" format="color" />
     <attr name="bnPrimaryDark" format="color" />
@@ -8,6 +8,7 @@
     <attr name="bnSurface" format="color" />
     <attr name="bnCard" format="color" />
     <attr name="bnCardStroke" format="color" />
+    <attr name="bnCardEdge" format="color" />
     <attr name="bnDivider" format="color" />
     <attr name="bnTextPrimary" format="color" />
     <attr name="bnTextSecondary" format="color" />
