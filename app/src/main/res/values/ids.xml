@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 给 View 打「已经加过按压反馈」的标记，避免每次布局重复挂监听 -->
+    <item name="tag_touch_feedback" type="id" />
+</resources>
