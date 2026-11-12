@@ -106,7 +106,7 @@ class SettingsActivity : AppCompatActivity() {
         cbShotWatch.isChecked = Prefs.shotWatchEnabled(this)
         btnMediaPerm.setOnClickListener { requestMediaPermission() }
         findViewById<Button>(R.id.btnNtfy).setOnClickListener {
-            startActivity(Intent(this, NtfyActivity::class.java))
+            startActivity(Intent(this, ThirdPartyActivity::class.java))
         }
         findViewById<Button>(R.id.btnExportIcs).setOnClickListener { exportIcs() }
         findViewById<Button>(R.id.btnBackupLedger).setOnClickListener { backupLedger() }

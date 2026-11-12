@@ -162,7 +162,7 @@ class HealthActivity : AppCompatActivity() {
             HealthCheck.Action.CALENDAR ->
                 "设置 → 权限与后台 → 日历读写权限；没有可写日历时点「创建本地日历」。"
             HealthCheck.Action.SETTINGS ->
-                "设置 → 输入渠道 → 其他入口 → 高级 → 第三方：打开 ntfy 模式并填主题（例如 todo-xxxx），再点「立即补查」确认能拉到消息。"
+                "设置 → 输入渠道 → 其他入口 → 高级 → 第三方通道 → ntfy 模式：打开开关并填主题（例如 todo-xxxx），再点「立即补查」确认能拉到消息。"
             HealthCheck.Action.NONE -> item.detail
         }
         AlertDialog.Builder(this)

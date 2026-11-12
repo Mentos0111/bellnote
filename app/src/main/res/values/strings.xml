@@ -148,7 +148,7 @@
     <string name="onboarding_2_hint">以后随时点首页标题旁的状态灯，它会告诉你哪一项还没开。</string>
     <string name="onboarding_3_title">可以开始了</string>
     <string name="onboarding_3_body">首页上方输入一句话，右边两个按钮分别是「发送」和「截屏识别」。</string>
-    <string name="onboarding_3_tip1">· 想让电脑上的待办自动进手机：设置 → 输入渠道 → 其他入口 → 第三方里打开 ntfy 模式并填主题</string>
+    <string name="onboarding_3_tip1">· 想让电脑上的待办自动进手机：设置 → 输入渠道 → 其他入口 → 第三方通道里打开 ntfy 模式并填主题</string>
     <string name="onboarding_3_tip2">· 想在任何 App 里点一下截屏：把「Bellnote 截屏记」加进系统侧边栏</string>
     <string name="onboarding_skip">跳过</string>
     <string name="onboarding_next">下一步</string>
@@ -175,6 +175,9 @@
     <string name="ntfy_log_cleared">已清空</string>
     <string name="ntfy_log_retry">重试</string>
     <string name="ntfy_log_retry_done">已重试，看上面的结果</string>
+    <string name="third_party_title">第三方通道</string>
+    <string name="third_party_section">可用通道</string>
+    <string name="third_party_hint">第三方通道是可选的：不打开也能用「一句话 / 截图 / 分享」。打开后 App 才会联网拉取电脑发来的待办。</string>
     <string name="cap_mode">关掉后完全不联网，主题会保留。</string>
     <string name="cap_server">公网用 https；局域网可以用 http://192.168.x.x。</string>
     <string name="cap_topic">电脑和手机填同一个；填了才会开始拉取。</string>

@@ -161,7 +161,7 @@
                 android:id="@+id/btnNtfy"
                 style="@style/BtnTonal"
                 android:layout_marginTop="4dp"
-                android:text="第三方" />
+                android:text="第三方通道" />
 
             <TextView
                 android:id="@+id/tvNtfySummary"

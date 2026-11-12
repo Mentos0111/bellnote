@@ -157,10 +157,16 @@
         </activity-alias>
 
         <activity
-            android:name=".ui.NtfyActivity"
+            android:name=".ui.ThirdPartyActivity"
             android:exported="false"
             android:launchMode="singleTop"
             android:parentActivityName=".ui.SettingsActivity" />
+
+        <activity
+            android:name=".ui.NtfyActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:parentActivityName=".ui.ThirdPartyActivity" />
 
         <activity
             android:name=".ui.MessageLogActivity"

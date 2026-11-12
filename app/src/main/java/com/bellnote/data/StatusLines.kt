@@ -44,7 +44,7 @@ object StatusLines {
         lines += if (!Prefs.ntfyEnabled(context)) {
             "补查：ntfy 模式关着（打开后才会去服务器拉消息）"
         } else if (Prefs.ntfyTopic(context).isBlank()) {
-            "补查：没填主题（设置 → 输入渠道 → 其他入口 → 第三方里填）"
+            "补查：没填主题（设置 → 输入渠道 → 其他入口 → 第三方通道里填）"
         } else {
             val catchAt = Prefs.lastCatchUpAt(context)
             val catchSummary = Prefs.lastCatchUpSummary(context)
@@ -58,7 +58,7 @@ object StatusLines {
 
         val ignored = Prefs.ignoredNotices(context).size
         lines += if (ignored > 0) {
-            "有 $ignored 条推送没写进日历（进「第三方」→ 消息记录里可看原因）"
+            "有 $ignored 条推送没写进日历（进「第三方通道 → ntfy 模式」→ 消息记录里可看原因）"
         } else {
             "最近没有写失败的推送"
         }
