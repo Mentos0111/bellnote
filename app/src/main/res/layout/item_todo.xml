@@ -5,6 +5,7 @@
     android:layout_marginBottom="10dp"
     android:background="@drawable/bg_card"
     android:clipToOutline="true"
+    android:elevation="5dp"
     android:foreground="?android:attr/selectableItemBackground">
 
     <!-- 时间进度：从左往右涂一层主题色（深色模式涂一层浅色），由代码控制 scaleX -->
