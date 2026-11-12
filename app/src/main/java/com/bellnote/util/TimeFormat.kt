@@ -9,6 +9,12 @@ object TimeFormat {
 
     private val FULL = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
     private val MONTH_DAY = DateTimeFormatter.ofPattern("MM-dd HH:mm")
+    private val CLOCK = DateTimeFormatter.ofPattern("HH:mm")
+
+    /** 卡片左边那一列只要钟点：20:30。 */
+    fun clock(millis: Long): String = LocalDateTime
+        .ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault())
+        .format(CLOCK)
 
     fun full(millis: Long): String = LocalDateTime
         .ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault())
