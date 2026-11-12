@@ -1,6 +1,10 @@
-name: test
+﻿name: test
 
 # 平时推代码就跑单测，别等到打 tag 才发现挂。
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [ main ]
@@ -19,7 +23,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-          cache: gradle
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Prepare Android SDK
         run: |
