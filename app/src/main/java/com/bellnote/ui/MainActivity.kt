@@ -559,7 +559,7 @@ class MainActivity : AppCompatActivity() {
                 StatusLines.Level.WARN -> attrColor(R.attr.bnAccent)
                 StatusLines.Level.IDLE -> attrColor(R.attr.bnCardStroke)
             }
-            glyph.imageTintList = android.content.res.ColorStateList.valueOf(color)
+            glyph.imageTintList = android.content.res.ColorStateList.valueOf(attrColor(R.attr.bnPrimary))
             pill.contentDescription = "Bellnote，ntfy 通道"
             val halo = findViewById<View>(R.id.brandHalo)
             halo.visibility = View.VISIBLE
