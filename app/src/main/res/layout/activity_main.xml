@@ -37,6 +37,7 @@
                 android:layout_width="170dp"
                 android:layout_height="54dp"
                 android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="-37dp"
                 android:background="@drawable/bg_brand_halo"
                 android:visibility="gone" />
 
