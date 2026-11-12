@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- 暗色：用"表面提亮一档 + 细线"做层次，不用阴影（暗色上看不见） -->
     <color name="primary">#FF3FCBAB</color>
@@ -21,9 +21,9 @@
     <color name="chip_bg">#FF1A2A26</color>
     <color name="danger">#FFFF8A8A</color>
     <!-- 语义状态色（暗色）：绿/橙/灰固定，不跟配色主题变 -->
-    <color name="ok">#FF4FD39A</color>
-    <color name="warn">#FFF2B45C</color>
-    <color name="muted">#FF5C6663</color>
+    <color name="ok">#FF58D6A2</color>
+    <color name="warn">#FFF2C066</color>
+    <color name="muted">#FF6B7672</color>
     <color name="nav_bg">#FF101715</color>
     <color name="nav_header_start">#FF101715</color>
     <color name="ripple">#22E9F2EF</color>

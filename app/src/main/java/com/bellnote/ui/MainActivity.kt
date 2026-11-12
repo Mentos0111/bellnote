@@ -45,6 +45,11 @@ class MainActivity : AppCompatActivity() {
     private val repository by lazy { CalendarRepository(this) }
     private lateinit var adapter: TodoAdapter
     private var brandGlowAnimator: android.animation.ValueAnimator? = null
+    private val glowHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var glowColorCurrent = 0
+    private var lastGlowLevel: StatusLines.Level? = null
+    private var warnFlashDone = false
+    private var warnFlashUntil = 0L
 
     /** 每分钟重绑一次列表，让卡片上的时间进度条自己往前走。 */
     private val ticker = android.os.Handler(android.os.Looper.getMainLooper())
@@ -569,16 +574,14 @@ class MainActivity : AppCompatActivity() {
             pill.setPadding((10 * density).toInt(), (4 * density).toInt(), (18 * density).toInt(), (4 * density).toInt())
             glyph.visibility = View.VISIBLE
             val level = StatusLines.level(this)
-            val color = StatusColors.status(this, level)
-            // 徽章不跟主题也不跟状态，用最稳的前景色；状态交给微光
+            // 徽章不跟主题也不跟状态，用最稳的前景色；状态交给状态灯
             glyph.imageTintList = android.content.res.ColorStateList.valueOf(
                 StatusColors.attr(this, R.attr.bnTextPrimary)
             )
             pill.contentDescription = "Bellnote，ntfy 通道"
             val halo = findViewById<View>(R.id.brandHalo)
             halo.visibility = View.VISIBLE
-            halo.background?.setTint(StatusColors.glow(this, color))
-            startBrandPulse(level)
+            applyBrandGlow(level)
         } else {
             pill.setBackgroundColor(android.graphics.Color.TRANSPARENT)
             pill.setPadding(0, padV, 0, padV)
@@ -589,14 +592,43 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 方案 A+D：微光平时用主题色；只有出问题（WARN）时切琥珀色闪 2 秒，再回主题色。
+     * 同一次异常只闪一次，避免每分钟刷新都闪。
+     */
+    private fun applyBrandGlow(level: StatusLines.Level) {
+        if (level != lastGlowLevel) {
+            lastGlowLevel = level
+            warnFlashDone = false
+        }
+        if (level == StatusLines.Level.WARN && !warnFlashDone) {
+            warnFlashDone = true
+            warnFlashUntil = System.currentTimeMillis() + 3000L
+            startBrandPulse(StatusColors.attr(this, R.attr.bnWarn))
+            glowHandler.removeCallbacks(restorePrimaryGlow)
+            glowHandler.postDelayed(restorePrimaryGlow, 3000L)
+            return
+        }
+        // 闪的这 3 秒里，别的刷新别把琥珀色盖回主题色
+        if (System.currentTimeMillis() < warnFlashUntil) return
+        startBrandPulse(StatusColors.attr(this, R.attr.bnPrimary))
+    }
+
+    private val restorePrimaryGlow = Runnable {
+        startBrandPulse(StatusColors.attr(this, R.attr.bnPrimary))
+    }
+
     /** 只有背景光晕在动：整团椭圆光晕的透明度/横向尺度 + 文字描边光一起呼吸。>_ 保持静止。 */
-    private fun startBrandPulse(level: StatusLines.Level) {
-        if (brandGlowAnimator?.isRunning == true) return
+    private fun startBrandPulse(color: Int) {
+        if (brandGlowAnimator?.isRunning == true && color == glowColorCurrent) return
+        brandGlowAnimator?.cancel()
         val name = findViewById<TextView>(R.id.tvBrandName)
         val halo = findViewById<View>(R.id.brandHalo)
         val density = resources.displayMetrics.density
         val night = StatusColors.isNight(this)
-        val glowColor = StatusColors.glow(this, StatusColors.status(this, level))
+        glowColorCurrent = color
+        val glowColor = StatusColors.glow(this, color)
+        halo.background?.setTint(glowColor)
 
         brandGlowAnimator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
             duration = 2800L
@@ -624,6 +656,9 @@ class MainActivity : AppCompatActivity() {
     private fun stopBrandPulse() {
         brandGlowAnimator?.cancel()
         brandGlowAnimator = null
+        glowHandler.removeCallbacks(restorePrimaryGlow)
+        glowColorCurrent = 0
+        lastGlowLevel = null
         findViewById<TextView>(R.id.tvBrandName).setShadowLayer(0f, 0f, 0f, 0)
         findViewById<View>(R.id.brandHalo).alpha = 0f
     }
@@ -677,3 +712,4 @@ class MainActivity : AppCompatActivity() {
         private var askedNotifications = false
     }
 }
+
