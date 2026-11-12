@@ -40,13 +40,20 @@ object QuickParse {
     private val MONTH_DAY = Regex("(?:(\\d{1,2})\\s*月\\s*)?(\\d{1,2})\\s*[日号]")
     private val DURATION = Regex("(\\d+(?:\\.\\d+)?)\\s*(?:个)?\\s*(小时|钟头)|(\\d{1,3})\\s*分钟")
     private val RELATIVE = Regex("(\\d{1,2}|半)\\s*(?:个)?\\s*(小时|钟头|分钟)\\s*(?:之?后|以后)")
-    private val TIME_COLON = Regex("(上午|早上|早晨|凌晨|中午|下午|傍晚|晚上|夜里|晚)?\\s*(\\d{1,2})\\s*[:：]\\s*(\\d{2})")
-    private val TIME_CN = Regex("(上午|早上|早晨|凌晨|中午|下午|傍晚|晚上|夜里|晚)?\\s*(\\d{1,2})\\s*[点时](?:\\s*(半|\\d{1,2}))?\\s*分?")
-    private val CN_NUMBER = Regex("([一二三四五六七八九十]{1,3})\\s*(?=[点时])")
+    /** 一个时间点：前缀（可选）+ 小时 + 分隔符（: / 点 / 时）+ 分钟（可选，可为「半」）。 */
+    private val TIME_TOKEN = Regex(
+        "(上午|早上|早晨|凌晨|中午|下午|傍晚|晚上|夜里|晚)?\\s*(\\d{1,2})\\s*[:：点时]\\s*(半|\\d{1,2})?\\s*分?"
+    )
+
+    /** 起止之间只允许出现这些连接符：「九点五十到十一点二十五」「9:50-11:25」。 */
+    private val RANGE_SEPARATOR = Regex("^(到|至|~|～|-|—|－|–)$")
+
+    /** 中文数字（时间用，最大到 59）。 */
+    private const val CN_NUMBER_CHARS = "零〇一二两三四五六七八九十"
+
     private val CN_DIGITS = mapOf(
-        "一" to 1, "二" to 2, "两" to 2, "三" to 3, "四" to 4, "五" to 5,
-        "六" to 6, "七" to 7, "八" to 8, "九" to 9, "十" to 10,
-        "十一" to 11, "十二" to 12
+        '零' to 0, '〇' to 0, '一' to 1, '二' to 2, '两' to 2, '三' to 3, '四' to 4,
+        '五' to 5, '六' to 6, '七' to 7, '八' to 8, '九' to 9
     )
     private val WEEKDAY_MAP = mapOf(
         "一" to DayOfWeek.MONDAY, "二" to DayOfWeek.TUESDAY, "三" to DayOfWeek.WEDNESDAY,
@@ -124,37 +131,45 @@ object QuickParse {
             }
         }
 
-        // 时间
-        var hour: Int? = null
-        var minute = 0
-        var timeMatch: IntRange? = null
-        TIME_COLON.find(rest)?.let { match ->
-            hour = to24(match.groupValues[1], match.groupValues[2].toIntOrNull() ?: 0)
-            minute = match.groupValues[3].toIntOrNull() ?: 0
-            timeMatch = match.range
+        // 时间：先把所有时间点找出来，「起点 + 连接符 + 终点」就连成一段区间
+        val times = TIME_TOKEN.findAll(rest).mapNotNull { match ->
+            val rawHour = match.groupValues[2].toIntOrNull() ?: return@mapNotNull null
+            val minute = minuteOf(match.groupValues[3])
+            if (minute !in 0..59) return@mapNotNull null
+            TimePoint(to24(match.groupValues[1], rawHour), minute, match)
+        }.toList()
+        if (times.isEmpty()) return null
+
+        var startHour = times[0].hour
+        var startMinute = times[0].minute
+        var timeMatch: IntRange? = times[0].match.range
+        for (i in 0 until times.size - 1) {
+            val from = times[i]
+            val to = times[i + 1]
+            val between = rest.substring(from.match.range.last + 1, to.match.range.first).trim()
+            if (!RANGE_SEPARATOR.matches(between)) continue
+            // 「下午两点到四点半」：终点没写上午/下午，跟着起点的下午走；
+            // 但「22:00 到 01:00」这种跨零点的，加 12 小时反而更早，就不加
+            val samePeriod = to.hour < 12 && from.hour >= 12 &&
+                (to.hour + 12) * 60 + to.minute > from.hour * 60 + from.minute
+            val endHour = if (to.match.groupValues[1].isBlank() && samePeriod) to.hour + 12 else to.hour
+            if (endHour !in 0..23) continue
+            var span = (endHour * 60 + to.minute) - (from.hour * 60 + from.minute)
+            if (span <= 0) span += 24 * 60 // 跨零点，比如 22:00 到 01:00
+            duration = span.coerceIn(5, 24 * 60)
+            startHour = from.hour
+            startMinute = from.minute
+            timeMatch = from.match.range.first..to.match.range.last
+            break
         }
-        if (hour == null) {
-            TIME_CN.find(rest)?.let { match ->
-                val h = match.groupValues[2].toIntOrNull()
-                if (h != null && h in 0..24) {
-                    hour = to24(match.groupValues[1], h)
-                    minute = when {
-                        match.groupValues[3] == "半" -> 30
-                        match.groupValues[3].isNotEmpty() -> match.groupValues[3].toIntOrNull() ?: 0
-                        else -> 0
-                    }
-                    timeMatch = match.range
-                }
-            }
-        }
-        val h = hour ?: return null
-        if (h !in 0..23 || minute !in 0..59) return null
+        val h = startHour
+        if (h !in 0..23 || startMinute !in 0..59) return null
         timeMatch?.let { rest = rest.removeRange(it) }
 
         val baseDate = date ?: nowDate.toLocalDate()
         var start: LocalDateTime
         try {
-            start = LocalDateTime.of(baseDate, LocalTime.of(h, minute))
+            start = LocalDateTime.of(baseDate, LocalTime.of(h, startMinute))
         } catch (e: Exception) {
             return null
         }
@@ -176,14 +191,59 @@ object QuickParse {
         )
     }
 
-    /** 把「三点」「十二点」里的中文数字换成阿拉伯数字，后面正则就只认数字。 */
+    /**
+     * 把时间里的中文数字换成阿拉伯数字，后面正则就只认数字。
+     * 只动「点/时」前后那一段：标题里的「第三章」「一次」不会被改坏。
+     */
     private fun normalizeNumbers(text: String): String {
-        var out = text
-        for ((cn, value) in CN_DIGITS.entries.sortedByDescending { it.key.length }) {
-            out = out.replace("${cn}点", "${value}点").replace("${cn}时", "${value}时")
+        // 「二十三点」「十一点」「九点」：点/时前面的小时
+        var out = Regex("[$CN_NUMBER_CHARS]{1,3}(?=\\s*[点时])").replace(text) { match ->
+            cnToInt(match.value)?.toString() ?: match.value
+        }
+        // 「九点五十」「十一点二十五分」：点/时后面的分钟（后面可能直接跟「到」「-」或句末）
+        out = Regex(
+            "(?<=[点时])(\\s*)([$CN_NUMBER_CHARS]{1,3})" +
+                "(?=\\s*(?:分|到|至|~|～|-|—|－|–|$|[，,。；;、]))"
+        ).replace(out) { match ->
+            val number = cnToInt(match.groupValues[2])?.toString() ?: match.groupValues[2]
+            match.groupValues[1] + number
         }
         return out
     }
+
+    /** 中文读数 → 数字：五、十、十五、二十五、五十、五十九。认不出返回 null。 */
+    private fun cnToInt(raw: String): Int? {
+        val text = raw.trim()
+        if (text.isEmpty()) return null
+        if (text.length == 1) {
+            return if (text == "十") 10 else CN_DIGITS[text[0]]
+        }
+        val ten = text.indexOf('十')
+        if (ten < 0) {
+            // 「一二」这种逐位写法少见，按两位数拼
+            var value = 0
+            for (c in text) {
+                val digit = CN_DIGITS[c] ?: return null
+                value = value * 10 + digit
+            }
+            return value
+        }
+        val tens = if (ten == 0) 1 else CN_DIGITS[text.substring(0, ten)[0]] ?: return null
+        val ones = if (ten == text.lastIndex) 0 else {
+            if (text.substring(ten + 1).length != 1) 0 else CN_DIGITS[text.last()] ?: return null
+        }
+        return tens * 10 + ones
+    }
+
+    /** 「半」是 30 分，空着是 0 分。 */
+    private fun minuteOf(raw: String): Int = when {
+        raw == "半" -> 30
+        raw.isNotEmpty() -> raw.toIntOrNull() ?: 0
+        else -> 0
+    }
+
+    /** 一个识别出来的时间点。 */
+    private data class TimePoint(val hour: Int, val minute: Int, val match: MatchResult)
 
     private fun to24(prefix: String, hour: Int): Int = when {
         prefix.isBlank() -> hour

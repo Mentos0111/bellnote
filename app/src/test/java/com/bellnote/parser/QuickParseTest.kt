@@ -109,4 +109,54 @@ class QuickParseTest {
         assertNotNull(result)
         assertEquals("开家长会", result!!.title)
     }
+
+    @Test
+    fun `中文分钟加区间`() {
+        val result = parsed("数学物理方法24号测试，九点五十到十一点二十五")
+        assertNotNull(result)
+        assertEquals("数学物理方法测试", result!!.title)
+        assertEquals("2026-11-24T09:50", timeOf("数学物理方法24号测试，九点五十到十一点二十五"))
+        assertEquals(95, result.durationMinutes)
+    }
+
+    @Test
+    fun `阿拉伯数字的点区间`() {
+        val result = parsed("数学物理方法24号测试 9点50到11点25")
+        assertNotNull(result)
+        assertEquals("数学物理方法测试", result!!.title)
+        assertEquals("2026-11-24T09:50", timeOf("数学物理方法24号测试 9点50到11点25"))
+        assertEquals(95, result.durationMinutes)
+    }
+
+    @Test
+    fun `冒号加短横的区间`() {
+        val result = parsed("数学物理方法24号测试 9:50-11:25")
+        assertNotNull(result)
+        assertEquals("数学物理方法测试", result!!.title)
+        assertEquals("2026-11-24T09:50", timeOf("数学物理方法24号测试 9:50-11:25"))
+        assertEquals(95, result.durationMinutes)
+    }
+
+    @Test
+    fun `带分字的区间`() {
+        val result = parsed("24号 九点五十分到十一点二十五分 考试")
+        assertNotNull(result)
+        assertEquals("考试", result!!.title)
+        assertEquals("2026-11-24T09:50", timeOf("24号 九点五十分到十一点二十五分 考试"))
+        assertEquals(95, result.durationMinutes)
+    }
+
+    @Test
+    fun `下午两点到四点半 终点继承下午`() {
+        val result = parsed("明天下午两点到四点半教研")
+        assertNotNull(result)
+        assertEquals("教研", result!!.title)
+        assertEquals("2026-11-12T14:00", timeOf("明天下午两点到四点半教研"))
+        assertEquals(150, result.durationMinutes)
+    }
+
+    @Test
+    fun `跨零点的区间按次日算`() {
+        assertEquals(180, parsed("明天22:00到01:00值班")!!.durationMinutes)
+    }
 }

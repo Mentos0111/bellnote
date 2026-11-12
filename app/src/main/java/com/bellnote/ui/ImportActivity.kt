@@ -19,12 +19,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.IntentCompat
 import com.bellnote.util.ThemeManager
 import com.bellnote.R
+import com.bellnote.ai.OfflineOcr
 import com.bellnote.ai.VisionExtractor
 import com.bellnote.data.CalendarRepository
 import com.bellnote.data.Prefs
 import com.bellnote.data.SOURCE_SHOT
 import com.bellnote.data.TodoSpec
 import com.bellnote.data.TodoStore
+import com.bellnote.parser.ScreenTextParser
 import com.bellnote.util.ImageUtils
 import com.bellnote.util.Permissions
 import com.bellnote.util.enableHomeUp
@@ -195,18 +197,96 @@ class ImportActivity : AppCompatActivity() {
             return
         }
         val apiKey = Prefs.apiKey(this)
-        if (apiKey.isBlank()) {
+
+        // 用户选过就听用户的；没选过（或 auto）就按「有没有网 + 有没有 Key」自动决定
+        val engine = Prefs.ocrEngine(this)
+        val useLocal = when (engine) {
+            Prefs.ENGINE_LOCAL -> true
+            Prefs.ENGINE_CLOUD -> false
+            else -> apiKey.isBlank() || !isOnline()
+        }
+
+        if (!useLocal && apiKey.isBlank()) {
             toast("还没配置 DeepSeek API Key")
             startActivity(Intent(this, SettingsActivity::class.java))
             return
         }
 
-        btnRecognize.text = "识别这张图"
+        btnRecognize.text = if (useLocal) "本地识别这张图" else "识别这张图"
         btnRecognize.isEnabled = false
         btnPick.isEnabled = false
         btnRestore.visibility = View.GONE
         lastRaw = ""
         startWaiting()
+
+        if (useLocal) {
+            tvStatus.text = "正在用本地 OCR 识别（不联网）…"
+            recognizeLocally(uri)
+        } else {
+            recognizeInCloud(uri, apiKey)
+        }
+    }
+
+    /** 离线兜底：整张图 OCR 成文字，再交给 [ScreenTextParser] 抽待办。 */
+    private fun recognizeLocally(uri: Uri) {
+        Thread {
+            val bitmap = ImageUtils.loadBitmap(this, uri, 1600)
+            if (bitmap == null) {
+                ui.post {
+                    if (isFinishing || isDestroyed) return@post
+                    stopWaiting()
+                    tvStatus.text = "这张图读不出来，换一张试试"
+                    btnRecognize.isEnabled = true
+                    btnPick.isEnabled = true
+                }
+                return@Thread
+            }
+            val started = System.currentTimeMillis()
+            OfflineOcr.recognize(bitmap) { text ->
+                val cost = System.currentTimeMillis() - started
+                ui.post {
+                    if (isFinishing || isDestroyed) return@post
+                    handleLocalText(text, cost)
+                }
+            }
+        }.start()
+    }
+
+    private fun handleLocalText(text: String, costMs: Long) {
+        if (text.startsWith("OCR 失败")) {
+            stopWaiting()
+            tvStatus.text = text + "\n（可以切到「云端识别」再试，或换一张更清楚的图）"
+            btnRecognize.isEnabled = true
+            btnPick.isEnabled = true
+            return
+        }
+        val specs = ScreenTextParser.parse(text)
+        val finalSpecs = specs.ifEmpty {
+            ScreenTextParser.fallbackSpec(text)?.let { listOf(it) } ?: emptyList()
+        }
+        val note = if (specs.isEmpty() && finalSpecs.isNotEmpty()) {
+            "本地没认出时间，先按明天 9:00 填，点进去改"
+        } else {
+            null
+        }
+        val hint = buildString {
+            append(note.orEmpty())
+            if (note != null) append('\n')
+            append("（本地 OCR，${costMs}ms，离线）")
+        }.trim()
+        val target = imageUri ?: return
+        handleOutcome(
+            VisionExtractor.Outcome(
+                spec = finalSpecs.firstOrNull(),
+                error = hint,
+                raw = text,
+                specs = finalSpecs
+            ),
+            target
+        )
+    }
+
+    private fun recognizeInCloud(uri: Uri, apiKey: String) {
         val model = Prefs.model(this)
 
         Thread {
@@ -233,6 +313,24 @@ class ImportActivity : AppCompatActivity() {
                 handleOutcome(outcome, uri)
             }
         }.start()
+    }
+
+    /** 有没有网（严格点：有网络且能上网，不然 auto 会在断网时白等二十秒）。 */
+    private fun isOnline(): Boolean {
+        return try {
+            val cm = getSystemService(android.content.Context.CONNECTIVITY_SERVICE)
+                as android.net.ConnectivityManager
+            val net = cm.activeNetwork
+            if (net == null) {
+                false
+            } else {
+                val caps = cm.getNetworkCapabilities(net)
+                caps != null &&
+                    caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            }
+        } catch (e: Exception) {
+            true
+        }
     }
 
     private fun handleOutcome(outcome: VisionExtractor.Outcome, uri: Uri) {

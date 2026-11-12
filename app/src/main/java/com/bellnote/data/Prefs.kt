@@ -53,6 +53,18 @@ object Prefs {
     private const val KEY_HEALTH_AT = "health_cached_at"
     private const val KEY_COLLAPSED_GROUPS = "list_collapsed_groups"
 
+    /**
+     * 识别方式：auto（联网走云端、断网用本地）/ local（只用本地）/ cloud（只用云端）。
+     * 空串 = 用户还没选过，首次引导里问一次。
+     */
+    private const val KEY_OCR_ENGINE = "ocr_engine"
+
+    /**
+     * 通知怎么用：off（不碰）/ onDemand（只在用户主动触发时读最近一条）/
+     * keyword（命中关键词才提醒）/ auto（自动建）。默认 off，别自作主张。
+     */
+    private const val KEY_NOTIFY_LEVEL = "notify_level"
+
     /** 存「被忽略的通知」用的分隔符：\u0001 分条、\u0002 分字段，正常正文里不会出现。 */
     private const val ENTRY_SEP = "\u0001"
     private const val FIELD_SEP = "\u0002"
@@ -397,5 +409,31 @@ object Prefs {
 
     fun setCollapsedGroups(context: Context, labels: Set<String>) {
         sp(context).edit().putString(KEY_COLLAPSED_GROUPS, labels.joinToString("\u0001")).apply()
+    }
+
+    // ---------------- 识别方式（用户自己选，不替他决定） ----------------
+
+    const val ENGINE_AUTO = "auto"
+    const val ENGINE_LOCAL = "local"
+    const val ENGINE_CLOUD = "cloud"
+
+    /** auto / local / cloud；空串表示还没选过，首次引导要问。 */
+    fun ocrEngine(context: Context): String =
+        sp(context).getString(KEY_OCR_ENGINE, "").orEmpty()
+
+    fun setOcrEngine(context: Context, engine: String) {
+        sp(context).edit().putString(KEY_OCR_ENGINE, engine).apply()
+    }
+
+    fun ocrEngineChosen(context: Context): Boolean = ocrEngine(context).isNotBlank()
+
+    // ---------------- 通知档位 ----------------
+
+    /** off / onDemand / keyword / auto。默认 off。 */
+    fun notifyLevel(context: Context): String =
+        sp(context).getString(KEY_NOTIFY_LEVEL, "off").orEmpty().ifBlank { "off" }
+
+    fun setNotifyLevel(context: Context, level: String) {
+        sp(context).edit().putString(KEY_NOTIFY_LEVEL, level).apply()
     }
 }
