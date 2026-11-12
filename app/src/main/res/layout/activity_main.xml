@@ -19,16 +19,18 @@
             android:clipChildren="false"
             android:clipToPadding="false">
 
-            <TextView
+            <ImageButton
                 android:id="@+id/btnMenu"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_gravity="start|center_vertical"
                 android:layout_marginStart="-8dp"
-                android:gravity="center"
-                android:text="☰"
-                android:textColor="?attr/bnTextSecondary"
-                android:textSize="18sp" />
+                android:background="@android:color/transparent"
+                android:contentDescription="打开菜单"
+                android:padding="7dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_menu"
+                android:tint="?attr/bnTextSecondary" />
 
             <View
                 android:id="@+id/brandHalo"
