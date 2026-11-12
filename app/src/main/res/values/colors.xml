@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- 主色只用在一个地方：主要动作 + 关键数字 -->
     <color name="primary">#FF0E7C6B</color>
@@ -22,9 +22,9 @@
     <color name="chip_bg">#FFECF6F3</color>
     <color name="danger">#FFC94848</color>
     <!-- 语义状态色：不跟配色主题变，只管「正常 / 提醒 / 未配置」 -->
-    <color name="ok">#FF2E9E6B</color>
-    <color name="warn">#FFD98324</color>
-    <color name="muted">#FF9AA5A1</color>
+    <color name="ok">#FF34B37E</color>
+    <color name="warn">#FFE8A33C</color>
+    <color name="muted">#FF9AA5A0</color>
     <color name="nav_bg">#FFFFFFFF</color>
     <color name="nav_header_start">#FFFFFFFF</color>
     <color name="ripple">#140E7C6B</color>

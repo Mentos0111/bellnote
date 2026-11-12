@@ -16,9 +16,9 @@
         <item name="bnChipBg">#FFECF6F3</item>
         <item name="bnIconBg">#FFF1F5F4</item>
         <item name="bnDanger">#FFC94848</item>
-        <item name="bnOk">#FF2FB37C</item>
-        <item name="bnWarn">#FFE8A33A</item>
-        <item name="bnMuted">#FF94A39C</item>
+        <item name="bnOk">#FF34B37E</item>
+        <item name="bnWarn">#FFE8A33C</item>
+        <item name="bnMuted">#FF9AA5A0</item>
         <item name="bnNavBg">#FFFFFFFF</item>
         <item name="bnRipple">#140E7C6B</item>
     </style>
@@ -39,9 +39,9 @@
         <item name="bnChipBg">#FFEDF1FC</item>
         <item name="bnIconBg">#FFF1F4FB</item>
         <item name="bnDanger">#FFC94848</item>
-        <item name="bnOk">#FF2FBFA2</item>
-        <item name="bnWarn">#FFEDB640</item>
-        <item name="bnMuted">#FF8C97AD</item>
+        <item name="bnOk">#FF34B37E</item>
+        <item name="bnWarn">#FFE8A33C</item>
+        <item name="bnMuted">#FF9AA5A0</item>
         <item name="bnNavBg">#FFFFFFFF</item>
         <item name="bnRipple">#142F55C9</item>
     </style>
@@ -61,10 +61,10 @@
         <item name="bnTextSecondary">#FF7C6A5B</item>
         <item name="bnChipBg">#FFF7EADF</item>
         <item name="bnIconBg">#FFF5EDE4</item>
-        <item name="bnDanger">#FFC0503F</item>
-        <item name="bnOk">#FF7FAE52</item>
-        <item name="bnWarn">#FFD97B3C</item>
-        <item name="bnMuted">#FFB3A08D</item>
+        <item name="bnDanger">#FFC94848</item>
+        <item name="bnOk">#FF34B37E</item>
+        <item name="bnWarn">#FFE8A33C</item>
+        <item name="bnMuted">#FF9AA5A0</item>
         <item name="bnNavBg">#FFFFFCF8</item>
         <item name="bnRipple">#14B2603A</item>
     </style>
@@ -84,10 +84,10 @@
         <item name="bnTextSecondary">#FF6D7375</item>
         <item name="bnChipBg">#FFF0F1F0</item>
         <item name="bnIconBg">#FFF2F3F2</item>
-        <item name="bnDanger">#FFB03A3A</item>
-        <item name="bnOk">#FF6FA987</item>
-        <item name="bnWarn">#FFC9A24A</item>
-        <item name="bnMuted">#FF8E9694</item>
+        <item name="bnDanger">#FFC94848</item>
+        <item name="bnOk">#FF34B37E</item>
+        <item name="bnWarn">#FFE8A33C</item>
+        <item name="bnMuted">#FF9AA5A0</item>
         <item name="bnNavBg">#FFFFFFFF</item>
         <item name="bnRipple">#141F2321</item>
     </style>
@@ -108,9 +108,9 @@
         <item name="bnChipBg">#FFFCEDF1</item>
         <item name="bnIconBg">#FFFAF0F3</item>
         <item name="bnDanger">#FFC94848</item>
-        <item name="bnOk">#FF3FAE85</item>
-        <item name="bnWarn">#FFE07A45</item>
-        <item name="bnMuted">#FFB5969F</item>
+        <item name="bnOk">#FF34B37E</item>
+        <item name="bnWarn">#FFE8A33C</item>
+        <item name="bnMuted">#FF9AA5A0</item>
         <item name="bnNavBg">#FFFFFFFF</item>
         <item name="bnRipple">#14C41E3A</item>
     </style>
@@ -131,9 +131,9 @@
         <item name="bnChipBg">#FFFDEEF4</item>
         <item name="bnIconBg">#FFFCF2F6</item>
         <item name="bnDanger">#FFC94848</item>
-        <item name="bnOk">#FF3FB394</item>
-        <item name="bnWarn">#FFEE8E68</item>
-        <item name="bnMuted">#FFBCA4AC</item>
+        <item name="bnOk">#FF34B37E</item>
+        <item name="bnWarn">#FFE8A33C</item>
+        <item name="bnMuted">#FF9AA5A0</item>
         <item name="bnNavBg">#FFFFFFFF</item>
         <item name="bnRipple">#14C24B70</item>
     </style>
