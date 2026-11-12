@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -60,6 +60,27 @@
                     android:contentDescription="看说明"
                     android:src="@drawable/ic_nav_help" />
             </LinearLayout>
+
+            <TextView
+                style="@style/FormLabel"
+                android:layout_marginTop="8dp"
+                android:text="识别方式" />
+
+            <Spinner
+                android:id="@+id/spEngine"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_input"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp" />
+
+            <TextView
+                android:id="@+id/tvEngineHint"
+                style="@style/HintText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="自动：有网走云端（更准），断网自动改用本地。本地：绝不联网，只在手机上识别。" />
 
             <TextView
                 style="@style/FormLabel"
