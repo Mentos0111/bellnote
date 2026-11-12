@@ -471,6 +471,24 @@
                 android:text="@string/btn_open_a11y" />
 
             <Button
+                android:id="@+id/btnNotifPerm"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="@string/btn_notif_perm" />
+
+            <Button
+                android:id="@+id/btnBatteryPerm"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="电池白名单" />
+
+            <Button
+                android:id="@+id/btnAutostartPerm"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="自启动" />
+
+            <Button
                 android:id="@+id/btnCrashLog"
                 style="@style/BtnTonal"
                 android:layout_marginTop="10dp"

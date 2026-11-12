@@ -53,7 +53,7 @@ class OnboardingActivity : AppCompatActivity() {
 
     private companion object {
         const val STAGE2_INTRO = "如何实现"
-        const val STAGE2_TITLE = "先把这几个开关打开"
+        const val STAGE2_TITLE = "先开日历权限"
     }
     private var pendingStage: Runnable? = null
 
@@ -111,7 +111,7 @@ class OnboardingActivity : AppCompatActivity() {
 
         btnNext.setOnClickListener {
             if (step == 1 && !hasBasicPermissions()) {
-                toast("先把「通知使用权」和「日历读写」开了才能继续")
+                toast("先把「日历读写」开了才能继续")
                 return@setOnClickListener
             }
             if (step < steps.lastIndex) goTo(step + 1) else finishOnboarding()
@@ -138,26 +138,6 @@ class OnboardingActivity : AppCompatActivity() {
             else requestCalendar.launch(
                 arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR)
             )
-        }
-        findViewById<LinearLayout>(R.id.permBattery).setOnClickListener {
-            if (HealthInspector.isIgnoringBatteryOptimizations(this)) {
-                toast("已经在白名单里了")
-            } else if (!DeviceVendor.openBattery(this)) {
-                toast("打不开电池页面，请手动到 设置 → 电池 → 应用耗电管理")
-            }
-        }
-        findViewById<LinearLayout>(R.id.permAutostart).setOnClickListener {
-            if (!DeviceVendor.openAutostart(this)) {
-                toast("打不开自启动页面，去系统设置里搜「自启动」")
-            }
-        }
-        findViewById<LinearLayout>(R.id.permMedia).setOnClickListener {
-            if (Permissions.hasMediaImages(this)) toast("相册权限已经有了")
-            else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                requestMedia.launch(Manifest.permission.READ_MEDIA_IMAGES)
-            } else {
-                requestMedia.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-            }
         }
 
         setupSwipe()
@@ -335,7 +315,7 @@ class OnboardingActivity : AppCompatActivity() {
                 val target = if (dx < 0) step + 1 else step - 1
                 if (abs(dx) > width * 0.22f && target in steps.indices) {
                     if (step == 1 && target == 2 && !hasBasicPermissions()) {
-                        toast("先把「通知使用权」和「日历读写」开了才能继续")
+                        toast("先把「日历读写」开了才能继续")
                         snapBack()
                     } else {
                         settleTo(target)
@@ -493,17 +473,10 @@ class OnboardingActivity : AppCompatActivity() {
 
     private fun refreshPermissionRows() {
         setState(R.id.permCalendarState, Permissions.hasCalendar(this))
-        setState(R.id.permBatteryState, HealthInspector.isIgnoringBatteryOptimizations(this))
-        setState(R.id.permMediaState, Permissions.hasMediaImages(this))
-
-        findViewById<TextView>(R.id.permAutostartState).apply {
-            text = "未开启"
-            setTextColor(themeColor(R.attr.bnDanger))
-        }
         updatePermGate()
     }
 
-    /** 通知使用权 + 日历读写是「能跑起来」的最低要求，缺一个就不让往下走。 */
+    /** 日历读写是「能跑起来」的最低要求，没它不让往下走。 */
     private fun hasBasicPermissions(): Boolean = Permissions.hasCalendar(this)
 
     private fun updatePermGate() {

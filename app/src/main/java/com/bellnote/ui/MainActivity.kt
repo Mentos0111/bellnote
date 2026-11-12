@@ -47,7 +47,6 @@ class MainActivity : AppCompatActivity() {
     private var lastGlowLevel: StatusLines.Level? = null
     private var warnFlashDone = false
     private var warnFlashUntil = 0L
-
     /** 每分钟重绑一次列表，让卡片上的时间进度条自己往前走。 */
     private val ticker = android.os.Handler(android.os.Looper.getMainLooper())
     private val tick = object : Runnable {
@@ -63,10 +62,6 @@ class MainActivity : AppCompatActivity() {
     private val requestCalendar = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { refresh() }
-
-    private val requestNotifications = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { }
 
     /** 语音说一条：用系统语音识别把话变成文字，再走同一套本地解析。 */
     private val voiceLauncher = registerForActivityResult(
@@ -424,12 +419,6 @@ class MainActivity : AppCompatActivity() {
         }
         // 相册权限给过了就顺手挂上截图监听（没权限时内部直接返回）
         ScreenshotWatcher.ensureStarted(this)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            !Permissions.hasPostNotifications(this) && !askedNotifications
-        ) {
-            askedNotifications = true
-            requestNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
         if (intent?.getBooleanExtra(EXTRA_FOCUS_QUICK, false) == true) {
             intent?.removeExtra(EXTRA_FOCUS_QUICK)
             focusQuick(getString(R.string.quick_hint))
@@ -657,7 +646,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_FOCUS_QUICK = "focus_quick"
-        private var askedNotifications = false
     }
 }
 
