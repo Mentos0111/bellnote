@@ -1,4 +1,4 @@
-name: release
+﻿name: release
 
 # 打 tag 就自动构建，并把 APK 挂到对应 Release 上。
 # 也可以在 Actions 页面手动 Run workflow，指定已有 tag（用于补发/重发）。
@@ -6,6 +6,12 @@ name: release
 # 版本号的真相源就是 tag：CI 把 tag 去掉 v 之后用 -PbellnoteVersionName 传给 Gradle，
 # 构建完再用 aapt2 读包里真实的 versionName / versionCode 复核一遍，两边不一致就红。
 # 改了什么必须写进 CHANGELOG.md，Release 说明从那里抽。
+#
+# 结构（并行跑，省一轮时间）：
+#   meta  ── 解析 tag/版本号
+#   test  ── 单测（与 build 并行）
+#   build ── 打包 + 版本复核 + 上传 artifact
+#   publish ── 等 test/build 都过，再发 Release
 
 on:
   push:
@@ -27,16 +33,19 @@ permissions:
 env:
   PYTHONIOENCODING: utf-8
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          # push tag 时构建那个 tag；手动触发时构建 inputs.ref
-          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ref || github.ref }}
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
+jobs:
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+      version: ${{ steps.meta.outputs.version }}
+      versioncode: ${{ steps.meta.outputs.versioncode }}
+      prerelease: ${{ steps.meta.outputs.prerelease }}
+    steps:
       - name: Resolve tag, version and versionCode
         id: meta
         env:
@@ -63,45 +72,55 @@ jobs:
           print(f"tag={tag} version={version} versionCode={code} prerelease={bool(pre)}")
           PY
 
-      - name: Check CHANGELOG and extract release notes
-        env:
-          VERSION: ${{ steps.meta.outputs.version }}
-        run: |
-          python3 - <<'PY'
-          import os, re, sys
-
-          version = os.environ["VERSION"]
-          with open("CHANGELOG.md", encoding="utf-8") as f:
-              text = f.read()
-
-          pattern = re.compile(
-              r"^## \[" + re.escape(version) + r"\][^\n]*\n(.*?)(?=^## \[|\Z)",
-              re.M | re.S,
-          )
-          m = pattern.search(text)
-          body = m.group(1).strip() if m else ""
-          if not body:
-              sys.exit(
-                  f"CHANGELOG.md 里没有 '## [{version}]' 小节（或它是空的）。"
-                  "发版前先把这版改了什么写进去。"
-              )
-
-          with open("release-notes.md", "w", encoding="utf-8") as f:
-              f.write(body + "\n")
-          print(body)
-          PY
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ref || github.ref }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-          cache: gradle
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Prepare Android SDK
+        run: |
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+
+      - name: Unit tests
+        run: |
+          chmod +x gradlew
+          ./gradlew testDebugUnitTest --no-daemon --console=plain
+
+  build:
+    needs: meta
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ref || github.ref }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Prepare Android SDK
         # 不再用 android-actions/setup-android：它内部跑 `sdkmanager tools`，
         # 而新版 cmdline-tools 已经没有 `tools` 这个包，会直接失败。
-        # GitHub 的 ubuntu 镜像本来就预装 SDK，这里只打印现状并接受 license。
+        # ubuntu 镜像本来就预装 SDK，这里只打印现状并接受 license。
         run: |
           SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
           echo "ANDROID_HOME=$SDK"
@@ -134,22 +153,18 @@ jobs:
           } >> "$GITHUB_ENV"
           echo "### ✅ 本次用正式 keystore 签名" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Unit tests
-        run: |
-          chmod +x gradlew
-          ./gradlew testDebugUnitTest --no-daemon --console=plain
-
       - name: Build release APK
         env:
-          VERSION: ${{ steps.meta.outputs.version }}
+          VERSION: ${{ needs.meta.outputs.version }}
         run: |
-          ./gradlew assembleRelease --no-daemon --console=plain \
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --console=plain --build-cache \
             "-PbellnoteVersionName=$VERSION"
 
       - name: Verify APK version matches the tag
         env:
-          VERSION: ${{ steps.meta.outputs.version }}
-          EXPECTED_CODE: ${{ steps.meta.outputs.versioncode }}
+          VERSION: ${{ needs.meta.outputs.version }}
+          EXPECTED_CODE: ${{ needs.meta.outputs.versioncode }}
         run: |
           set -euo pipefail
           AAPT="$(ls -d "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)"
@@ -177,18 +192,68 @@ jobs:
 
       - name: Name the APK after the tag
         env:
-          VERSION: ${{ steps.meta.outputs.version }}
+          VERSION: ${{ needs.meta.outputs.version }}
         run: |
           mkdir -p dist
           cp app/build/outputs/apk/release/app-release.apk "dist/bellnote-${VERSION}.apk"
           ls -lh dist
 
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bellnote-apk
+          path: dist/bellnote-*.apk
+          if-no-files-found: error
+
+  publish:
+    needs: [meta, unit-test, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ref || github.ref }}
+
+      - name: Check CHANGELOG and extract release notes
+        env:
+          VERSION: ${{ needs.meta.outputs.version }}
+        run: |
+          python3 - <<'PY'
+          import os, re, sys
+
+          version = os.environ["VERSION"]
+          with open("CHANGELOG.md", encoding="utf-8") as f:
+              text = f.read()
+
+          pattern = re.compile(
+              r"^## \[" + re.escape(version) + r"\][^\n]*\n(.*?)(?=^## \[|\Z)",
+              re.M | re.S,
+          )
+          m = pattern.search(text)
+          body = m.group(1).strip() if m else ""
+          if not body:
+              sys.exit(
+                  f"CHANGELOG.md 里没有 '## [{version}]' 小节（或它是空的）。"
+                  "发版前先把这版改了什么写进去。"
+              )
+
+          with open("release-notes.md", "w", encoding="utf-8") as f:
+              f.write(body + "\n")
+          print(body)
+          PY
+
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: bellnote-apk
+          path: dist
+
       - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.meta.outputs.tag }}
-          name: Bellnote ${{ steps.meta.outputs.version }}
+          tag_name: ${{ needs.meta.outputs.tag }}
+          name: Bellnote ${{ needs.meta.outputs.version }}
           body_path: release-notes.md
-          prerelease: ${{ steps.meta.outputs.prerelease }}
+          prerelease: ${{ needs.meta.outputs.prerelease == 'true' }}
           files: dist/bellnote-*.apk
           fail_on_unmatched_files: true
