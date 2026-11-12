@@ -6,7 +6,7 @@
     android:background="@drawable/bg_card"
     android:clipToOutline="true"
     android:elevation="7dp"
-    android:foreground="?android:attr/selectableItemBackground">
+    android:foreground="@drawable/bg_ripple_card">
 
     <!-- 时间进度：从左往右涂一层主题色（深色模式涂一层浅色），由代码控制 scaleX -->
     <View

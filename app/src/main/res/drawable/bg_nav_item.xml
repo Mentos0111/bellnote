@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 抽屉条目：涟漪按 14dp 圆角裁剪，颜色跟主题走（原来是 8% 透明度，几乎看不见） -->
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
     android:color="?attr/bnRipple">
-    <item>
+    <item android:id="@android:id/mask">
         <shape android:shape="rectangle">
-            <solid android:color="@android:color/transparent" />
+            <solid android:color="#FFFFFFFF" />
             <corners android:radius="14dp" />
         </shape>
     </item>

@@ -132,7 +132,7 @@
                     <LinearLayout
                         android:id="@+id/permCalendar"
                         style="@style/AboutRow"
-                        android:background="?android:attr/selectableItemBackground"
+                        android:background="@drawable/bg_ripple_row"
                         android:clickable="true"
                         android:focusable="true">
                         <TextView
@@ -148,7 +148,7 @@
                     <LinearLayout
                         android:id="@+id/permBattery"
                         style="@style/AboutRow"
-                        android:background="?android:attr/selectableItemBackground"
+                        android:background="@drawable/bg_ripple_row"
                         android:clickable="true"
                         android:focusable="true">
                         <TextView
@@ -164,7 +164,7 @@
                     <LinearLayout
                         android:id="@+id/permAutostart"
                         style="@style/AboutRow"
-                        android:background="?android:attr/selectableItemBackground"
+                        android:background="@drawable/bg_ripple_row"
                         android:clickable="true"
                         android:focusable="true">
                         <TextView
@@ -180,7 +180,7 @@
                     <LinearLayout
                         android:id="@+id/permMedia"
                         style="@style/AboutRow"
-                        android:background="?android:attr/selectableItemBackground"
+                        android:background="@drawable/bg_ripple_row"
                         android:clickable="true"
                         android:focusable="true">
                         <TextView

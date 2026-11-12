@@ -20,7 +20,7 @@
         <item name="bnWarn">#FFE8A33C</item>
         <item name="bnMuted">#FF9AA5A0</item>
         <item name="bnNavBg">#FFFFFFFF</item>
-        <item name="bnRipple">#140E7C6B</item>
+        <item name="bnRipple">#2E0E7C6B</item>
     </style>
 
     <style name="ThemeOverlay.Bellnote.Indigo" parent="">
@@ -43,7 +43,7 @@
         <item name="bnWarn">#FFE8A33C</item>
         <item name="bnMuted">#FF9AA5A0</item>
         <item name="bnNavBg">#FFFFFFFF</item>
-        <item name="bnRipple">#142F55C9</item>
+        <item name="bnRipple">#2E2F55C9</item>
     </style>
 
     <style name="ThemeOverlay.Bellnote.Sand" parent="">
@@ -66,7 +66,7 @@
         <item name="bnWarn">#FFE8A33C</item>
         <item name="bnMuted">#FF9AA5A0</item>
         <item name="bnNavBg">#FFFFFCF8</item>
-        <item name="bnRipple">#14B2603A</item>
+        <item name="bnRipple">#2EB2603A</item>
     </style>
 
     <style name="ThemeOverlay.Bellnote.Ink" parent="">
@@ -89,7 +89,7 @@
         <item name="bnWarn">#FFE8A33C</item>
         <item name="bnMuted">#FF9AA5A0</item>
         <item name="bnNavBg">#FFFFFFFF</item>
-        <item name="bnRipple">#141F2321</item>
+        <item name="bnRipple">#2E1F2321</item>
     </style>
 
     <style name="ThemeOverlay.Bellnote.Pink" parent="">
@@ -112,7 +112,7 @@
         <item name="bnWarn">#FFE8A33C</item>
         <item name="bnMuted">#FF9AA5A0</item>
         <item name="bnNavBg">#FFFFFFFF</item>
-        <item name="bnRipple">#14C41E3A</item>
+        <item name="bnRipple">#2EC41E3A</item>
     </style>
 
     <style name="ThemeOverlay.Bellnote.Sakura" parent="">
@@ -135,7 +135,7 @@
         <item name="bnWarn">#FFE8A33C</item>
         <item name="bnMuted">#FF9AA5A0</item>
         <item name="bnNavBg">#FFFFFFFF</item>
-        <item name="bnRipple">#14C24B70</item>
+        <item name="bnRipple">#2EC24B70</item>
     </style>
 
 </resources>
