@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:clickable="true"
     android:focusable="true"
-    android:foreground="?android:attr/selectableItemBackground"
+    android:foreground="@drawable/bg_ripple_row"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:paddingLeft="4dp"

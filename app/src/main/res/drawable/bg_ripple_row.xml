@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 整行可点的涟漪：抽屉条目、设置分组标题、权限行、列表分组头 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?attr/bnRipple">
+    <item android:id="@android:id/mask">
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFFFFFF" />
+            <corners android:radius="10dp" />
+        </shape>
+    </item>
+</ripple>

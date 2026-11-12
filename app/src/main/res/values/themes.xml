@@ -130,7 +130,7 @@
         <item name="android:orientation">horizontal</item>
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
-        <item name="android:foreground">?android:attr/selectableItemBackground</item>
+        <item name="android:foreground">@drawable/bg_ripple_row</item>
         <item name="android:paddingTop">12dp</item>
         <item name="android:paddingBottom">6dp</item>
     </style>
