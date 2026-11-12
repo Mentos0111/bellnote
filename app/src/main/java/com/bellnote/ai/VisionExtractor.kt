@@ -1,6 +1,7 @@
-package com.bellnote.ai
+﻿package com.bellnote.ai
 
 import com.bellnote.data.DEFAULT_DURATION_MINUTES
+import com.bellnote.data.PARSED_DEFAULT_DURATION_MINUTES
 import com.bellnote.data.TodoSpec
 import com.bellnote.parser.MiniJson
 import com.bellnote.parser.TodoParser
@@ -69,7 +70,7 @@ object VisionExtractor {
             · duration：整数分钟，尽量从截图推断：
               「2 小时 / 两小时」→120，「半小时」→30，「90 分钟」→90，「一节课」→45；
               如果给的是时间段（如 14:30-16:00），算两端差值；
-              完全没有任何时长线索时才用 5（日历能接受的最短长度），不要默认成 60。
+              完全没有任何时长线索时才用 15（默认 15 分钟），不要默认成 60。
               只有「这件事要持续一阵」的明确线索（如培训周期、报名到截止）才把 duration 写大。
             · repeat：none / daily / weekly / monthly / yearly，看不出来用 none。
             · note：**这条标题以外、属于同一件事的有用信息**，短句、每行一条、最多 5 行。

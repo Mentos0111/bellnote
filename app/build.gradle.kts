@@ -15,7 +15,7 @@
 // 不代表发布版本。改这个默认值不影响发布——发布永远以 tag 为准。
 // versionCode 由 versionName 推导：major*10000 + minor*100 + patch（3.12 → 31200），
 // 单调递增、可读、能从号反推版本，不用人肉 +1。
-val bellnoteDefaultVersionName = "3.17"
+val bellnoteDefaultVersionName = "3.17.1"
 
 fun bellnoteNormalizeVersion(raw: String): String {
     val cleaned = raw.trim().removePrefix("v")

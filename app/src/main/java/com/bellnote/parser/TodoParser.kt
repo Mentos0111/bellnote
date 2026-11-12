@@ -1,4 +1,4 @@
-package com.bellnote.parser
+﻿package com.bellnote.parser
 
 import com.bellnote.data.RepeatRule
 import com.bellnote.data.TodoSpec
@@ -27,7 +27,7 @@ object TodoParser {
         val timeParsed: Boolean = false
     )
 
-    private const val DEFAULT_DURATION = com.bellnote.data.DEFAULT_DURATION_MINUTES
+    private const val DEFAULT_DURATION = com.bellnote.data.PARSED_DEFAULT_DURATION_MINUTES
     private const val FALLBACK_LEAD_MS = 60L * 60_000L
 
     private val KEY_TITLE = setOf("标题", "主题", "题目", "事件", "待办", "事项", "title", "name", "subject")

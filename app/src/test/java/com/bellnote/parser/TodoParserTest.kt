@@ -1,4 +1,4 @@
-package com.bellnote.parser
+﻿package com.bellnote.parser
 
 import com.bellnote.data.RepeatRule
 import com.bellnote.util.TimeFormat
@@ -48,7 +48,7 @@ class TodoParserTest {
         assertTrue(result.fallback)
         assertEquals("化学作业", result.spec.title)
         assertEquals(now + 60 * 60_000L, result.spec.startMillis)
-        assertEquals(5, result.spec.durationMinutes)
+        assertEquals(15, result.spec.durationMinutes)
     }
 
     @Test

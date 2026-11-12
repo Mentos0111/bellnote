@@ -1,4 +1,4 @@
-package com.bellnote.parser
+﻿package com.bellnote.parser
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -30,7 +30,7 @@ class QuickParseTest {
         assertNotNull(result)
         assertEquals("交作业", result!!.title)
         assertEquals("2026-11-12T15:00", timeOf("明天下午三点交作业"))
-        assertEquals(60, result.durationMinutes)
+        assertEquals(15, result.durationMinutes)
     }
 
     @Test

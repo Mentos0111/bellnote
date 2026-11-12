@@ -1,4 +1,4 @@
-package com.bellnote.ai
+﻿package com.bellnote.ai
 
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -107,19 +107,19 @@ class VisionExtractorTest {
     }
 
     @Test
-    fun `没说时长时默认 5 分钟`() {
+    fun `没说时长时默认 15 分钟`() {
         val spec = com.bellnote.data.TodoSpec(
             title = "随手记",
             startMillis = 1_800_000_000_000L
         )
-        assertTrue(spec.durationMinutes == 5)
+        assertTrue(spec.durationMinutes == 15)
         // 模型返回的 note 里没写时长也一样
         val result = com.bellnote.parser.TodoParser.parse(
             null,
             """{"title":"随手记","time":"2026-11-09 10:00"}""",
             1_800_000_000_000L
         )
-        assertTrue("没给 duration 应取 5，实际 ${result.spec.durationMinutes}", result.spec.durationMinutes == 5)
+        assertTrue("没给 duration 应取 15，实际 ${result.spec.durationMinutes}", result.spec.durationMinutes == 15)
     }
 
     @Test
@@ -143,7 +143,7 @@ class VisionExtractorTest {
     @Test
     fun `提示词不再把没说时长的默认成 60 分钟`() {
         val prompt = VisionExtractor.systemPrompt(1_800_000_000_000L)
-        assertTrue("应明确「没有线索时用 5 分钟」，实际：$prompt", prompt.contains("才用 5"))
+        assertTrue("应明确「没有线索时用 15 分钟」，实际：$prompt", prompt.contains("才用 15"))
         assertTrue("不能再把 60 当默认兜底", !prompt.contains("才用 60"))
     }
 

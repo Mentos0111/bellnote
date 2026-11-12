@@ -1,4 +1,4 @@
-package com.bellnote.service
+﻿package com.bellnote.service
 
 import android.content.Context
 import android.util.Log
@@ -32,7 +32,7 @@ object NtfySender {
         return buildString {
             append("标题：Bellnote 自测\n")
             append("时间：${formatter.format(Date(start))}\n")
-            append("时长：5\n")
+            append("时长：15\n")
             append("备注：设置页点出来的测试推送，收到就说明通道是通的，可以删掉这条。")
         }
     }
@@ -108,3 +108,4 @@ object NtfySender {
         return builder.append('"').toString()
     }
 }
+
