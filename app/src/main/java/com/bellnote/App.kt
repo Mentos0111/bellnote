@@ -12,6 +12,7 @@ import com.bellnote.service.ReconcileScheduler
 import com.bellnote.service.ScreenshotWatcher
 import com.bellnote.util.CrashLog
 import com.bellnote.util.ThemeManager
+import com.bellnote.util.TouchFeedback
 
 class App : Application() {
 
@@ -26,6 +27,8 @@ class App : Application() {
         ThemeManager.applyLauncherIcon(this)
         // 崩了要留痕：realme 后台被杀是不留日志的，至少能分清「崩」和「被杀」
         CrashLog.install(this)
+        // 全局按压反馈：按钮按下回弹、可点行补涟漪（每个页面的控件树自动扫一遍）
+        TouchFeedback.install(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_EVENTS,
