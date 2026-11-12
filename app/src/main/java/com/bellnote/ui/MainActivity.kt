@@ -533,33 +533,41 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * 首页右上角的 ntfy 入口：模式开着且主题可用时，给「Bellnote + 版本号」套一颗胶囊，
-     * 右下角点一颗状态灯（配色同同步灯）；点胶囊进 ntfy 模式页。关掉就还原成裸标题。
+     * 右下角一个 ntfy 的「>_」提示符，颜色跟同步灯一套；点胶囊进 ntfy 模式页。
      */
     private fun renderNtfyQuick() {
         val pill = findViewById<View>(R.id.brandPill)
-        val dot = findViewById<View>(R.id.brandDot)
+        val glyph = findViewById<android.widget.ImageView>(R.id.brandGlyph)
         val available = Prefs.ntfyEnabled(this) && Prefs.ntfyTopic(this).isNotBlank()
         val density = resources.displayMetrics.density
-        val padH = (12 * density).toInt()
         val padV = (5 * density).toInt()
 
         if (available) {
             pill.setBackgroundResource(R.drawable.bg_status_pill)
-            pill.setPadding(padH, padV, padH, padV)
-            dot.visibility = View.VISIBLE
-            dot.setBackgroundResource(
-                when (StatusLines.level(this)) {
-                    StatusLines.Level.OK -> R.drawable.dot_ok
-                    StatusLines.Level.WARN -> R.drawable.dot_warn
-                    StatusLines.Level.IDLE -> R.drawable.dot_idle
-                }
-            )
+            pill.setPadding((12 * density).toInt(), padV, (20 * density).toInt(), padV)
+            glyph.visibility = View.VISIBLE
+            val color = when (StatusLines.level(this)) {
+                StatusLines.Level.OK -> attrColor(R.attr.bnPrimary)
+                StatusLines.Level.WARN -> attrColor(R.attr.bnAccent)
+                StatusLines.Level.IDLE -> attrColor(R.attr.bnCardStroke)
+            }
+            glyph.imageTintList = android.content.res.ColorStateList.valueOf(color)
             pill.contentDescription = "Bellnote，ntfy 通道"
         } else {
             pill.setBackgroundColor(android.graphics.Color.TRANSPARENT)
             pill.setPadding(0, padV, 0, padV)
-            dot.visibility = View.GONE
+            glyph.visibility = View.GONE
             pill.contentDescription = "Bellnote"
+        }
+    }
+
+    private fun attrColor(attr: Int): Int {
+        val value = android.util.TypedValue()
+        theme.resolveAttribute(attr, value, true)
+        return if (value.resourceId != 0) {
+            androidx.core.content.ContextCompat.getColor(this, value.resourceId)
+        } else {
+            value.data
         }
     }
 

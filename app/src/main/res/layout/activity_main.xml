@@ -62,12 +62,16 @@
                         android:textSize="10sp" />
                 </LinearLayout>
 
-                <View
-                    android:id="@+id/brandDot"
-                    android:layout_width="9dp"
-                    android:layout_height="9dp"
+                <ImageView
+                    android:id="@+id/brandGlyph"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
                     android:layout_gravity="bottom|end"
-                    android:background="@drawable/dot_ok"
+                    android:layout_marginEnd="4dp"
+                    android:layout_marginBottom="3dp"
+                    android:contentDescription="ntfy 通道"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_ntfy_prompt"
                     android:visibility="gone" />
             </FrameLayout>
         </FrameLayout>
