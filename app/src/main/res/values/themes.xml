@@ -114,7 +114,7 @@
          否则墨黑配色会跳出一块金褐色；关掉弹窗时再换回原来的强调色 -->
     <style name="BellnotePickerAccent" parent="">
         <item name="android:colorAccent">?attr/bnPrimary</item>
-        <item name="android:colorControlActivated">?attr/bnPrimary</item>
+        <item name="android:colorControlActivated">?attr/bnAccent</item>
     </style>
 
     <style name="BellnotePickerAccentRestore" parent="">
