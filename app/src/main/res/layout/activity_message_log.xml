@@ -24,13 +24,6 @@
             android:textSize="14sp"
             android:textStyle="bold" />
 
-        <ImageButton
-            android:id="@+id/btnHelpLog"
-            style="@style/SettingsHelpButton"
-            android:layout_marginEnd="8dp"
-            android:contentDescription="看说明"
-            android:src="@drawable/ic_nav_help" />
-
         <Button
             android:id="@+id/btnClearLog"
             style="@style/BtnTonal"
@@ -42,6 +35,11 @@
             android:text="@string/ntfy_log_clear"
             android:textSize="12sp" />
     </LinearLayout>
+
+    <TextView
+        style="@style/HintText"
+        android:layout_marginTop="4dp"
+        android:text="@string/ntfy_log_hint" />
 
     <FrameLayout
         android:layout_width="match_parent"

@@ -13,26 +13,10 @@
         android:paddingTop="12dp"
         android:paddingBottom="28dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                style="@style/SectionSubLabel"
-                android:layout_width="0dp"
-                android:layout_marginTop="0dp"
-                android:layout_weight="1"
-                android:text="总开关" />
-
-            <ImageButton
-                android:id="@+id/btnHelpMode"
-                style="@style/SettingsHelpButton"
-                android:contentDescription="看说明"
-                android:src="@drawable/ic_nav_help" />
-        </LinearLayout>
+        <TextView
+            style="@style/SectionSubLabel"
+            android:layout_marginTop="0dp"
+            android:text="总开关" />
 
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/swNtfyMode"
@@ -44,6 +28,10 @@
             android:textColor="?attr/bnTextPrimary"
             android:textSize="15sp"
             android:textStyle="bold" />
+
+        <TextView
+            style="@style/HintText"
+            android:text="@string/cap_mode" />
 
         <TextView
             android:id="@+id/tvNtfyStatus"
@@ -87,53 +75,25 @@
             android:orientation="vertical"
             android:visibility="gone">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+            <TextView
+                style="@style/FieldCaption"
                 android:layout_marginTop="10dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    style="@style/FieldCaption"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:text="@string/ntfy_server_label" />
-
-                <ImageButton
-                    android:id="@+id/btnHelpServer"
-                    style="@style/SettingsHelpButton"
-                    android:contentDescription="看说明"
-                    android:src="@drawable/ic_nav_help" />
-            </LinearLayout>
+                android:text="@string/ntfy_server_label" />
 
             <EditText
                 android:id="@+id/etNtfyServer"
                 style="@style/FormInput"
                 android:hint="https://ntfy.sh"
                 android:inputType="textUri" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
 
             <TextView
-                style="@style/FormLabel"
-                android:layout_width="0dp"
-                android:layout_marginTop="0dp"
-                android:layout_weight="1"
-                android:text="@string/label_push_topic" />
-
-            <ImageButton
-                android:id="@+id/btnHelpTopic"
-                style="@style/SettingsHelpButton"
-                android:contentDescription="看说明"
-                android:src="@drawable/ic_nav_help" />
+                style="@style/HintText"
+                android:text="@string/cap_server" />
         </LinearLayout>
+
+        <TextView
+            style="@style/FormLabel"
+            android:text="@string/label_push_topic" />
 
         <EditText
             android:id="@+id/etNtfyTopic"
@@ -141,76 +101,39 @@
             android:hint="todo-xxxx"
             android:inputType="text" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+        <TextView
+            style="@style/HintText"
+            android:text="@string/cap_topic" />
+
+        <Button
+            android:id="@+id/btnCatchUpNow"
+            style="@style/BtnTonal"
+            android:layout_marginTop="12dp"
+            android:text="@string/btn_catch_up_now" />
+
+        <Button
+            android:id="@+id/btnSendTest"
+            style="@style/BtnTonal"
             android:layout_marginTop="10dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:text="@string/btn_send_test" />
 
-            <Button
-                android:id="@+id/btnCatchUpNow"
-                style="@style/BtnTonal"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:text="@string/btn_catch_up_now" />
+        <TextView
+            style="@style/HintText"
+            android:text="@string/cap_actions" />
 
-            <ImageButton
-                android:id="@+id/btnHelpCatchUp"
-                style="@style/SettingsHelpButton"
-                android:layout_marginStart="8dp"
-                android:contentDescription="看说明"
-                android:src="@drawable/ic_nav_help" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btnSendTest"
-                style="@style/BtnTonal"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:text="@string/btn_send_test" />
-
-            <ImageButton
-                android:id="@+id/btnHelpTest"
-                style="@style/SettingsHelpButton"
-                android:layout_marginStart="8dp"
-                android:contentDescription="看说明"
-                android:src="@drawable/ic_nav_help" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                style="@style/SectionSubLabel"
-                android:layout_width="0dp"
-                android:layout_marginTop="0dp"
-                android:layout_weight="1"
-                android:text="消息记录" />
-
-            <ImageButton
-                android:id="@+id/btnHelpLog"
-                style="@style/SettingsHelpButton"
-                android:contentDescription="看说明"
-                android:src="@drawable/ic_nav_help" />
-        </LinearLayout>
+        <TextView
+            style="@style/SectionSubLabel"
+            android:text="消息记录" />
 
         <Button
             android:id="@+id/btnMessageLog"
             style="@style/BtnTonal"
             android:layout_marginTop="8dp"
             android:text="@string/ntfy_log_entry" />
+
+        <TextView
+            style="@style/HintText"
+            android:text="@string/cap_log" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -247,26 +170,13 @@
             android:layout_marginTop="12dp"
             android:text="@string/label_strict_parse" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+        <TextView
+            style="@style/SectionSubLabel"
+            android:text="其他 App 的通知" />
 
-            <TextView
-                style="@style/SectionSubLabel"
-                android:layout_width="0dp"
-                android:layout_marginTop="0dp"
-                android:layout_weight="1"
-                android:text="其他 App 的通知" />
-
-            <ImageButton
-                android:id="@+id/btnHelpOther"
-                style="@style/SettingsHelpButton"
-                android:contentDescription="看说明"
-                android:src="@drawable/ic_nav_help" />
-        </LinearLayout>
+        <TextView
+            style="@style/HintText"
+            android:text="@string/cap_other" />
 
         <Button
             android:id="@+id/btnSaveNtfy"
