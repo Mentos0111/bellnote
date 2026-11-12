@@ -9,6 +9,7 @@
         <item name="bnSurface">#FFFFFFFF</item>
         <item name="bnCard">#FFFFFFFF</item>
         <item name="bnCardStroke">#FFE6EDEB</item>
+        <item name="bnCardEdge">#FFE6EDEB</item>
         <item name="bnDivider">#FFEDF2F0</item>
         <item name="bnTextPrimary">#FF0F1A17</item>
         <item name="bnTextSecondary">#FF6B7B76</item>
@@ -31,6 +32,7 @@
         <item name="bnSurface">#FFFFFFFF</item>
         <item name="bnCard">#FFFFFFFF</item>
         <item name="bnCardStroke">#FFE4E9F5</item>
+        <item name="bnCardEdge">#FFE4E9F5</item>
         <item name="bnDivider">#FFEBEFF8</item>
         <item name="bnTextPrimary">#FF111A2E</item>
         <item name="bnTextSecondary">#FF6A7590</item>
@@ -53,6 +55,7 @@
         <item name="bnSurface">#FFFFFCF8</item>
         <item name="bnCard">#FFFFFDFA</item>
         <item name="bnCardStroke">#FFEFE3D6</item>
+        <item name="bnCardEdge">#FFEFE3D6</item>
         <item name="bnDivider">#FFF3E9DE</item>
         <item name="bnTextPrimary">#FF2A1F16</item>
         <item name="bnTextSecondary">#FF7C6A5B</item>
@@ -75,6 +78,7 @@
         <item name="bnSurface">#FFFFFFFF</item>
         <item name="bnCard">#FFFFFFFF</item>
         <item name="bnCardStroke">#FFE5E6E5</item>
+        <item name="bnCardEdge">#FFE5E6E5</item>
         <item name="bnDivider">#FFEDEEED</item>
         <item name="bnTextPrimary">#FF15181A</item>
         <item name="bnTextSecondary">#FF6D7375</item>
@@ -97,6 +101,7 @@
         <item name="bnSurface">#FFFFFFFF</item>
         <item name="bnCard">#FFFFFFFF</item>
         <item name="bnCardStroke">#FFF3E1E8</item>
+        <item name="bnCardEdge">#FFF3E1E8</item>
         <item name="bnDivider">#FFF7ECF1</item>
         <item name="bnTextPrimary">#FF241419</item>
         <item name="bnTextSecondary">#FF7C6670</item>
@@ -119,6 +124,7 @@
         <item name="bnSurface">#FFFFFFFF</item>
         <item name="bnCard">#FFFFFFFF</item>
         <item name="bnCardStroke">#FFEFD7E1</item>
+        <item name="bnCardEdge">#FFFFFFFF</item>
         <item name="bnDivider">#FFF8EAF0</item>
         <item name="bnTextPrimary">#FF2B171D</item>
         <item name="bnTextSecondary">#FF7E6670</item>
