@@ -1,4 +1,4 @@
-package com.bellnote.data
+﻿package com.bellnote.data
 
 import com.bellnote.service.NtfySender
 import com.bellnote.util.IcsExport
@@ -101,7 +101,7 @@ class SpecDiffTest {
         val message = NtfySender.buildTestMessage(now)
         val result = com.bellnote.parser.TodoParser.parse("Bellnote 自测", message, now)
         assertEquals("Bellnote 自测", result.spec.title)
-        assertEquals(5, result.spec.durationMinutes)
+        assertEquals(15, result.spec.durationMinutes)
         assertTrue("自测消息必须带时间，否则会被严格模式丢掉", result.timeParsed)
         // 正文只精确到分钟，所以允许 1 分钟以内的误差
         val expected = now + 10 * 60_000L

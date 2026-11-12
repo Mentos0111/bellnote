@@ -1,6 +1,6 @@
-package com.bellnote.parser
+﻿package com.bellnote.parser
 
-import com.bellnote.data.MANUAL_DEFAULT_DURATION_MINUTES
+import com.bellnote.data.PARSED_DEFAULT_DURATION_MINUTES
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
@@ -75,7 +75,7 @@ object QuickParse {
 
         // 「2 小时后」这种相对说法：不需要日期。
         // 必须先于时长判断 —— 「2小时后」里的「2小时」不是时长。
-        var duration = MANUAL_DEFAULT_DURATION_MINUTES
+        var duration = PARSED_DEFAULT_DURATION_MINUTES
         RELATIVE.find(rest)?.let { match ->
             val value = if (match.groupValues[1] == "半") 0.5 else match.groupValues[1].toDoubleOrNull() ?: 0.0
             val unit = match.groupValues[2]
