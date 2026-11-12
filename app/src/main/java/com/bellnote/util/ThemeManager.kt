@@ -23,7 +23,8 @@ object ThemeManager {
         Palette("indigo", "靛蓝"),
         Palette("sand", "暖沙"),
         Palette("ink", "墨黑"),
-        Palette("pink", "胭脂")
+        Palette("pink", "胭脂"),
+        Palette("sakura", "樱粉")
     )
 
     fun labelOf(id: String): String =
@@ -59,7 +60,8 @@ object ThemeManager {
         "indigo" to ".ui.IconIndigo",
         "sand" to ".ui.IconSand",
         "ink" to ".ui.IconInk",
-        "pink" to ".ui.IconPink"
+        "pink" to ".ui.IconPink",
+        "sakura" to ".ui.IconSakura"
     )
 
     /**
@@ -106,6 +108,7 @@ object ThemeManager {
         "sand" -> R.style.ThemeOverlay_Bellnote_Sand
         "ink" -> R.style.ThemeOverlay_Bellnote_Ink
         "pink" -> R.style.ThemeOverlay_Bellnote_Pink
+        "sakura" -> R.style.ThemeOverlay_Bellnote_Sakura
         else -> R.style.ThemeOverlay_Bellnote_Teal
     }
 
