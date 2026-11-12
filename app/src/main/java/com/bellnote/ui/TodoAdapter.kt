@@ -143,7 +143,7 @@ class TodoAdapter(
         val context = holder.itemView.context
         val tint = StatusColors.attr(context, R.attr.bnPrimary)
         holder.itemView.outlineSpotShadowColor =
-            androidx.core.graphics.ColorUtils.setAlphaComponent(tint, 72)
+            androidx.core.graphics.ColorUtils.setAlphaComponent(tint, 120)
         holder.itemView.outlineAmbientShadowColor = android.graphics.Color.TRANSPARENT
     }
 
