@@ -101,39 +101,21 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <FrameLayout
+            <EditText
+                android:id="@+id/etQuick"
                 android:layout_width="0dp"
-                android:layout_height="60dp"
+                android:layout_height="44dp"
                 android:layout_weight="1"
-                android:clipChildren="false"
-                android:clipToPadding="false">
-
-                <!-- 输入框四周的呼吸微光轮廓 -->
-                <View
-                    android:id="@+id/inputGlow"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/bg_input_glow_outline"
-                    android:alpha="0" />
-
-                <EditText
-                    android:id="@+id/etQuick"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginLeft="6dp"
-                    android:layout_marginRight="6dp"
-                    android:background="@drawable/bg_input_hero"
-                    android:hint="@string/quick_hint"
-                    android:imeOptions="actionGo"
-                    android:inputType="text"
-                    android:maxLines="1"
-                    android:paddingLeft="16dp"
-                    android:paddingRight="16dp"
-                    android:textColor="?attr/bnTextPrimary"
-                    android:textColorHint="?attr/bnTextSecondary"
-                    android:textSize="15sp" />
-            </FrameLayout>
+                android:background="@drawable/bg_input_hero"
+                android:hint="@string/quick_hint"
+                android:imeOptions="actionGo"
+                android:inputType="text"
+                android:maxLines="1"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:textColor="?attr/bnTextPrimary"
+                android:textColorHint="?attr/bnTextSecondary"
+                android:textSize="15sp" />
 
             <ImageButton
                 android:id="@+id/btnQuickGo"
