@@ -4,12 +4,18 @@ plugins {
 }
 
 // ── 版本号 ───────────────────────────────────────────────────────────────────
+// 升哪一位只看一件事：**用户装上之后要不要做额外动作**（不是看改了多少代码）。
+//   不做任何事就能继续用 → 补丁（3.14.4）
+//   有新功能但不做也能用旧的 → 次位（3.15）
+//   必须迁移/重新授权/重新配置才能继续用 → 主位（4.0）
+// 完整规程见 HANDOFF.md「发版规程」。
+//
 // 真相源是 git tag（v3.12 / v3.12.1）。CI 打 tag 时用 -PbellnoteVersionName=<tag 去掉 v>
 // 传进来，包里的号就是那个 tag；本地直接构建没传，就用下面这个默认值，只为装到手机上能看号，
 // 不代表发布版本。改这个默认值不影响发布——发布永远以 tag 为准。
 // versionCode 由 versionName 推导：major*10000 + minor*100 + patch（3.12 → 31200），
 // 单调递增、可读、能从号反推版本，不用人肉 +1。
-val bellnoteDefaultVersionName = "3.14.3"
+val bellnoteDefaultVersionName = "3.16"
 
 fun bellnoteNormalizeVersion(raw: String): String {
     val cleaned = raw.trim().removePrefix("v")
@@ -46,6 +52,12 @@ android {
         targetSdk = 34
         versionCode = bellnoteVersionCode(bellnoteVersionName)
         versionName = bellnoteVersionName
+
+        // 只打 arm64。ML Kit 的 OCR native 库每个架构 7~12MB，四份就是 41MB；
+        // 现在市面上的手机基本都 arm64，留一个能省 30MB。
+        ndk {
+            abiFilters += listOf("arm64-v8a")
+        }
     }
 
     signingConfigs {
@@ -128,4 +140,7 @@ dependencies {
     implementation("androidx.activity:activity-ktx:1.9.0")
 
     testImplementation("junit:junit:4.13.2")
+
+    // 离线 OCR：中文识别模型随包内置，不需要 GMS，也不联网
+    implementation("com.google.mlkit:text-recognition-chinese:16.0.1")
 }

@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.os.Build
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityNodeInfo
 
 /**
  * 只干一件事：替「Bellnote 截屏记」这个侧边栏入口截一张当前屏幕。
@@ -31,6 +32,66 @@ class ScreenCaptureService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent?) = Unit
 
     override fun onInterrupt() = Unit
+
+    /**
+     * 诊断用：把当前所有窗口里能读到的文字按层级导出来。
+     * 需要 xml 里声明 flagRetrieveInteractiveWindows，否则 windows 只有本 App 自己的窗口。
+     */
+    private fun buildWindowText(): String {
+        val sb = StringBuilder()
+        val windowList = try {
+            windows
+        } catch (e: Exception) {
+            Log.w(TAG, "取窗口列表失败", e)
+            emptyList<android.view.accessibility.AccessibilityWindowInfo>()
+        }
+        sb.append("窗口数=").append(windowList.size).append('\n')
+        for ((index, w) in windowList.withIndex()) {
+            val root = try {
+                w.root
+            } catch (e: Exception) {
+                null
+            }
+            sb.append("--- 窗口").append(index)
+                .append(" type=").append(w.type)
+                .append(" layer=").append(w.layer)
+                .append(" active=").append(w.isActive)
+                .append(" focused=").append(w.isFocused)
+                .append(" pkg=").append(root?.packageName ?: "?")
+                .append(" ---\n")
+            if (root != null) collectNodeText(root, sb, 0, intArrayOf(0))
+        }
+        return sb.toString()
+    }
+
+    private fun collectNodeText(
+        node: AccessibilityNodeInfo?,
+        sb: StringBuilder,
+        depth: Int,
+        visited: IntArray
+    ) {
+        if (node == null || depth > 40 || visited[0] > 4000) return
+        visited[0]++
+        val text = node.text?.toString()?.trim()
+        val desc = node.contentDescription?.toString()?.trim()
+        val label = when {
+            !text.isNullOrEmpty() -> text
+            !desc.isNullOrEmpty() -> "[desc]$desc"
+            else -> null
+        }
+        if (label != null) {
+            repeat(minOf(depth, 20)) { sb.append("  ") }
+            sb.append(label).append('\n')
+        }
+        for (i in 0 until node.childCount) {
+            val child = try {
+                node.getChild(i)
+            } catch (e: Exception) {
+                null
+            }
+            collectNodeText(child, sb, depth + 1, visited)
+        }
+    }
 
     companion object {
         private const val TAG = "ScreenCapture"
@@ -77,12 +138,17 @@ class ScreenCaptureService : AccessibilityService() {
             handler.post(poll)
         }
 
+        /** 诊断用：导出当前所有窗口的文字（见 [buildWindowText]）。 */
+        fun dumpAllWindows(): String {
+            val service = instance ?: return "无障碍服务未连接"
+            return service.buildWindowText()
+        }
+
         /**
          * 截当前屏幕。Android 11 以下没有这个 API，回调 null。
          * 注意：回调在系统线程，调用方自己切主线程。
          */
-        fun capture(callback: (Bitmap?) -> Unit) {
-            val service = instance
+        fun capture(callback: (Bitmap?) -> Unit) {            val service = instance
             Log.i(TAG, "capture() 开始，service=${service != null} sdk=${Build.VERSION.SDK_INT}")
             if (service == null) {
                 callback(null)
