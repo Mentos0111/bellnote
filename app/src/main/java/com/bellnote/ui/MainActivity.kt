@@ -561,24 +561,29 @@ class MainActivity : AppCompatActivity() {
             }
             glyph.imageTintList = android.content.res.ColorStateList.valueOf(color)
             pill.contentDescription = "Bellnote，ntfy 通道"
+            val halo = findViewById<View>(R.id.brandHalo)
+            halo.visibility = View.VISIBLE
+            halo.background?.setTint(color)
             startBrandPulse(color)
         } else {
             pill.setBackgroundColor(android.graphics.Color.TRANSPARENT)
             pill.setPadding(0, padV, 0, padV)
             glyph.visibility = View.GONE
             pill.contentDescription = "Bellnote"
+            findViewById<View>(R.id.brandHalo).visibility = View.GONE
             stopBrandPulse()
         }
     }
 
-    /** 只有背景光晕在动：半径和透明度一起慢慢呼吸，像灯在亮。>_ 保持静止。 */
+    /** 只有背景光晕在动：整团椭圆光晕的透明度/横向尺度 + 文字描边光一起呼吸。>_ 保持静止。 */
     private fun startBrandPulse(color: Int) {
         if (brandGlowAnimator?.isRunning == true) return
         val name = findViewById<TextView>(R.id.tvBrandName)
+        val halo = findViewById<View>(R.id.brandHalo)
         val density = resources.displayMetrics.density
         // 纯主色在深色背景上不够跳，掺一点白让它像真的发光
         val glowColor = androidx.core.graphics.ColorUtils.blendARGB(
-            color, android.graphics.Color.WHITE, 0.35f
+            color, android.graphics.Color.WHITE, 0.5f
         )
 
         brandGlowAnimator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
@@ -588,12 +593,17 @@ class MainActivity : AppCompatActivity() {
             interpolator = android.view.animation.AccelerateDecelerateInterpolator()
             addUpdateListener { animator ->
                 val f = animator.animatedValue as Float
-                val radius = (6f + 8f * f) * density
-                val alpha = (75 + 125 * f).toInt()
+                // 字周围一层紧的光
+                val radius = (5f + 6f * f) * density
+                val alpha = (90 + 100 * f).toInt()
                 name.setShadowLayer(
                     radius, 0f, 0f,
                     androidx.core.graphics.ColorUtils.setAlphaComponent(glowColor, alpha)
                 )
+                // 背后一团椭圆光晕，横向慢慢铺开
+                halo.alpha = 0.12f + 0.22f * f
+                halo.scaleX = 1.22f + 0.26f * f
+                halo.scaleY = 0.94f + 0.08f * f
             }
             start()
         }
@@ -603,6 +613,7 @@ class MainActivity : AppCompatActivity() {
         brandGlowAnimator?.cancel()
         brandGlowAnimator = null
         findViewById<TextView>(R.id.tvBrandName).setShadowLayer(0f, 0f, 0f, 0)
+        findViewById<View>(R.id.brandHalo).alpha = 0f
     }
 
     private fun attrColor(attr: Int): Int {

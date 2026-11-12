@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <!-- 横向拉伸后就是一团椭圆光晕（代码里 scaleX），不用矩形背景，避免看出卡片边 -->
+    <gradient
+        android:type="radial"
+        android:gradientRadius="27dp"
+        android:startColor="?attr/bnPrimary"
+        android:endColor="#00000000" />
+</shape>
