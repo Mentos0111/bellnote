@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Bellnote</string>
 
@@ -78,8 +78,6 @@
     <string name="shot_saved">设置已保存</string>
 
     <string name="label_push_topic">ntfy 主题</string>
-    <string name="hint_push_topic">主题就是这条通道的「信箱名」，电脑和手机填同一个。填好后 Bellnote 会自己定时去服务器拉，不需要装 ntfy App；没填就完全不联网。</string>
-    <string name="hint_other_sources">微信 / QQ / 钉钉：暂不支持。以后会加「只读哪些 App 的通知」白名单，届时在这里勾选。</string>
     <string name="btn_catch_up_now">立即补查</string>
     <string name="btn_send_test">发测试推送</string>
     <string name="btn_export_ics">导出 .ics</string>
@@ -165,12 +163,10 @@
     <!-- ntfy 模式（3.17） -->
     <string name="ntfy_mode_title">ntfy 模式</string>
     <string name="ntfy_mode_switch">打开 ntfy 模式</string>
-    <string name="ntfy_mode_hint">关掉后 App 完全不联网、不拉取；打开后电脑和脚本发到同一主题的待办会同步进手机日历。</string>
     <string name="ntfy_channel_label">消息从哪来</string>
     <string name="ntfy_channel_cloud">ntfy.sh（官方，免配置）</string>
     <string name="ntfy_channel_custom">自建服务器</string>
     <string name="ntfy_server_label">服务器地址</string>
-    <string name="ntfy_server_hint">填自建 ntfy 的地址，例如 https://ntfy.example.com。局域网里的 http:// 只允许 192.168 / 10 / 172.16 这类内网地址，公网必须用 https。</string>
     <string name="ntfy_log_entry">消息记录</string>
     <string name="ntfy_log_hint">每条推送写没写进日历、为什么没写，都记在这里。最多留 200 条。</string>
     <string name="ntfy_log_title">消息记录</string>
@@ -179,17 +175,14 @@
     <string name="ntfy_log_cleared">已清空</string>
     <string name="ntfy_log_retry">重试</string>
     <string name="ntfy_log_retry_done">已重试，看上面的结果</string>
-    <string name="help_mode_title">ntfy 模式</string>
+    <string name="cap_mode">关掉后完全不联网，主题会保留。</string>
+    <string name="cap_server">公网用 https；局域网可以用 http://192.168.x.x。</string>
+    <string name="cap_topic">电脑和手机填同一个；填了才会开始拉取。</string>
+    <string name="cap_actions">平时每 15 分钟自动拉一次；测试推送会在 10 分钟后发出。</string>
+    <string name="cap_log">每条推送写没写进日历、为什么，都在这里，最多 200 条。</string>
+    <string name="cap_other">微信 / QQ 暂不支持；以后可以按 App 白名单勾选。</string>
     <string name="help_channel_title">消息从哪来</string>
     <string name="help_channel_body">ntfy 是一条「电脑 → 手机」的通道，Bellnote 借它把电脑上生成的待办送到手机日历。\n\n· 电脑上：往一个主题发一条消息，内容是标题 + 时间，例如\ncurl -d \'{\"title\":\"备课\",\"time\":\"2026-11-13 20:00\"}\' ntfy.sh/你的主题\n\n· 手机上：Bellnote 自己每 15 分钟去服务器拉一次，拉到就写进日历，不需要装 ntfy App。\n\n· 也可以用自己搭的 ntfy 服务器，在下面填地址。</string>
-    <string name="help_server_title">服务器地址</string>
-    <string name="help_topic_title">ntfy 主题</string>
-    <string name="help_catchup_title">立即补查</string>
-    <string name="help_catchup_body">马上问一次服务器有没有新消息。平时每 15 分钟自动拉一次，打开 App 时也会顺手补一次。</string>
-    <string name="help_test_title">测试推送</string>
-    <string name="help_test_body">从手机往主题发一条 10 分钟后的测试待办，用来确认整条链路通不通；发完会记进消息记录。</string>
-    <string name="help_log_title">消息记录</string>
     <string name="help_rules_title">推送怎么处理</string>
     <string name="help_rules_body">自动把推送写进日历：关掉后只记录，不写日历。\n\n只收带时间的待办（推荐）：不开的话，认不出「标题 / 时间」的推送也会按「当前时间 + 1 小时」塞进日历，很容易堆一堆没用的条目。</string>
-    <string name="help_other_title">其他 App 的通知</string>
 </resources>

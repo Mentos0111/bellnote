@@ -108,17 +108,10 @@ class NtfyActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnSaveNtfy).setOnClickListener { saveAndFinish() }
     }
 
-    /** 所有说明都挂在「?」上，页面上不再铺大段解释。 */
+    /** 只有不好一句话说清的才挂「?」；简单的用下面一行批注。 */
     private fun attachHelp() {
-        Help.attach(this, R.id.btnHelpMode, getString(R.string.help_mode_title), getString(R.string.ntfy_mode_hint))
         Help.attach(this, R.id.btnHelpChannel, getString(R.string.help_channel_title), getString(R.string.help_channel_body))
-        Help.attach(this, R.id.btnHelpServer, getString(R.string.help_server_title), getString(R.string.ntfy_server_hint))
-        Help.attach(this, R.id.btnHelpTopic, getString(R.string.help_topic_title), getString(R.string.hint_push_topic))
-        Help.attach(this, R.id.btnHelpCatchUp, getString(R.string.help_catchup_title), getString(R.string.help_catchup_body))
-        Help.attach(this, R.id.btnHelpTest, getString(R.string.help_test_title), getString(R.string.help_test_body))
-        Help.attach(this, R.id.btnHelpLog, getString(R.string.help_log_title), getString(R.string.ntfy_log_hint))
         Help.attach(this, R.id.btnHelpRules, getString(R.string.help_rules_title), getString(R.string.help_rules_body))
-        Help.attach(this, R.id.btnHelpOther, getString(R.string.help_other_title), getString(R.string.hint_other_sources))
     }
 
     /** 通道只有两种：官方 ntfy.sh（免配置）和自己搭的服务器。 */
