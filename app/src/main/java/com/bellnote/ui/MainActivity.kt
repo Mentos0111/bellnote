@@ -1,4 +1,4 @@
-package com.bellnote.ui
+﻿package com.bellnote.ui
 
 import android.Manifest
 import android.content.Intent
@@ -277,8 +277,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupDrawer() {
-        findViewById<View>(R.id.btnMenu).setOnClickListener {
-            drawer.openDrawer(GravityCompat.START)
+        val menu = findViewById<View>(R.id.btnMenu)
+        // 手指按下去就开，别等抬手：DrawerLayout 自己那套滑入（250ms 起）是按距离算的，
+        // 等 click 再启动等于白等一次按压时长，看着就「点了一下才慢慢出来」。
+        menu.setOnTouchListener { _, event ->
+            if (event.actionMasked == android.view.MotionEvent.ACTION_DOWN) {
+                if (!drawer.isDrawerOpen(GravityCompat.START)) {
+                    drawer.openDrawer(GravityCompat.START)
+                }
+            }
+            false // 返回 false，点击/涟漪/无障碍仍照旧
+        }
+        menu.setOnClickListener {
+            if (!drawer.isDrawerOpen(GravityCompat.START)) drawer.openDrawer(GravityCompat.START)
         }
         // 抽屉滑回是 200ms 左右；以前点完立刻切页，抽屉只收了一半就被盖掉
         drawer.addDrawerListener(object : DrawerLayout.SimpleDrawerListener() {
