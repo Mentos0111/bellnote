@@ -1,7 +1,8 @@
-﻿package com.bellnote.ui
+package com.bellnote.ui
 
 import android.Manifest
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
@@ -12,6 +13,7 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -36,6 +38,7 @@ import com.bellnote.util.DeviceVendor
 import com.bellnote.util.Permissions
 import com.bellnote.util.StatusColors
 import com.bellnote.util.TimeFormat
+import java.io.File
 
 class MainActivity : AppCompatActivity() {
 
@@ -58,10 +61,21 @@ class MainActivity : AppCompatActivity() {
     private lateinit var emptyView: TextView
     private lateinit var drawer: DrawerLayout
     private lateinit var etQuick: EditText
+    private var pendingCameraUri: Uri? = null
 
     private val requestCalendar = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { refresh() }
+
+    /** 拍照建待办：系统相机拍完，图存进 App 缓存，直接进识别页。 */
+    private val takePicture = registerForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { saved ->
+        val uri = pendingCameraUri
+        if (saved && uri != null) {
+            startActivity(ImportActivity.intentForScreenshot(this, uri, auto = true))
+        }
+    }
 
     /** 语音说一条：用系统语音识别把话变成文字，再走同一套本地解析。 */
     private val voiceLauncher = registerForActivityResult(
@@ -269,6 +283,10 @@ class MainActivity : AppCompatActivity() {
             closeDrawer()
             startVoiceInput()
         }
+        findViewById<View>(R.id.navCamera).setOnClickListener {
+            closeDrawer()
+            takePhoto()
+        }
         findViewById<View>(R.id.navAllEvents).setOnClickListener {
             closeDrawer()
             startActivity(Intent(this, AllEventsActivity::class.java))
@@ -287,7 +305,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** 说明类的东西都收在这里，抽屉里只留 7 个真入口。 */
+    /** 说明类的东西都收在这里，抽屉里只留 8 个真入口。 */
     private fun showHelp() {
         val items = arrayOf(
             getString(R.string.nav_sidebar),
@@ -322,6 +340,19 @@ class MainActivity : AppCompatActivity() {
         etQuick.post {
             val imm = getSystemService(INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
             imm?.showSoftInput(etQuick, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
+        }
+    }
+
+    /** 拍照建待办：走系统相机，图存到 App 缓存再用 FileProvider 交给识别页。 */
+    private fun takePhoto() {
+        try {
+            val dir = File(cacheDir, "photos").apply { mkdirs() }
+            val file = File(dir, "photo-${System.currentTimeMillis()}.jpg")
+            val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+            pendingCameraUri = uri
+            takePicture.launch(uri)
+        } catch (e: Exception) {
+            toast("打不开相机：${e.message ?: e.javaClass.simpleName}")
         }
     }
 
