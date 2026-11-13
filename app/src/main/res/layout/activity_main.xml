@@ -217,6 +217,7 @@
 
     <!-- 侧边抽屉：7 个入口 + 图标块，靠细线分组 -->
     <ScrollView
+        android:id="@+id/drawerPanel"
         android:layout_width="286dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"

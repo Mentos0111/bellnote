@@ -1,4 +1,4 @@
-﻿package com.bellnote.ui
+package com.bellnote.ui
 
 import android.Manifest
 import android.content.Intent
@@ -65,6 +65,8 @@ class MainActivity : AppCompatActivity() {
     private var pendingCameraUri: Uri? = null
     /** 抽屉还在滑回时要执行的动作（见 afterDrawerClosed）。 */
     private var pendingDrawerAction: (() -> Unit)? = null
+    /** 抽屉位移/遮罩动画的当前值，自己控时长时用。 */
+    private var drawerScrimCurrent: Int = android.graphics.Color.TRANSPARENT
 
     private val requestCalendar = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -278,25 +280,24 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupDrawer() {
         val menu = findViewById<View>(R.id.btnMenu)
-        // 手指按下去就开，别等抬手：DrawerLayout 自己那套滑入（250ms 起）是按距离算的，
-        // 等 click 再启动等于白等一次按压时长，看着就「点了一下才慢慢出来」。
+        // 按下就开，别等抬手
         menu.setOnTouchListener { _, event ->
-            if (event.actionMasked == android.view.MotionEvent.ACTION_DOWN) {
-                if (!drawer.isDrawerOpen(GravityCompat.START)) {
-                    drawer.openDrawer(GravityCompat.START)
-                }
-            }
+            if (event.actionMasked == android.view.MotionEvent.ACTION_DOWN) openDrawerFast()
             false // 返回 false，点击/涟漪/无障碍仍照旧
         }
-        menu.setOnClickListener {
-            if (!drawer.isDrawerOpen(GravityCompat.START)) drawer.openDrawer(GravityCompat.START)
-        }
-        // 抽屉滑回是 200ms 左右；以前点完立刻切页，抽屉只收了一半就被盖掉
+        menu.setOnClickListener { openDrawerFast() }
         drawer.addDrawerListener(object : DrawerLayout.SimpleDrawerListener() {
             override fun onDrawerClosed(drawerView: View) {
                 val pending = pendingDrawerAction
                 pendingDrawerAction = null
                 pending?.invoke()
+            }
+
+            // 手指自己拖的时候别和我们的动画抢
+            override fun onDrawerStateChanged(newState: Int) {
+                if (newState == androidx.customview.widget.ViewDragHelper.STATE_DRAGGING) {
+                    cancelDrawerAnim()
+                }
             }
         })
         findViewById<View>(R.id.navAddManual).setOnClickListener {
@@ -325,6 +326,121 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ── 抽屉开关：自己控时长 ────────────────────────────────────────────────
+    //
+    // DrawerLayout 的滑入时长是 ViewDragHelper 按「剩余距离/屏幕宽度」算的，
+    // 点按钮时速度是 0，算出来约 (286/411+1)×256ms ≈ 430ms，而且没有公开接口能改。
+    // 所以这里只借它的「开/关状态」（手势、返回键、无障碍都靠这个状态），
+    // 位移我们自己用 150ms 补完，手指按下那一瞬间抽屉就已经露出一截。
+
+    private var drawerAnimating = false
+    private var drawerScrimAnimator: android.animation.ValueAnimator? = null
+
+    private fun openDrawerFast() {
+        val panel = findViewById<View>(R.id.drawerPanel) ?: return
+        if (drawerAnimating && drawer.isDrawerOpen(GravityCompat.START)) {
+            // 正在开/正要关：直接把位移补完，别让它看起来没反应
+            finishDrawerAnimation(open = true)
+            return
+        }
+        if (drawer.isDrawerOpen(GravityCompat.START) && panel.translationX == 0f) return
+
+        if (!drawer.isDrawerOpen(GravityCompat.START)) {
+            // 立刻进入「开」状态（手势/返回键/无障碍都认这个），但不播系统那段约 430ms 的位移
+            drawer.openDrawer(GravityCompat.START, false)
+        }
+        val width = drawerPanelWidth(panel)
+        panel.animate().cancel()
+        drawerScrimAnimator?.cancel()
+        // 遮罩从透明开始淡入，否则会被系统那一帧的满遮罩闪一下
+        drawerScrimCurrent = android.graphics.Color.TRANSPARENT
+        drawer.setScrimColor(drawerScrimCurrent)
+        // 先退回到只露出一截的位置，再滑到位：按下就有反应，不用等整段位移
+        panel.translationX = -width * OPEN_START_OFFSET
+        panel.animate()
+            .translationX(0f)
+            .setDuration(OPEN_MS)
+            .setInterpolator(android.view.animation.DecelerateInterpolator(1.6f))
+            .withEndAction {
+                panel.translationX = 0f
+                drawer.setScrimColor(SCRIM_FULL)
+                drawerAnimating = false
+            }
+            .start()
+        drawerAnimating = true
+        animateScrim(SCRIM_FULL, OPEN_MS)
+    }
+
+    /** 收起抽屉（带自己的动画），收完 DrawerLayout 才真正切到关闭状态并回调 onDrawerClosed。 */
+    private fun closeDrawerFast() {
+        val panel = findViewById<View>(R.id.drawerPanel) ?: return
+        if (!drawer.isDrawerOpen(GravityCompat.START)) return
+        val width = drawerPanelWidth(panel)
+        panel.animate().cancel()
+        drawerScrimAnimator?.cancel()
+        drawerAnimating = true
+        panel.animate()
+            .translationX(-width)
+            .setDuration(CLOSE_MS)
+            .setInterpolator(android.view.animation.AccelerateInterpolator(1.4f))
+            .withEndAction {
+                panel.translationX = 0f
+                drawer.setScrimColor(SCRIM_FULL)
+                drawerAnimating = false
+                drawer.closeDrawer(GravityCompat.START, false) // 这会触发 onDrawerClosed
+            }
+            .start()
+        animateScrim(android.graphics.Color.TRANSPARENT, CLOSE_MS)
+        // 兜底：万一动画的收尾没跑（页面被回收之类），待执行的动作也不能丢
+        panel.postDelayed({
+            val pending = pendingDrawerAction
+            if (pending != null) {
+                pendingDrawerAction = null
+                finishDrawerAnimation(open = false)
+                pending.invoke()
+            }
+        }, CLOSE_MS + 150L)
+    }
+
+    /** 手指开始拖抽屉时，把我们的动画收掉，避免和手势打架。 */
+    private fun cancelDrawerAnim() {
+        if (!drawerAnimating) return
+        val panel = findViewById<View>(R.id.drawerPanel) ?: return
+        panel.animate().cancel()
+        panel.translationX = 0f
+        drawerScrimAnimator?.cancel()
+        drawer.setScrimColor(SCRIM_FULL)
+        drawerAnimating = false
+    }
+
+    private fun finishDrawerAnimation(open: Boolean) {
+        val panel = findViewById<View>(R.id.drawerPanel) ?: return
+        panel.animate().cancel()
+        panel.translationX = 0f
+        drawerScrimAnimator?.cancel()
+        drawer.setScrimColor(SCRIM_FULL)
+        drawerAnimating = false
+        if (!open && drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START, false)
+        }
+    }
+
+    private fun drawerPanelWidth(panel: View): Float =
+        if (panel.width > 0) panel.width.toFloat() else 286f * resources.displayMetrics.density
+
+    private fun animateScrim(to: Int, duration: Long) {
+        val from = drawerScrimCurrent
+        drawerScrimAnimator = android.animation.ValueAnimator.ofArgb(from, to).apply {
+            this.duration = duration
+            addUpdateListener {
+                val color = it.animatedValue as Int
+                drawerScrimCurrent = color
+                drawer.setScrimColor(color)
+            }
+            start()
+        }
+    }
+
     /**
      * 等抽屉收好再执行动作。抽屉本来就关着就直接执行，
      * 这样程序化调用（通知磁贴、分享进来）不受影响。
@@ -335,7 +451,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
         pendingDrawerAction = action
-        drawer.closeDrawer(GravityCompat.START)
+        closeDrawerFast()
     }
 
     /** 说明类的东西都收在这里，抽屉里只留 8 个真入口。 */
@@ -695,7 +811,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START)
+            closeDrawerFast()
             return
         }
         @Suppress("DEPRECATION")
@@ -704,6 +820,14 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_FOCUS_QUICK = "focus_quick"
+
+        /** 抽屉开合：自己定 150/130ms（系统那套约 430ms）。 */
+        private const val OPEN_MS = 150L
+        private const val CLOSE_MS = 130L
+        /** 按下瞬间先退掉这么多，让抽屉一露头就有反应。 */
+        private const val OPEN_START_OFFSET = 0.34f
+        /** 和 DrawerLayout 默认遮罩同一个值。 */
+        private val SCRIM_FULL = 0x99000000.toInt()
     }
 }
 
