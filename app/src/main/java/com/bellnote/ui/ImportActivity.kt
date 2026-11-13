@@ -51,6 +51,12 @@ class ImportActivity : AppCompatActivity() {
     /** 上一次识别的模型原始输出（用来在进程被杀后恢复现场）。 */
     private var lastRaw = ""
 
+    /** 上一次识别是云端还是本地：决定 [lastRaw] 按 JSON 解还是按 OCR 原文解。 */
+    private var lastEngine = Prefs.ENGINE_CLOUD
+
+    /** 自动模式里云端失败后转本地：非空表示这次本地是兜底，界面上要说清原因。 */
+    private var fallbackFromCloud: String? = null
+
     companion object {
         const val EXTRA_AUTO_RECOGNIZE = "auto_recognize"
 
@@ -63,6 +69,7 @@ class ImportActivity : AppCompatActivity() {
 
         const val STATE_URI = "state_uri"
         const val STATE_RAW = "state_raw"
+        const val STATE_ENGINE = "state_engine"
 
         /** 从「截图建待办」通知点进来：带图 + 自动开始识别。 */
         fun intentForScreenshot(context: android.content.Context, uri: Uri, auto: Boolean): Intent =
@@ -119,8 +126,9 @@ class ImportActivity : AppCompatActivity() {
 
         val savedRaw = savedInstanceState?.getString(STATE_RAW).orEmpty()
         val savedUri = savedInstanceState?.getString(STATE_URI)
+        val savedEngine = savedInstanceState?.getString(STATE_ENGINE) ?: Prefs.ENGINE_CLOUD
         if (savedRaw.isNotBlank()) {
-            offerRestore(savedRaw, savedUri)
+            offerRestore(savedRaw, savedUri, savedEngine)
         } else if (imageUri == null) {
             // 从相册/分享带着图进来的，就别再把上一次的旧结果顶上来
             offerRestoreFromPrefs()
@@ -148,7 +156,10 @@ class ImportActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         imageUri?.let { outState.putString(STATE_URI, it.toString()) }
-        if (lastRaw.isNotBlank()) outState.putString(STATE_RAW, lastRaw)
+        if (lastRaw.isNotBlank()) {
+            outState.putString(STATE_RAW, lastRaw)
+            outState.putString(STATE_ENGINE, lastEngine)
+        }
     }
 
     override fun onDestroy() {
@@ -183,7 +194,7 @@ class ImportActivity : AppCompatActivity() {
                 tvStatus.text = "这张图读不出来，换一张试试"
             } else {
                 ivPreview.setImageBitmap(bitmap)
-                tvStatus.text = "已选好截图，点「调用 DeepSeek 识别」"
+                tvStatus.text = "已选好截图，会自动开始识别；也可以点下面的按钮"
             }
         } catch (e: Exception) {
             tvStatus.text = "读图失败：${e.message}"
@@ -205,6 +216,9 @@ class ImportActivity : AppCompatActivity() {
             Prefs.ENGINE_CLOUD -> false
             else -> apiKey.isBlank() || !isOnline()
         }
+        // 只有「自动」才允许云端失败后转本地；用户明确点「只用云端」就别偷偷降级
+        val allowFallback = engine != Prefs.ENGINE_LOCAL && engine != Prefs.ENGINE_CLOUD
+        fallbackFromCloud = null
 
         if (!useLocal && apiKey.isBlank()) {
             toast("还没配置 DeepSeek API Key")
@@ -223,7 +237,7 @@ class ImportActivity : AppCompatActivity() {
             tvStatus.text = "正在用本地 OCR 识别（不联网）…"
             recognizeLocally(uri)
         } else {
-            recognizeInCloud(uri, apiKey)
+            recognizeInCloud(uri, apiKey, allowFallback)
         }
     }
 
@@ -253,9 +267,11 @@ class ImportActivity : AppCompatActivity() {
     }
 
     private fun handleLocalText(text: String, costMs: Long) {
+        val cloudNote = fallbackFromCloud?.let { "云端没成功（$it），已改用本地" }
         if (text.startsWith("OCR 失败")) {
             stopWaiting()
-            tvStatus.text = text + "\n（可以切到「云端识别」再试，或换一张更清楚的图）"
+            tvStatus.text = listOfNotNull(cloudNote, text, "（可以换一张更清楚的图，或到设置里切回云端）")
+                .joinToString("\n")
             btnRecognize.isEnabled = true
             btnPick.isEnabled = true
             return
@@ -270,8 +286,8 @@ class ImportActivity : AppCompatActivity() {
             null
         }
         val hint = buildString {
-            append(note.orEmpty())
-            if (note != null) append('\n')
+            if (cloudNote != null) append(cloudNote).append('\n')
+            if (note != null) append(note).append('\n')
             append("（本地 OCR，${costMs}ms，离线）")
         }.trim()
         val target = imageUri ?: return
@@ -282,11 +298,12 @@ class ImportActivity : AppCompatActivity() {
                 raw = text,
                 specs = finalSpecs
             ),
-            target
+            target,
+            Prefs.ENGINE_LOCAL
         )
     }
 
-    private fun recognizeInCloud(uri: Uri, apiKey: String) {
+    private fun recognizeInCloud(uri: Uri, apiKey: String, allowFallback: Boolean) {
         val model = Prefs.model(this)
 
         Thread {
@@ -310,6 +327,17 @@ class ImportActivity : AppCompatActivity() {
             val outcome = VisionExtractor.extract(apiKey, model, base64)
             ui.post {
                 if (isFinishing || isDestroyed) return@post
+                // 自动模式：云端没给出结果（没网 / 超时 / 额度 / 解析不出）就换本地再试一次。
+                // 只在这条路上兜底，本地失败也还是本地失败，不会来回横跳。
+                if (allowFallback && outcome.specs.isEmpty()) {
+                    fallbackFromCloud = outcome.error?.trim()?.take(80)
+                        ?.ifBlank { null }
+                        ?: "云端没有返回结果"
+                    btnRecognize.text = "本地识别这张图"
+                    tvStatus.text = "云端没成功，改用本地识别再试…"
+                    recognizeLocally(uri)
+                    return@post
+                }
                 handleOutcome(outcome, uri)
             }
         }.start()
@@ -333,7 +361,11 @@ class ImportActivity : AppCompatActivity() {
         }
     }
 
-    private fun handleOutcome(outcome: VisionExtractor.Outcome, uri: Uri) {
+    private fun handleOutcome(
+        outcome: VisionExtractor.Outcome,
+        uri: Uri,
+        engine: String = Prefs.ENGINE_CLOUD
+    ) {
         stopWaiting()
         btnRecognize.isEnabled = true
         btnPick.isEnabled = true
@@ -346,6 +378,7 @@ class ImportActivity : AppCompatActivity() {
             return
         }
         lastRaw = outcome.raw
+        lastEngine = engine
         when (specs.size) {
             1 -> {
                 // 单条走编辑页，编辑页自己带参数，不需要在设置里留现场
@@ -360,7 +393,7 @@ class ImportActivity : AppCompatActivity() {
             else -> {
                 // 多条要用户勾选，这一步最容易被来电/切后台打断，先把现场存下来
                 if (outcome.raw.isNotBlank()) {
-                    Prefs.savePendingImport(this, uri.toString(), outcome.raw)
+                    Prefs.savePendingImport(this, uri.toString(), outcome.raw, engine)
                 }
                 tvStatus.text = "识别完成：${specs.size} 条待办，勾选后写入"
                 confirmBatch(specs)
@@ -376,20 +409,35 @@ class ImportActivity : AppCompatActivity() {
             Prefs.clearPendingImport(this)
             return
         }
-        offerRestore(pending.raw, pending.uri.ifBlank { null })
+        offerRestore(pending.raw, pending.uri.ifBlank { null }, pending.engine)
     }
 
-    private fun offerRestore(raw: String, uriText: String?) {
-        val specs = try {
+    /**
+     * 把「上次的现场」读回成待办。
+     *
+     * 云端存的是模型输出的 JSON，本地存的是 OCR 原文——两者不能共用一套解析：
+     * 以前一律按 JSON 解，本地识别的结果会被判成「已失效」，白丢一次。
+     */
+    private fun specsFromRaw(raw: String, engine: String): List<TodoSpec> = try {
+        if (engine == Prefs.ENGINE_LOCAL) {
+            ScreenTextParser.parse(raw).ifEmpty {
+                ScreenTextParser.fallbackSpec(raw)?.let { listOf(it) } ?: emptyList()
+            }
+        } else {
             VisionExtractor.parseSpecs(VisionExtractor.stripFences(raw), System.currentTimeMillis())
-        } catch (e: Exception) {
-            emptyList()
         }
+    } catch (e: Exception) {
+        emptyList()
+    }
+
+    private fun offerRestore(raw: String, uriText: String?, engine: String = Prefs.ENGINE_CLOUD) {
+        val specs = specsFromRaw(raw, engine)
         if (specs.isEmpty()) {
             Prefs.clearPendingImport(this)
             return
         }
         lastRaw = raw
+        lastEngine = engine
         if (uriText != null && imageUri == null) {
             try {
                 showImage(Uri.parse(uriText))
@@ -403,12 +451,10 @@ class ImportActivity : AppCompatActivity() {
     }
 
     private fun restorePending() {
-        val raw = lastRaw.ifBlank { Prefs.pendingImport(this)?.raw.orEmpty() }
-        val specs = try {
-            VisionExtractor.parseSpecs(VisionExtractor.stripFences(raw), System.currentTimeMillis())
-        } catch (e: Exception) {
-            emptyList()
-        }
+        val pending = Prefs.pendingImport(this)
+        val raw = lastRaw.ifBlank { pending?.raw.orEmpty() }
+        val engine = if (lastRaw.isBlank()) pending?.engine ?: lastEngine else lastEngine
+        val specs = specsFromRaw(raw, engine)
         if (specs.isEmpty()) {
             toast("上次结果已经失效，重新识别一次吧")
             btnRestore.visibility = View.GONE

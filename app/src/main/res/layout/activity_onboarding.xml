@@ -232,9 +232,27 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:lineSpacingExtra="4dp"
-                android:text="不配也能用一句话记；配了才能把截图里的字读成待办。"
+                android:text="不配 Key 也能用：本地识别完全不联网，就在手机上把字读出来。"
                 android:textColor="?attr/bnTextSecondary"
                 android:textSize="14sp" />
+
+            <TextView
+                style="@style/FormLabel"
+                android:layout_marginTop="14dp"
+                android:text="@string/onboarding_engine_label" />
+
+            <Spinner
+                android:id="@+id/spOnbEngine"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_input"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp" />
+
+            <TextView
+                style="@style/HintText"
+                android:layout_marginTop="4dp"
+                android:text="@string/onboarding_engine_hint" />
 
             <TextView
                 style="@style/FormLabel"
