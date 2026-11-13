@@ -166,8 +166,10 @@ object FeedbackBundle {
         "配色" to "${ThemeManager.labelOf(Prefs.theme(context))}（${Prefs.theme(context)}）",
         "深浅色" to ThemeManager.nightModeLabel(Prefs.themeMode(context)),
         "识别方式" to when (Prefs.ocrEngine(context)) {
-            Prefs.ENGINE_LOCAL -> "只本地（ML Kit）"
-            Prefs.ENGINE_CLOUD -> "只云端（DeepSeek）"
+            Prefs.ENGINE_LOCAL -> "只用本地（ML Kit）"
+            Prefs.ENGINE_CLOUD -> "只用云端（DeepSeek）"
+            Prefs.ENGINE_LLM -> "本地模型（Gemma 3 1B 离线，已下载=" +
+                com.bellnote.ai.LocalLlm.isReady(context) + "）"
             Prefs.ENGINE_AUTO -> "自动（联网走云端，断网用本地）"
             else -> "还没选过"
         },

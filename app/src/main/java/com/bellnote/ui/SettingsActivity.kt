@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -107,7 +108,7 @@ class SettingsActivity : AppCompatActivity() {
         btnMediaPerm = findViewById(R.id.btnMediaPerm)
         setupThemeSpinner()
         setupThemeModeSpinner()
-        setupEngineSpinner()
+        setupEngineChooser()
 
         etRemind.setText(Prefs.remindMinutes(this).ifEmpty { listOf(1440, 60) }.joinToString(","))
         etApiKey.setText(Prefs.apiKey(this))
@@ -126,8 +127,7 @@ class SettingsActivity : AppCompatActivity() {
             startActivity(Intent(this, FeedbackActivity::class.java))
         }
 
-        // 离线大模型：下载 / 取消 / 试跑，一个按钮按状态变
-        findViewById<Button>(R.id.btnLlmProbe).setOnClickListener { onLlmButton() }
+        // 离线大模型：下载 / 取消 / 试跑，按钮在「识别方式」选中本地模型时出现
         findViewById<Button>(R.id.btnPrivacy).setOnClickListener {
             com.bellnote.util.PrivacyGate.openFullText(this)
         }
@@ -214,22 +214,64 @@ class SettingsActivity : AppCompatActivity() {
         loadCalendars()
     }
 
-    // ---------------- 离线大模型（下载 / 取消 / 试跑） ----------------
+    // ---------------- 识别方式（四行单选 + 本地模型） ----------------
 
     private var llmTicker: Runnable? = null
 
-    private fun onLlmButton() {
+    /** 一行 = 一个识别方式；点整行就选中，选中的那行右侧打勾。 */
+    private data class EngineRow(val engine: String, val rowId: Int, val checkId: Int)
+
+    private val engineRows by lazy {
+        listOf(
+            EngineRow(Prefs.ENGINE_AUTO, R.id.engineAuto, R.id.engineAutoCheck),
+            EngineRow(Prefs.ENGINE_LOCAL, R.id.engineLocal, R.id.engineLocalCheck),
+            EngineRow(Prefs.ENGINE_LLM, R.id.engineLlm, R.id.engineLlmCheck),
+            EngineRow(Prefs.ENGINE_CLOUD, R.id.engineCloud, R.id.engineCloudCheck)
+        )
+    }
+
+    private fun setupEngineChooser() {
+        engineRows.forEach { row ->
+            findViewById<View>(row.rowId).setOnClickListener { pickEngine(row.engine) }
+        }
+        findViewById<Button>(R.id.btnLlmAction).setOnClickListener { onLlmAction() }
+        renderEngineUi()
+    }
+
+    private fun pickEngine(engine: String) {
+        val previous = Prefs.ocrEngine(this)
+        Prefs.setOcrEngine(this, engine)
+        renderEngineUi()
+        // 选了本地模型但还没下：直接问一句，别让人自己找下载入口
+        if (engine == Prefs.ENGINE_LLM && previous != engine && !LocalLlm.isReady(this)) {
+            confirmDownloadModel()
+        }
+    }
+
+    private fun confirmDownloadModel() {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("下载本地模型？")
+            .setMessage("657 MB，下载一次就一直在手机上，之后断网也能识别。不想现在下可以先取消，识别方式保留不动。")
+            .setPositiveButton("下载") { _, _ -> startModelDownload() }
+            .setNegativeButton("先不下", null)
+            .show()
+    }
+
+    private fun startModelDownload() {
+        if (ModelDownloader.enqueue(this)) {
+            toast("开始下载，通知栏也能看进度")
+        } else {
+            toast("下载没起来，检查一下网络")
+        }
+        renderEngineUi()
+    }
+
+    /** 本地模型那一块的动作按钮：没下就下，下着就取消，下好了就试跑。 */
+    private fun onLlmAction() {
         when (ModelDownloader.status(this)) {
-            is ModelDownloader.Status.Ready -> runLocalLlmProbe()
+            ModelDownloader.Status.Ready -> runLocalLlmProbe()
             is ModelDownloader.Status.Downloading -> confirmCancelDownload()
-            else -> {
-                if (ModelDownloader.enqueue(this)) {
-                    toast("开始下载，通知栏也能看到进度")
-                } else {
-                    toast("下载没起来，检查一下网络")
-                }
-                refreshLlmUi()
-            }
+            else -> startModelDownload()
         }
     }
 
@@ -239,39 +281,60 @@ class SettingsActivity : AppCompatActivity() {
             .setMessage("已经下了一部分，取消后下次要重新开始。")
             .setPositiveButton("取消下载") { _, _ ->
                 ModelDownloader.cancel(this)
-                refreshLlmUi()
+                renderEngineUi()
             }
             .setNegativeButton("继续下", null)
             .show()
     }
 
-    /** 按钮文案和状态行跟着下载进度走；下载中每秒刷一次。 */
-    private fun refreshLlmUi() {
-        val button = findViewById<Button>(R.id.btnLlmProbe)
-        val status = findViewById<TextView>(R.id.tvLlmStatus)
+    /** 勾选状态、本地模型的小状态、下面的下载/试跑块，都从这里统一刷。 */
+    private fun renderEngineUi() {
+        val current = Prefs.ocrEngine(this).ifBlank { Prefs.ENGINE_AUTO }
+        engineRows.forEach { row ->
+            findViewById<ImageView>(row.checkId).visibility =
+                if (row.engine == current) View.VISIBLE else View.INVISIBLE
+        }
+
+        val state = ModelDownloader.status(this)
+        // 状态直接写在「本地模型」那行的说明里，不再挤一个右侧小字（会跟说明抢位置）
+        findViewById<TextView>(R.id.tvEngineLlmDesc).text = when (state) {
+            ModelDownloader.Status.Ready -> "手机上的 AI；已下载，断网也能用"
+            is ModelDownloader.Status.Downloading -> "手机上的 AI；正在下载 ${state.percent}%"
+            is ModelDownloader.Status.Failed -> "手机上的 AI；上次没下完"
+            ModelDownloader.Status.Missing -> "手机上的 AI；要先下载 657 MB"
+        }
+
         llmTicker?.let { uiHandler.removeCallbacks(it) }
         llmTicker = null
+
+        // 只有选了本地模型、或者正在下载时才展开，平时不占地方
+        val panel = findViewById<View>(R.id.llmPanel)
+        val showPanel = current == Prefs.ENGINE_LLM || state is ModelDownloader.Status.Downloading
+        panel.visibility = if (showPanel) View.VISIBLE else View.GONE
+        if (!showPanel) return
+
+        val button = findViewById<Button>(R.id.btnLlmAction)
+        val status = findViewById<TextView>(R.id.tvLlmStatus)
         val totalMb = ModelDownloader.EXPECTED_BYTES / 1024 / 1024
-        val shown = ModelDownloader.status(this)
-        when (shown) {
-            is ModelDownloader.Status.Ready -> {
-                button.text = "离线模型已就绪（${totalMb} MB）· 跑一遍试试"
-                status.text = "已装好，识别时不联网。要用它把「识别方式」改成「本地大模型」。"
+        when (state) {
+            ModelDownloader.Status.Ready -> {
+                button.text = "试跑一次"
+                status.text = "已就绪（$totalMb MB），识别时不联网。"
             }
             is ModelDownloader.Status.Downloading -> {
-                button.text = "下载中 ${shown.percent}% · 点此取消"
-                status.text = "已下 ${shown.bytes / 1024 / 1024} / $totalMb MB，通知栏也能看进度"
-                val tick = Runnable { refreshLlmUi() }
+                button.text = "取消下载"
+                status.text = "已下 ${state.bytes / 1024 / 1024} / $totalMb MB，通知栏也能看进度"
+                val tick = Runnable { renderEngineUi() }
                 llmTicker = tick
                 uiHandler.postDelayed(tick, 1000)
             }
             is ModelDownloader.Status.Failed -> {
-                button.text = "重新下载离线模型"
-                status.text = "${shown.reason}，点按钮重下"
+                button.text = "重新下载（$totalMb MB）"
+                status.text = "${state.reason}，点按钮重下"
             }
             ModelDownloader.Status.Missing -> {
-                button.text = "下载离线模型（约 $totalMb MB）"
-                status.text = "离线大模型：装好后不联网也能把截图理解成待办，只在「识别方式」选它时才用。"
+                button.text = "下载模型（$totalMb MB）"
+                status.text = "还没下载：下载一次，之后断网也能用它识别。"
             }
         }
     }
@@ -307,50 +370,6 @@ class SettingsActivity : AppCompatActivity() {
                     .show()
             }
         }.start()
-    }
-
-    /**
-     * 识别方式：自动 / 只用本地 / 只用云端。
-     * 默认按「自动」显示，但没选过时不写入——首次启动会单独问一次。
-     */
-    private fun setupEngineSpinner() {
-        val spinner = findViewById<Spinner>(R.id.spEngine)
-        val options = listOf(
-            Prefs.ENGINE_AUTO to "自动（联网走云端，断网用本地）",
-            Prefs.ENGINE_LOCAL to "只用本地（不联网）",
-            Prefs.ENGINE_CLOUD to "只用云端（要 Key 和网络）",
-            Prefs.ENGINE_LLM to "本地大模型（离线，需先下载）"
-        )
-        spinner.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_item,
-            options.map { it.second }
-        ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
-
-        val current = Prefs.ocrEngine(this).ifBlank { Prefs.ENGINE_AUTO }
-        spinner.setSelection(options.indexOfFirst { it.first == current }.coerceAtLeast(0))
-        var initial = true
-        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>?,
-                view: android.view.View?,
-                position: Int,
-                id: Long
-            ) {
-                if (initial) {
-                    initial = false
-                    return
-                }
-                val picked = options.getOrNull(position) ?: return
-                Prefs.setOcrEngine(this@SettingsActivity, picked.first)
-                toast("识别方式：${picked.second}")
-                if (picked.first == Prefs.ENGINE_LLM && !LocalLlm.isReady(this@SettingsActivity)) {
-                    toast("离线模型还没下载，先去「诊断与帮助」里下载")
-                }
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-        }
     }
 
     /** 配色主题：选中即生效，直接 recreate 让整页换成新调色板。 */
@@ -415,7 +434,7 @@ class SettingsActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         renderNtfyEntry()
-        refreshLlmUi()
+        renderEngineUi()
     }
 
     override fun onDestroy() {
