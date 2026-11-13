@@ -43,7 +43,7 @@
     <string name="btn_pick_image">选择截图</string>
     <string name="btn_recognize">识别这张图</string>
     <string name="btn_restore_last">用上次的识别结果</string>
-    <string name="import_hint">从相册选择 QQ / 微信的作业截图，识别后可在编辑页确认再保存。</string>
+    <string name="import_hint">选一张截图或刚拍的照片，识别后可在编辑页确认再保存。</string>
 
     <string name="title_reconcile">日历对账</string>
     <string name="btn_reconcile">对账</string>
