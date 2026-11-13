@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 「记一条」按钮：底色用主色的深一档，白图标压在上面才清楚。
+     浅色主题里主色可以很浅（比如樱粉），直接白图标会发虚；深一档仍是同一色系。 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#33FFFFFF">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="?attr/bnPrimaryDark" />
+        </shape>
+    </item>
+</ripple>

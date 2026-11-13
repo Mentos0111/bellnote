@@ -3,7 +3,7 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24"
-    android:tint="?attr/bnOnPrimary">
+    android:tint="#FFFFFFFF">
     <!-- 一支斜着的笔：上端笔杆（圆头笔帽）、下端笔尖，表示「记一条」。
          整支笔是一个闭合路径，笔尖不做单独的短线 —— 之前那条短线在浅色主题下
          会露出一个错位的方角，看起来像图标缺了一块。 -->
