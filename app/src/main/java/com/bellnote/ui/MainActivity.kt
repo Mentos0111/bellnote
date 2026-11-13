@@ -642,8 +642,8 @@ class MainActivity : AppCompatActivity() {
         updateStatus()
         if (!Permissions.hasCalendar(this)) {
             adapter.submit(emptyList())
-            emptyView.visibility = View.VISIBLE
             emptyView.text = "需要日历权限才能读取待办，点上方卡片去授权"
+            showEmptyView(true)
             return
         }
         Thread {
@@ -651,9 +651,27 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 adapter.submit(items)
                 emptyView.text = getString(R.string.main_empty)
-                emptyView.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+                showEmptyView(items.isEmpty())
             }
         }.start()
+    }
+
+    /** 空列表的提示淡入淡出，别在一堆卡片中间硬切出来。 */
+    private fun showEmptyView(show: Boolean) {
+        emptyView.animate().cancel()
+        if (show) {
+            if (emptyView.visibility == View.VISIBLE && emptyView.alpha > 0.9f) return
+            emptyView.visibility = View.VISIBLE
+            emptyView.alpha = 0f
+            emptyView.animate().alpha(1f).setDuration(180L)
+                .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
+        } else {
+            if (emptyView.visibility != View.VISIBLE) return
+            emptyView.animate().alpha(0f).setDuration(140L).withEndAction {
+                emptyView.visibility = View.GONE
+                emptyView.alpha = 1f
+            }.start()
+        }
     }
 
     /** 右边那颗灯：同步状态（对账 / 补查 / 写失败），和左边「体检」不是一回事。 */
