@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="ThemeOverlay.Bellnote.Teal" parent="">
         <item name="bnPrimary">#FF0E7C6B</item>
@@ -116,26 +116,26 @@
     </style>
 
     <style name="ThemeOverlay.Bellnote.Sakura" parent="">
-        <item name="bnPrimary">#FFC24B70</item>
-        <item name="bnPrimaryDark">#FF93324F</item>
-        <item name="bnOnPrimary">#FFFFFFFF</item>
-        <item name="bnAccent">#FFA8506F</item>
+        <item name="bnPrimary">#FFF48FB1</item>
+        <item name="bnPrimaryDark">#FFD9558C</item>
+        <item name="bnOnPrimary">#FF3B1522</item>
+        <item name="bnAccent">#FFC24B70</item>
         <item name="bnWindowBg">#FFFFF7FA</item>
         <item name="bnSurface">#FFFFFFFF</item>
         <item name="bnCard">#FFFFFFFF</item>
-        <item name="bnCardStroke">#FFEFD7E1</item>
+        <item name="bnCardStroke">#FFF9D6E5</item>
         <item name="bnCardEdge">#FFFFFFFF</item>
-        <item name="bnDivider">#FFF8EAF0</item>
+        <item name="bnDivider">#FFFBEAF2</item>
         <item name="bnTextPrimary">#FF2B171D</item>
         <item name="bnTextSecondary">#FF7E6670</item>
-        <item name="bnChipBg">#FFFDEEF4</item>
+        <item name="bnChipBg">#FFFDF0F6</item>
         <item name="bnIconBg">#FFFCF2F6</item>
         <item name="bnDanger">#FFC94848</item>
         <item name="bnOk">#FF34B37E</item>
         <item name="bnWarn">#FFE8A33C</item>
         <item name="bnMuted">#FF9AA5A0</item>
         <item name="bnNavBg">#FFFFFFFF</item>
-        <item name="bnRipple">#2EC24B70</item>
+        <item name="bnRipple">#2EF48FB1</item>
     </style>
 
 </resources>
