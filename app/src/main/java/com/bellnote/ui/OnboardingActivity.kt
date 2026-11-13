@@ -430,7 +430,8 @@ class OnboardingActivity : AppCompatActivity() {
         val options = listOf(
             Prefs.ENGINE_AUTO to "自动（推荐）",
             Prefs.ENGINE_LOCAL to "只用本地（不联网）",
-            Prefs.ENGINE_CLOUD to "只用云端（要 Key）"
+            Prefs.ENGINE_CLOUD to "只用云端（要 Key）",
+            Prefs.ENGINE_LLM to "本地大模型（要下载 657MB）"
         )
         spOnbEngine.adapter = ArrayAdapter(
             this, android.R.layout.simple_spinner_item, options.map { it.second }

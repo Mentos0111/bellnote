@@ -451,6 +451,9 @@ object Prefs {
     const val ENGINE_LOCAL = "local"
     const val ENGINE_CLOUD = "cloud"
 
+    /** 离线大模型（Gemma 3 1B，跑在手机上）：先 OCR 出文字，再让模型理解成待办。 */
+    const val ENGINE_LLM = "llm"
+
     /** auto / local / cloud；空串表示还没选过，首次引导要问。 */
     fun ocrEngine(context: Context): String =
         sp(context).getString(KEY_OCR_ENGINE, "").orEmpty()
@@ -469,5 +472,17 @@ object Prefs {
 
     fun setNotifyLevel(context: Context, level: String) {
         sp(context).edit().putString(KEY_NOTIFY_LEVEL, level).apply()
+    }
+
+    // ---------------- 离线大模型 ----------------
+
+    private const val KEY_MODEL_DOWNLOAD_ID = "local_model_download_id"
+
+    /** 系统 DownloadManager 的任务 id；-1 表示没有在下的任务。 */
+    fun modelDownloadId(context: Context): Long =
+        sp(context).getLong(KEY_MODEL_DOWNLOAD_ID, -1L)
+
+    fun setModelDownloadId(context: Context, id: Long) {
+        sp(context).edit().putLong(KEY_MODEL_DOWNLOAD_ID, id).apply()
     }
 }
