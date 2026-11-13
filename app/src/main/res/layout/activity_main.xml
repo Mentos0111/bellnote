@@ -124,7 +124,7 @@
                 android:layout_width="42dp"
                 android:layout_height="42dp"
                 android:layout_marginStart="10dp"
-                android:background="@drawable/bg_circle_primary"
+                android:background="@drawable/bg_circle_send"
                 android:contentDescription="@string/quick_go_desc"
                 android:padding="9dp"
                 android:scaleType="fitCenter"
