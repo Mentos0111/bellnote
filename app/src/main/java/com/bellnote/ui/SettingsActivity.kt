@@ -113,6 +113,12 @@ class SettingsActivity : AppCompatActivity() {
         }
         findViewById<Button>(R.id.btnExportIcs).setOnClickListener { exportIcs() }
         findViewById<Button>(R.id.btnBackupLedger).setOnClickListener { backupLedger() }
+        findViewById<Button>(R.id.btnGenerateConfigCode).setOnClickListener {
+            startActivity(ConfigCodeActivity.intentFor(this, ConfigCodeActivity.MODE_GENERATE))
+        }
+        findViewById<Button>(R.id.btnImportConfigCode).setOnClickListener {
+            startActivity(ConfigCodeActivity.intentFor(this, ConfigCodeActivity.MODE_IMPORT))
+        }
         findViewById<Button>(R.id.btnCrashLog).setOnClickListener { showCrashLog() }
         findViewById<Button>(R.id.btnFeedback).setOnClickListener {
             startActivity(Intent(this, FeedbackActivity::class.java))
@@ -324,6 +330,11 @@ class SettingsActivity : AppCompatActivity() {
     /** 从子页面回来时刷新识别卡片（开关、缺 Key、模型下载状态都可能变了）。 */
     override fun onResume() {
         super.onResume()
+        // 配置码可能刚把配色换掉，这一页还披着旧 overlay，重建一次才看得到
+        if (ThemeManager.refreshIfNeeded(this)) {
+            recreate()
+            return
+        }
         renderNtfyEntry()
         renderEngineCards()
     }
@@ -372,7 +383,9 @@ class SettingsActivity : AppCompatActivity() {
 
 
         help(R.id.btnHelpBackup, "备份", "· 导出 .ics：把 Bellnote 里记的待办导成日历文件，可以导进别的日历 App。\n" +
-            "· 备份账本：导出 JSON（待办 + 它们和系统日历事件的对应关系），换机或重装后拿来核对，不会自动还原。")
+            "· 备份账本：导出 JSON（待办 + 它们和系统日历事件的对应关系），换机或重装后拿来核对，不会自动还原。\n" +
+            "· 生成 / 导入配置码：把「配色主题 + ntfy 主题」编成一串字发给朋友，她粘贴后一次设好；\n" +
+            "  这串码不含 API Key，也不含任何待办。")
     }
 
     private fun help(buttonId: Int, title: String, message: String) {

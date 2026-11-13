@@ -431,6 +431,23 @@
                 style="@style/BtnTonal"
                 android:layout_marginTop="10dp"
                 android:text="@string/btn_backup_ledger" />
+
+            <Button
+                android:id="@+id/btnGenerateConfigCode"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="生成配置码" />
+
+            <Button
+                android:id="@+id/btnImportConfigCode"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="导入配置码" />
+
+            <TextView
+                style="@style/HintText"
+                android:layout_marginTop="8dp"
+                android:text="配置码只带配色主题和 ntfy 主题，方便把手机借给家人朋友用；不含 API Key，也不含待办。" />
         </LinearLayout>
 
         <!-- ================= 外观 ================= -->

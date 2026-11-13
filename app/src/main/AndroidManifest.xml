@@ -195,6 +195,12 @@
             android:parentActivityName=".ui.SettingsActivity" />
 
         <activity
+            android:name=".ui.ConfigCodeActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:parentActivityName=".ui.SettingsActivity" />
+
+        <activity
             android:name=".ui.CloudModelActivity"
             android:exported="false"
             android:launchMode="singleTop"
