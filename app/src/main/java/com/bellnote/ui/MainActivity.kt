@@ -63,8 +63,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var drawer: DrawerLayout
     private lateinit var etQuick: EditText
     private var pendingCameraUri: Uri? = null
-    /** 首次进场的错开淡入只演一次，之后靠 DiffUtil 的局部动画。 */
-    private var didPlayEnter = false
 
     private val requestCalendar = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -120,8 +118,14 @@ class MainActivity : AppCompatActivity() {
         val recycler: RecyclerView = findViewById(R.id.recycler)
         recycler.layoutManager = LinearLayoutManager(this)
         recycler.adapter = adapter
-        // 收展跟手：插入/位移/删除全部并行跑 90–110ms（默认动画是串着跑的，看着慢半拍）
-        recycler.itemAnimator = ListAnimator()
+        // 用系统自带的条目动画（稳）；只把它调快一点、并关掉标题的交叉淡入
+        recycler.itemAnimator = androidx.recyclerview.widget.DefaultItemAnimator().apply {
+            supportsChangeAnimations = false
+            addDuration = 120L
+            changeDuration = 0L
+            moveDuration = 120L
+            removeDuration = 90L
+        }
 
         setupQuickAdd()
         setupDrawer()
@@ -512,50 +516,8 @@ class MainActivity : AppCompatActivity() {
                 adapter.submit(items)
                 emptyView.text = getString(R.string.main_empty)
                 emptyView.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
-                if (items.isNotEmpty()) playEnterAnimationOnce()
             }
         }.start()
-    }
-
-    /**
-     * 首次拿到数据时，可见的几张卡错开淡入（26ms 一条、220ms 时长）。
-     * 只跑一次：之后回到页面、每分钟刷新都用 DiffUtil 的局部动画，不再整屏重播。
-     */
-    private fun playEnterAnimationOnce() {
-        if (didPlayEnter) return
-        didPlayEnter = true
-        val recycler = findViewById<RecyclerView>(R.id.recycler)
-        if (recycler.childCount > 0) {
-            staggerIn(recycler)
-            return
-        }
-        // 首次加载时条目还没排过版，等一次布局再演
-        recycler.viewTreeObserver.addOnGlobalLayoutListener(
-            object : android.view.ViewTreeObserver.OnGlobalLayoutListener {
-                override fun onGlobalLayout() {
-                    if (recycler.childCount == 0) return
-                    recycler.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                    staggerIn(recycler)
-                }
-            }
-        )
-    }
-
-    private fun staggerIn(recycler: RecyclerView) {
-        val shift = 8 * resources.displayMetrics.density
-        for (i in 0 until recycler.childCount) {
-            val child = recycler.getChildAt(i) ?: continue
-            child.animate().cancel()
-            child.alpha = 0f
-            child.translationY = shift
-            child.animate()
-                .alpha(1f)
-                .translationY(0f)
-                .setStartDelay(i * 26L)
-                .setDuration(220L)
-                .setInterpolator(android.view.animation.DecelerateInterpolator())
-                .start()
-        }
     }
 
     /** 右边那颗灯：同步状态（对账 / 补查 / 写失败），和左边「体检」不是一回事。 */
