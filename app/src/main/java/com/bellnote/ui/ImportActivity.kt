@@ -19,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.IntentCompat
 import com.bellnote.util.ThemeManager
 import com.bellnote.R
+import com.bellnote.ai.EnginePlan
 import com.bellnote.ai.LocalLlm
 import com.bellnote.ai.OfflineOcr
 import com.bellnote.ai.VisionExtractor
@@ -54,9 +55,6 @@ class ImportActivity : AppCompatActivity() {
 
     /** 上一次识别是云端还是本地：决定 [lastRaw] 按 JSON 解还是按 OCR 原文解。 */
     private var lastEngine = Prefs.ENGINE_CLOUD
-
-    /** 自动模式里云端失败后转本地：非空表示这次本地是兜底，界面上要说清原因。 */
-    private var fallbackFromCloud: String? = null
 
     companion object {
         const val EXTRA_AUTO_RECOGNIZE = "auto_recognize"
@@ -202,226 +200,230 @@ class ImportActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 识别入口：按「识别方式」算出一条优先级链，逐个试，拿到结果就停。
+     *
+     * 以前云端 / 本地模型 / 本地规则各写一套回退，改一处忘一处；现在顺序由 [EnginePlan] 决定，
+     * 这里只负责「按顺序执行 + 把每一级的失败原因攒起来」。
+     */
     private fun recognize() {
         val uri = imageUri
         if (uri == null) {
             toast("先选一张截图")
             return
         }
-        val apiKey = Prefs.apiKey(this)
-
-        // 用户选过就听用户的；没选过（或 auto）就按「有没有网 + 有没有 Key」自动决定
-        val engine = Prefs.ocrEngine(this)
-        if (engine == Prefs.ENGINE_LLM && !LocalLlm.isReady(this)) {
-            toast("离线模型还没下载，先去设置里下载（约 657 MB）")
-            startActivity(Intent(this, SettingsActivity::class.java))
+        val chain = EnginePlan.chain(
+            EnginePlan.Input(
+                mode = Prefs.ocrEngine(this),
+                hasKey = Prefs.apiKey(this).isNotBlank(),
+                online = isOnline(),
+                llmReady = LocalLlm.isReady(this)
+            )
+        )
+        if (chain.isEmpty()) {
+            tvStatus.text = "没有可用的识别方式，去设置里选一个"
             return
         }
-        val useLlm = engine == Prefs.ENGINE_LLM
-        val useLocal = when (engine) {
-            Prefs.ENGINE_LOCAL, Prefs.ENGINE_LLM -> true
-            Prefs.ENGINE_CLOUD -> false
-            else -> apiKey.isBlank() || !isOnline()
-        }
-        // 只有「自动」才允许云端失败后转本地；用户明确点「只用云端」就别偷偷降级
-        val allowFallback = engine != Prefs.ENGINE_LOCAL && engine != Prefs.ENGINE_CLOUD &&
-            engine != Prefs.ENGINE_LLM
-        fallbackFromCloud = null
-
-        if (!useLocal && apiKey.isBlank()) {
-            toast("还没配置 DeepSeek API Key")
-            startActivity(Intent(this, SettingsActivity::class.java))
-            return
-        }
-
-        btnRecognize.text = when {
-            useLlm -> "本地大模型识别这张图"
-            useLocal -> "本地识别这张图"
-            else -> "识别这张图"
-        }
+        btnRecognize.text = "识别这张图"
         btnRecognize.isEnabled = false
         btnPick.isEnabled = false
         btnRestore.visibility = View.GONE
         lastRaw = ""
         startWaiting()
+        runChain(chain, 0, uri, mutableListOf())
+    }
 
-        if (useLlm) {
-            tvStatus.text = "离线模型识别中（第一次要加载几秒）…"
-            recognizeWithLlm(uri)
-        } else if (useLocal) {
-            tvStatus.text = "正在用本地 OCR 识别（不联网）…"
-            recognizeLocally(uri)
+    /** 按顺序执行；每一级失败就把原因记下来，交给下一级。 */
+    private fun runChain(
+        chain: List<EnginePlan.Engine>,
+        index: Int,
+        uri: android.net.Uri,
+        notes: MutableList<String>
+    ) {
+        if (isFinishing || isDestroyed) return
+        if (index >= chain.size) {
+            failChain(notes)
+            return
+        }
+        val engine = chain[index]
+        tvStatus.text = if (index == 0) {
+            when (engine) {
+                EnginePlan.Engine.CLOUD -> "云端识别中…"
+                EnginePlan.Engine.LLM -> "本地模型识别中（第一次要加载几秒）…"
+                EnginePlan.Engine.LOCAL -> "正在用本地 OCR 识别（不联网）…"
+            }
         } else {
-            recognizeInCloud(uri, apiKey, allowFallback)
+            "改用${engineLabel(engine)}再试…"
+        }
+
+        when (engine) {
+            EnginePlan.Engine.CLOUD -> cloudStep(uri) { outcome, cost ->
+                if (outcome.specs.isEmpty()) {
+                    notes += "云端：${outcome.error ?: "没有结果"}"
+                    runChain(chain, index + 1, uri, notes)
+                } else {
+                    handleOutcome(withHint(outcome, notes, "云端", cost), uri, Prefs.ENGINE_CLOUD)
+                }
+            }
+
+            EnginePlan.Engine.LLM -> llmStep(uri) { _, outcome, cost ->
+                if (outcome.specs.isEmpty()) {
+                    notes += "本地模型：${outcome.error ?: "没有结果"}"
+                    runChain(chain, index + 1, uri, notes)
+                } else {
+                    handleOutcome(withHint(outcome, notes, "本地模型", cost), uri, Prefs.ENGINE_CLOUD)
+                }
+            }
+
+            EnginePlan.Engine.LOCAL -> localStep(uri) { text, cost ->
+                val specs = ScreenTextParser.parse(text).ifEmpty {
+                    ScreenTextParser.fallbackSpec(text)?.let { listOf(it) } ?: emptyList()
+                }
+                if (specs.isEmpty()) {
+                    notes += "本地：没认出待办"
+                    runChain(chain, index + 1, uri, notes)
+                } else {
+                    // 规则没认出时间、只是兜底出的时间，要在提示里说清
+                    val guessed = ScreenTextParser.parse(text).isEmpty()
+                    val extra = if (guessed) "本地没认出时间，先按明天 9:00 填，点进去改" else null
+                    handleOutcome(
+                        withHint(
+                            VisionExtractor.Outcome(
+                                spec = specs.firstOrNull(),
+                                raw = text,
+                                specs = specs
+                            ),
+                            notes,
+                            "本地 OCR",
+                            cost,
+                            extra
+                        ),
+                        uri,
+                        Prefs.ENGINE_LOCAL
+                    )
+                }
+            }
         }
     }
 
-    /**
-     * 离线大模型：先用 ML Kit 把图读成文字，再让手机上的 Gemma 3 1B 理解成待办。
-     *
-     * 模型没给出可用结果时退回规则解析——离线这条路不允许「什么都没给你」。
-     */
-    private fun recognizeWithLlm(uri: Uri) {
+    private fun failChain(notes: List<String>) {
+        stopWaiting()
+        btnRecognize.isEnabled = imageUri != null
+        btnRecognize.text = "重试识别"
+        btnPick.isEnabled = true
+        tvStatus.text = "识别失败：\n" + notes.joinToString("\n").ifBlank { "没有可用的识别方式" }
+    }
+
+    private fun engineLabel(engine: EnginePlan.Engine): String = when (engine) {
+        EnginePlan.Engine.CLOUD -> "云端"
+        EnginePlan.Engine.LLM -> "本地模型"
+        EnginePlan.Engine.LOCAL -> "本地识别"
+    }
+
+    /** 把「前几级为什么失败」和「这次用了谁、花了多久」拼进提示，界面和日志口径一致。 */
+    private fun withHint(
+        outcome: VisionExtractor.Outcome,
+        notes: List<String>,
+        label: String,
+        costMs: Long,
+        extra: String? = null
+    ): VisionExtractor.Outcome {
+        val text = buildString {
+            if (notes.isNotEmpty()) append(notes.joinToString("；")).append('\n')
+            if (extra != null) append(extra).append('\n')
+            append("（$label，${costMs}ms）")
+        }
+        return outcome.copy(error = text.trim())
+    }
+
+    // ---------------- 三种引擎的单步执行（后台线程，回调回主线程） ----------------
+
+    private fun cloudStep(uri: android.net.Uri, onDone: (VisionExtractor.Outcome, Long) -> Unit) {
+        val apiKey = Prefs.apiKey(this)
+        if (apiKey.isBlank()) {
+            onDone(VisionExtractor.Outcome(null, "还没配置 DeepSeek API Key"), 0L)
+            return
+        }
+        val model = Prefs.model(this)
+        Thread {
+            val base64 = ImageUtils.toJpegBase64(this, uri, RECOGNIZE_MAX_SIDE, RECOGNIZE_QUALITY)
+            if (base64 == null) {
+                ui.post {
+                    if (!isFinishing && !isDestroyed) {
+                        onDone(VisionExtractor.Outcome(null, "图片压缩失败"), 0L)
+                    }
+                }
+                return@Thread
+            }
+            val kb = base64.length * 3 / 4 / 1024
+            ui.post {
+                if (!isFinishing && !isDestroyed) tvStatus.text = "已上传（约 $kb KB），等模型返回…"
+            }
+            val started = System.currentTimeMillis()
+            val outcome = VisionExtractor.extract(apiKey, model, base64)
+            val cost = System.currentTimeMillis() - started
+            ui.post { if (!isFinishing && !isDestroyed) onDone(outcome, cost) }
+        }.start()
+    }
+
+    /** 先 OCR 再离线模型；任何一步失败都当这一级失败，交给下一级。 */
+    private fun llmStep(
+        uri: android.net.Uri,
+        onDone: (String, VisionExtractor.Outcome, Long) -> Unit
+    ) {
+        if (!LocalLlm.isReady(this)) {
+            onDone("", VisionExtractor.Outcome(null, "离线模型还没下载"), 0L)
+            return
+        }
         Thread {
             val bitmap = ImageUtils.loadBitmap(this, uri, 1600)
             if (bitmap == null) {
                 ui.post {
-                    if (isFinishing || isDestroyed) return@post
-                    stopWaiting()
-                    tvStatus.text = "这张图读不出来，换一张试试"
-                    btnRecognize.isEnabled = true
-                    btnPick.isEnabled = true
+                    if (!isFinishing && !isDestroyed) {
+                        onDone("", VisionExtractor.Outcome(null, "图片读不出来"), 0L)
+                    }
                 }
                 return@Thread
             }
-            val ocrStarted = System.currentTimeMillis()
             OfflineOcr.recognize(bitmap) { text ->
-                ui.post {
-                    if (isFinishing || isDestroyed) return@post
-                    if (text.startsWith("OCR 失败")) {
-                        handleLocalText(text, System.currentTimeMillis() - ocrStarted)
-                        return@post
+                if (text.startsWith("OCR 失败")) {
+                    ui.post {
+                        if (!isFinishing && !isDestroyed) {
+                            onDone(text, VisionExtractor.Outcome(null, text), 0L)
+                        }
                     }
-                    tvStatus.text = "离线模型正在理解文字（第一次要十几秒）…"
+                } else {
+                    ui.post {
+                        if (!isFinishing && !isDestroyed) {
+                            tvStatus.text = "本地模型正在理解文字（第一次要十几秒）…"
+                        }
+                    }
                     Thread {
                         val started = System.currentTimeMillis()
                         val outcome = LocalLlm.extract(this, text, System.currentTimeMillis())
                         val cost = System.currentTimeMillis() - started
-                        val target = imageUri
-                        ui.post {
-                            if (isFinishing || isDestroyed || target == null) return@post
-                            if (outcome.specs.isNotEmpty()) {
-                                handleOutcome(
-                                    outcome.copy(error = "（离线大模型，${cost}ms，不联网）"),
-                                    target,
-                                    Prefs.ENGINE_CLOUD
-                                )
-                            } else {
-                                // 模型没输出可用 JSON：退回规则，至少给出兜底的那一条
-                                val specs = ScreenTextParser.parse(text)
-                                val finalSpecs = specs.ifEmpty {
-                                    ScreenTextParser.fallbackSpec(text)?.let { listOf(it) } ?: emptyList()
-                                }
-                                val hint = "离线模型没认出（${outcome.error}），已用本地规则解析（${cost}ms）"
-                                handleOutcome(
-                                    VisionExtractor.Outcome(
-                                        spec = finalSpecs.firstOrNull(),
-                                        error = hint,
-                                        raw = text,
-                                        specs = finalSpecs
-                                    ),
-                                    target,
-                                    Prefs.ENGINE_LOCAL
-                                )
-                            }
-                        }
+                        ui.post { if (!isFinishing && !isDestroyed) onDone(text, outcome, cost) }
                     }.start()
                 }
             }
         }.start()
     }
 
-    /** 离线兜底：整张图 OCR 成文字，再交给 [ScreenTextParser] 抽待办。 */
-    private fun recognizeLocally(uri: Uri) {
+    private fun localStep(uri: android.net.Uri, onDone: (String, Long) -> Unit) {
         Thread {
             val bitmap = ImageUtils.loadBitmap(this, uri, 1600)
             if (bitmap == null) {
-                ui.post {
-                    if (isFinishing || isDestroyed) return@post
-                    stopWaiting()
-                    tvStatus.text = "这张图读不出来，换一张试试"
-                    btnRecognize.isEnabled = true
-                    btnPick.isEnabled = true
-                }
+                ui.post { if (!isFinishing && !isDestroyed) onDone("", 0L) }
                 return@Thread
             }
             val started = System.currentTimeMillis()
             OfflineOcr.recognize(bitmap) { text ->
                 val cost = System.currentTimeMillis() - started
-                ui.post {
-                    if (isFinishing || isDestroyed) return@post
-                    handleLocalText(text, cost)
-                }
+                ui.post { if (!isFinishing && !isDestroyed) onDone(text, cost) }
             }
         }.start()
     }
 
-    private fun handleLocalText(text: String, costMs: Long) {
-        val cloudNote = fallbackFromCloud?.let { "云端没成功（$it），已改用本地" }
-        if (text.startsWith("OCR 失败")) {
-            stopWaiting()
-            tvStatus.text = listOfNotNull(cloudNote, text, "（可以换一张更清楚的图，或到设置里切回云端）")
-                .joinToString("\n")
-            btnRecognize.isEnabled = true
-            btnPick.isEnabled = true
-            return
-        }
-        val specs = ScreenTextParser.parse(text)
-        val finalSpecs = specs.ifEmpty {
-            ScreenTextParser.fallbackSpec(text)?.let { listOf(it) } ?: emptyList()
-        }
-        val note = if (specs.isEmpty() && finalSpecs.isNotEmpty()) {
-            "本地没认出时间，先按明天 9:00 填，点进去改"
-        } else {
-            null
-        }
-        val hint = buildString {
-            if (cloudNote != null) append(cloudNote).append('\n')
-            if (note != null) append(note).append('\n')
-            append("（本地 OCR，${costMs}ms，离线）")
-        }.trim()
-        val target = imageUri ?: return
-        handleOutcome(
-            VisionExtractor.Outcome(
-                spec = finalSpecs.firstOrNull(),
-                error = hint,
-                raw = text,
-                specs = finalSpecs
-            ),
-            target,
-            Prefs.ENGINE_LOCAL
-        )
-    }
-
-    private fun recognizeInCloud(uri: Uri, apiKey: String, allowFallback: Boolean) {
-        val model = Prefs.model(this)
-
-        Thread {
-            val base64 = ImageUtils.toJpegBase64(this, uri, RECOGNIZE_MAX_SIDE, RECOGNIZE_QUALITY)
-            if (base64 == null) {
-                ui.post {
-                    if (isFinishing || isDestroyed) return@post
-                    stopWaiting()
-                    tvStatus.text = "图片压缩失败，换一张试试"
-                    btnRecognize.isEnabled = true
-                    btnPick.isEnabled = true
-                }
-                return@Thread
-            }
-            val kb = base64.length * 3 / 4 / 1024
-            ui.post {
-                if (isFinishing || isDestroyed) return@post
-                tvStatus.text = "已上传（约 $kb KB），等模型返回…"
-            }
-
-            val outcome = VisionExtractor.extract(apiKey, model, base64)
-            ui.post {
-                if (isFinishing || isDestroyed) return@post
-                // 自动模式：云端没给出结果（没网 / 超时 / 额度 / 解析不出）就换本地再试一次。
-                // 只在这条路上兜底，本地失败也还是本地失败，不会来回横跳。
-                if (allowFallback && outcome.specs.isEmpty()) {
-                    fallbackFromCloud = outcome.error?.trim()?.take(80)
-                        ?.ifBlank { null }
-                        ?: "云端没有返回结果"
-                    btnRecognize.text = "本地识别这张图"
-                    tvStatus.text = "云端没成功，改用本地识别再试…"
-                    recognizeLocally(uri)
-                    return@post
-                }
-                handleOutcome(outcome, uri)
-            }
-        }.start()
-    }
 
     /** 有没有网（严格点：有网络且能上网，不然 auto 会在断网时白等二十秒）。 */
     private fun isOnline(): Boolean {

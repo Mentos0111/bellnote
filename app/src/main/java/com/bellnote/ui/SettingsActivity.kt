@@ -298,7 +298,7 @@ class SettingsActivity : AppCompatActivity() {
         val state = ModelDownloader.status(this)
         // 状态直接写在「本地模型」那行的说明里，不再挤一个右侧小字（会跟说明抢位置）
         findViewById<TextView>(R.id.tvEngineLlmDesc).text = when (state) {
-            ModelDownloader.Status.Ready -> "手机上的 AI；已下载，断网也能用"
+            ModelDownloader.Status.Ready -> "手机上的 AI；失败会退回本地规则"
             is ModelDownloader.Status.Downloading -> "手机上的 AI；正在下载 ${state.percent}%"
             is ModelDownloader.Status.Failed -> "手机上的 AI；上次没下完"
             ModelDownloader.Status.Missing -> "手机上的 AI；要先下载 657 MB"
