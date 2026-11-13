@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/bnWindowBg"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="22dp"
+        android:paddingBottom="28dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="5dp"
+            android:text="@string/feedback_intro"
+            android:textColor="?attr/bnTextPrimary"
+            android:textSize="14sp" />
+
+        <TextView
+            style="@style/HintText"
+            android:layout_marginTop="10dp"
+            android:lineSpacingExtra="4dp"
+            android:text="@string/feedback_privacy" />
+
+        <!-- 包内预览：先给人看一眼再决定发不发 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0.02"
+                android:text="@string/feedback_preview_label"
+                android:textColor="?attr/bnTextSecondary"
+                android:textSize="11sp" />
+
+            <!-- 预览自己滚：整页不用滚，四个按钮一进来就看得见 -->
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="180dp"
+                android:layout_marginTop="8dp"
+                android:fillViewport="true"
+                android:scrollbars="vertical">
+
+                <TextView
+                    android:id="@+id/tvPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:lineSpacingExtra="2dp"
+                    android:text="@string/feedback_loading"
+                    android:textColor="?attr/bnTextSecondary"
+                    android:textIsSelectable="true"
+                    android:textSize="10sp" />
+            </ScrollView>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnSend"
+            style="@style/BtnPrimary"
+            android:layout_marginTop="22dp"
+            android:text="@string/feedback_send" />
+
+        <Button
+            android:id="@+id/btnMail"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
+            android:text="@string/feedback_mail" />
+
+        <Button
+            android:id="@+id/btnSave"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
+            android:text="@string/feedback_save" />
+
+        <Button
+            android:id="@+id/btnCopy"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
+            android:text="@string/feedback_copy" />
+    </LinearLayout>
+</ScrollView>

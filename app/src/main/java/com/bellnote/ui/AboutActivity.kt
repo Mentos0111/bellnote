@@ -39,7 +39,11 @@ class AboutActivity : AppCompatActivity() {
 
         findViewById<android.view.View>(R.id.rowMail).setOnClickListener { mailDeveloper() }
         findViewById<android.view.View>(R.id.rowGithub).setOnClickListener { openRepo() }
-        findViewById<Button>(R.id.btnMailDev).setOnClickListener { mailDeveloper() }
+        // 主按钮走「反馈与日志」：能把版本、机型和最近的日志一起打包发过来，
+        // 比一封信只写「用不了」有用得多；纯邮件那条路还留在下面的邮箱行里。
+        findViewById<Button>(R.id.btnMailDev).setOnClickListener {
+            startActivity(Intent(this, FeedbackActivity::class.java))
+        }
         findViewById<Button>(R.id.btnOpenRepo).setOnClickListener { openRepo() }
     }
 

@@ -1,4 +1,4 @@
-﻿package com.bellnote.ui
+package com.bellnote.ui
 
 import android.Manifest
 import android.content.Intent
@@ -27,8 +27,8 @@ import com.bellnote.util.ThemeManager
 import kotlin.math.abs
 
 /**
- * 首次安装的引导，五页：
- * 1) 记法  2) 日历  3) 截图识别（可选）  4) 开关  5) 外观
+ * 首次安装的引导，六页：
+ * 1) 记法  2) 日历  3) 截图识别（可选）  4) 选日历  5) 有问题随时反馈  6) 结束
  *
  * 可以左右滑动，也可以点「下一步」；换配色会重建页面，用 savedInstanceState 记住停在第几页。
  */
@@ -87,6 +87,7 @@ class OnboardingActivity : AppCompatActivity() {
             findViewById(R.id.step2),
             findViewById(R.id.step3),
             findViewById(R.id.step4),
+            findViewById(R.id.stepFeedback),
             findViewById(R.id.step5)
         )
         dots = listOf(
@@ -94,7 +95,8 @@ class OnboardingActivity : AppCompatActivity() {
             findViewById(R.id.dot2),
             findViewById(R.id.dot3),
             findViewById(R.id.dot4),
-            findViewById(R.id.dot5)
+            findViewById(R.id.dot5),
+            findViewById(R.id.dot6)
         )
         btnNext = findViewById(R.id.btnNext)
         tvPermHint = findViewById(R.id.tvPermHint)
@@ -118,6 +120,11 @@ class OnboardingActivity : AppCompatActivity() {
         }
 
         findViewById<View>(R.id.btnHelpCalendar).setOnClickListener { showCalendarHelp() }
+
+        // 教程最后一页之前放一个反馈入口：不用等出了问题再满设置找
+        findViewById<Button>(R.id.btnFeedbackInOnboarding).setOnClickListener {
+            startActivity(Intent(this, FeedbackActivity::class.java))
+        }
 
         spCalendar.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -300,7 +307,8 @@ class OnboardingActivity : AppCompatActivity() {
         1 -> findViewById(R.id.hero2)
         2 -> findViewById(R.id.hero3)
         3 -> findViewById(R.id.hero4)
-        4 -> findViewById(R.id.hero5)
+        4 -> findViewById(R.id.heroFeedback)
+        5 -> findViewById(R.id.hero5)
         else -> findViewById(R.id.hero1)
     }
 

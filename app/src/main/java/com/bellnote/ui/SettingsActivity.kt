@@ -117,6 +117,9 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnExportIcs).setOnClickListener { exportIcs() }
         findViewById<Button>(R.id.btnBackupLedger).setOnClickListener { backupLedger() }
         findViewById<Button>(R.id.btnCrashLog).setOnClickListener { showCrashLog() }
+        findViewById<Button>(R.id.btnFeedback).setOnClickListener {
+            startActivity(Intent(this, FeedbackActivity::class.java))
+        }
         findViewById<Button>(R.id.btnPrivacy).setOnClickListener {
             com.bellnote.util.PrivacyGate.openFullText(this)
         }
