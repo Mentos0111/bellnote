@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Bellnote</string>
 
@@ -186,6 +186,31 @@
     <string name="cap_other">微信 / QQ 暂不支持；以后可以按 App 白名单勾选。</string>
     <string name="help_channel_title">消息从哪来</string>
     <string name="help_channel_body">ntfy 是一条「电脑 → 手机」的通道，Bellnote 借它把电脑上生成的待办送到手机日历。\n\n· 电脑上：往一个主题发一条消息，内容是标题 + 时间，例如\ncurl -d \'{\"title\":\"备课\",\"time\":\"2026-11-13 20:00\"}\' ntfy.sh/你的主题\n\n· 手机上：Bellnote 自己每 15 分钟去服务器拉一次，拉到就写进日历，不需要装 ntfy App。\n\n· 也可以用自己搭的 ntfy 服务器，在下面填地址。</string>
+    <!-- 反馈与日志（3.18） -->
+    <string name="feedback_title">反馈与日志</string>
+    <string name="feedback_entry">反馈与日志</string>
+    <string name="feedback_entry_hint">版本、机型、设置和日志，自动打成一个包</string>
+    <string name="feedback_intro">遇到卡住、识别不对、日历没写进去，点下面按钮打包日志，选个 App 发过来就行。</string>
+    <string name="feedback_privacy">含待办标题与推送原文，API Key 已打码，只发给你选的那个人。</string>
+    <string name="feedback_preview_label">包内预览</string>
+    <string name="feedback_loading">正在收集…</string>
+    <string name="feedback_loading_failed">暂时读不到日志，直接点下面的按钮试试</string>
+    <string name="feedback_send">打包并发送</string>
+    <string name="feedback_mail">用邮件发送</string>
+    <string name="feedback_save">仅保存到文件</string>
+    <string name="feedback_copy">复制诊断文本</string>
+    <string name="feedback_saved">已保存：%1$s</string>
+    <string name="feedback_save_failed">打包失败，稍后再试</string>
+    <string name="feedback_send_failed">没有可用的发送 App，可先「仅保存到文件」</string>
+    <string name="feedback_copied">诊断文本已复制，粘贴到聊天里即可</string>
+    <string name="feedback_building">正在打包日志…</string>
+    <string name="feedback_subject">Bellnote 反馈 v%1$s</string>
+    <string name="feedback_onboarding_title">用着不顺手，随时说</string>
+    <string name="feedback_onboarding_body">卡住、识别不对、日历没写进去，都可以直接说。点下面这个按钮，版本、机型、设置和最近的日志会打成一个包，发过来就行。</string>
+    <string name="feedback_onboarding_action">打包日志并反馈</string>
+    <string name="feedback_onboarding_hint">包里含待办标题和推送原文，API Key 已打码。</string>
+    <string name="about_action_feedback">反馈问题（附日志）</string>
+
     <string name="help_rules_title">推送怎么处理</string>
     <string name="help_rules_body">自动把推送写进日历：关掉后只记录，不写日历。\n\n只收带时间的待办（推荐）：不开的话，认不出「标题 / 时间」的推送也会按「当前时间 + 1 小时」塞进日历，很容易堆一堆没用的条目。</string>
 </resources>

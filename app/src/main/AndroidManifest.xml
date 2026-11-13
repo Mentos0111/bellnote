@@ -189,11 +189,16 @@
             android:parentActivityName=".ui.NtfyActivity" />
 
         <activity
+            android:name=".ui.FeedbackActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:parentActivityName=".ui.SettingsActivity" />
+
+        <activity
             android:name=".ui.ReconcileActivity"
             android:exported="false"
             android:launchMode="singleTop"
             android:parentActivityName=".ui.MainActivity" />
-
         <activity
             android:name=".ui.AllEventsActivity"
             android:exported="true"

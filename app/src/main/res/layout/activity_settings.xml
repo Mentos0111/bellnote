@@ -429,6 +429,17 @@
             android:visibility="gone">
 
             <Button
+                android:id="@+id/btnFeedback"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="@string/feedback_entry" />
+
+            <TextView
+                style="@style/HintText"
+                android:layout_marginTop="6dp"
+                android:text="@string/feedback_entry_hint" />
+
+            <Button
                 android:id="@+id/btnPrivacy"
                 style="@style/BtnTonal"
                 android:layout_marginTop="10dp"

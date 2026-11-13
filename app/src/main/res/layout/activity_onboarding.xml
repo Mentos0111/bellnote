@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -333,7 +333,67 @@
                 android:visibility="gone" />
         </LinearLayout>
 
-        <!-- 5 结束 -->
+        <!-- 5 反馈：先让人知道出问题该找谁，再放「可以开始用了」 -->
+        <LinearLayout
+            android:id="@+id/stepFeedback"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingLeft="28dp"
+            android:paddingRight="28dp"
+            android:paddingTop="56dp"
+            android:paddingBottom="104dp">
+
+            <FrameLayout
+                android:layout_width="112dp"
+                android:layout_height="112dp"
+                android:layout_marginBottom="14dp">
+
+                <View
+                    android:layout_width="112dp"
+                    android:layout_height="112dp"
+                    android:background="@drawable/bg_hero_ring" />
+
+                <ImageView
+                    android:id="@+id/heroFeedback"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_nav_help"
+                    android:tint="?attr/bnPrimary" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/feedback_onboarding_title"
+                android:textColor="?attr/bnTextPrimary"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="5dp"
+                android:text="@string/feedback_onboarding_body"
+                android:textColor="?attr/bnTextSecondary"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/btnFeedbackInOnboarding"
+                style="@style/BtnTonal"
+                android:layout_marginTop="22dp"
+                android:text="@string/feedback_onboarding_action" />
+
+            <TextView
+                style="@style/HintText"
+                android:layout_marginTop="10dp"
+                android:text="@string/feedback_onboarding_hint" />
+        </LinearLayout>
+
+        <!-- 6 结束 -->
         <LinearLayout
             android:id="@+id/step5"
             android:layout_width="match_parent"
@@ -430,6 +490,12 @@
                 android:background="@drawable/bg_dot_idle" />
             <View
                 android:id="@+id/dot5"
+                android:layout_width="6dp"
+                android:layout_height="6dp"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_dot_idle" />
+            <View
+                android:id="@+id/dot6"
                 android:layout_width="6dp"
                 android:layout_height="6dp"
                 android:background="@drawable/bg_dot_idle" />

@@ -3,4 +3,6 @@
     <!-- 截屏识别：内部把截图交给识别页，或从识别页分享出去 -->
     <cache-path name="captures" path="captures/" />
     <cache-path name="images" path="images/" />
+    <!-- 反馈包：zip 交给系统分享面板时要用 content:// -->
+    <cache-path name="feedback" path="feedback/" />
 </paths>
