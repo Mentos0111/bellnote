@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  共享元素（待办卡标题 → 编辑页标题）的转场。
+  changeBounds：位置/尺寸从卡片那一行长到编辑页那一行
+  changeTransform：跟着父容器一起缩放/位移
+
+  注意：不要写 <changeText/> —— 平台的 TransitionInflater 不认这个标签
+  （ChangeText 只在 androidx.transition 里），写了会在 onCreate 抛
+  「Unknown scene name: changeText」直接崩。两边标题文字本来就一样，不需要它。
+-->
+<transitionSet xmlns:android="http://schemas.android.com/apk/res/android"
+    android:duration="300"
+    android:interpolator="@android:interpolator/fast_out_slow_in"
+    android:transitionOrdering="together">
+    <changeBounds />
+    <changeTransform />
+</transitionSet>

@@ -57,7 +57,13 @@ class EditActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeManager.apply(this)
+        // 从卡片点进来时标题要走共享元素：先把转场压住，等标题填好、排过版再放行，
+        // 否则会出现「标题先闪一下再飞」。
+        val sharedName = intent.getStringExtra(EXTRA_SHARED_NAME)
+        if (!sharedName.isNullOrBlank()) postponeEnterTransition()
         super.onCreate(savedInstanceState)
+        // 共享元素用覆盖层会闪，直接关掉
+        window.sharedElementsUseOverlay = false
         setContentView(R.layout.activity_edit)
         enableHomeUp()
 
@@ -67,6 +73,7 @@ class EditActivity : AppCompatActivity() {
         spRepeat = findViewById(R.id.spRepeat)
         tvWhen = findViewById(R.id.tvWhen)
         btnDelete = findViewById(R.id.btnDelete)
+        if (!sharedName.isNullOrBlank()) etTitle.transitionName = sharedName
 
         spRepeat.adapter = ArrayAdapter(
             this,
@@ -105,6 +112,9 @@ class EditActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnTime).setOnClickListener { pickTime() }
         findViewById<Button>(R.id.btnSave).setOnClickListener { save() }
         btnDelete.setOnClickListener { confirmDelete() }
+
+        // 标题已经填好、马上要排版：放行被压住的转场
+        etTitle.post { startPostponedEnterTransition() }
     }
 
     private fun loadEvent(id: Long) {
@@ -271,6 +281,8 @@ class EditActivity : AppCompatActivity() {
         const val EXTRA_DURATION = "duration"
         const val EXTRA_NOTE = "note"
         const val EXTRA_REPEAT = "repeat"
+        /** 共享元素的名字（卡片标题 ↔ 编辑页标题），只有从卡片点进来时才带。 */
+        const val EXTRA_SHARED_NAME = "shared_name"
 
         fun intentForItem(context: Context, item: TodoItem): Intent =
             Intent(context, EditActivity::class.java).apply {
