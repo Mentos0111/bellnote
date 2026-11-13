@@ -1,4 +1,4 @@
-﻿package com.bellnote.parser
+package com.bellnote.parser
 
 import com.bellnote.data.PARSED_DEFAULT_DURATION_MINUTES
 import java.time.DayOfWeek
@@ -129,6 +129,12 @@ object QuickParse {
                     }
                 }
             }
+        }
+
+        // 「11月14日 周六 化学课」：星期已经定了是哪天，把重复的日期词也剪掉，
+        // 不然标题会变成「11月14日 化学课」
+        if (date != null) {
+            MONTH_DAY.find(rest)?.let { match -> rest = rest.removeRange(match.range) }
         }
 
         // 时间：先把所有时间点找出来，「起点 + 连接符 + 终点」就连成一段区间

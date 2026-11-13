@@ -25,6 +25,7 @@ object Prefs {
     private const val KEY_IMPORT_URI = "import_pending_uri"
     private const val KEY_IMPORT_RAW = "import_pending_raw"
     private const val KEY_IMPORT_AT = "import_pending_at"
+    private const val KEY_IMPORT_ENGINE = "import_pending_engine"
 
     /** 截图监听：截完图自动问「要不要识别成待办」。 */
     private const val KEY_SHOT_WATCH = "shot_watch_enabled"
@@ -149,7 +150,17 @@ object Prefs {
 
     // ---------------- 截图识别现场 ----------------
 
-    data class PendingImport(val uri: String, val raw: String, val at: Long)
+    /**
+     * 上次识别的现场。[engine] 决定「怎么把它读回来」：
+     * 云端存的是模型输出的 JSON，本地存的是 OCR 原文——两种格式混着按 JSON 解，
+     * 本地的结果会被当成「已失效」白丢一次。
+     */
+    data class PendingImport(
+        val uri: String,
+        val raw: String,
+        val at: Long,
+        val engine: String = ENGINE_CLOUD
+    )
 
     fun pendingImport(context: Context): PendingImport? {
         val p = sp(context)
@@ -158,16 +169,23 @@ object Prefs {
         return PendingImport(
             uri = p.getString(KEY_IMPORT_URI, "").orEmpty(),
             raw = raw,
-            at = p.getLong(KEY_IMPORT_AT, 0L)
+            at = p.getLong(KEY_IMPORT_AT, 0L),
+            engine = p.getString(KEY_IMPORT_ENGINE, ENGINE_CLOUD).orEmpty().ifBlank { ENGINE_CLOUD }
         )
     }
 
-    fun savePendingImport(context: Context, uri: String, raw: String) {
+    fun savePendingImport(
+        context: Context,
+        uri: String,
+        raw: String,
+        engine: String = ENGINE_CLOUD
+    ) {
         if (raw.isBlank()) return
         sp(context).edit()
             .putString(KEY_IMPORT_URI, uri)
             .putString(KEY_IMPORT_RAW, raw)
             .putLong(KEY_IMPORT_AT, System.currentTimeMillis())
+            .putString(KEY_IMPORT_ENGINE, engine)
             .apply()
     }
 
@@ -176,6 +194,7 @@ object Prefs {
             .remove(KEY_IMPORT_URI)
             .remove(KEY_IMPORT_RAW)
             .remove(KEY_IMPORT_AT)
+            .remove(KEY_IMPORT_ENGINE)
             .apply()
     }
 
