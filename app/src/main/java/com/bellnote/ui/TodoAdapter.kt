@@ -52,8 +52,11 @@ class TodoAdapter(
     fun submit(newItems: List<TodoItem>) {
         source = newItems
         val next = buildRows(newItems, collapsed)
-        dispatch(rows, next)
+        // 先换 rows 再派发：RecyclerView 在 dispatch 期间就会回读 getItemCount()，
+        // 顺序反了会出现「有的条目跟着动、有的直接跳位」。
+        val old = rows
         rows = next
+        dispatch(old, next)
     }
 
     /**
@@ -139,16 +142,20 @@ class TodoAdapter(
 
     private fun bindHeader(holder: HeaderHolder, row: Row.Header) {
         holder.text.text = if (row.collapsed) "${row.label} · ${row.count}" else row.label
-        // 收起时箭头朝右，展开时朝下；转过去，别直接跳
+        // 收起时箭头朝右，展开时朝下；先转，别等列表动完（这一下就是「我点到了」的回执）
         val target = if (row.collapsed) 0f else 90f
         if (holder.arrow.rotation != target) {
             holder.arrow.animate()
                 .rotation(target)
-                .setDuration(130L)
+                .setDuration(120L)
                 .setInterpolator(DecelerateInterpolator())
                 .start()
         }
-        holder.itemView.setOnClickListener { toggleGroup(row.label) }
+        holder.itemView.setOnClickListener {
+            // 手指上给一点点震感，收展这种「看不见结果」的操作靠它确认
+            it.performHapticFeedback(android.view.HapticFeedbackConstants.CONTEXT_CLICK)
+            toggleGroup(row.label)
+        }
     }
 
     /** 收起/展开：重建行、交给 DiffUtil，收起的那几条自己滑走/滑进来。 */
@@ -157,8 +164,9 @@ class TodoAdapter(
         if (!collapsed.remove(label)) collapsed.add(label)
 
         val next = buildRows(source, collapsed)
-        dispatch(rows, next)
+        val old = rows
         rows = next
+        dispatch(old, next)
         onCollapseChanged(collapsed.toSet())
     }
 
