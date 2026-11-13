@@ -24,8 +24,7 @@ class TodoAdapter(
     items: List<TodoItem> = emptyList(),
     collapsedGroups: Set<String> = emptySet(),
     expandedGroups: Set<String> = emptySet(),
-    /** 点卡片时把「标题那个 View」一起带出去，共享元素转场要用它当起点。 */
-    private val onClick: (TodoItem, View) -> Unit,
+    private val onClick: (TodoItem) -> Unit,
     private val onLongClick: (TodoItem) -> Unit,
     private val onGroupStateChanged: (collapsed: Set<String>, expanded: Set<String>) -> Unit =
         { _, _ -> }
@@ -200,9 +199,7 @@ class TodoAdapter(
         styleProgressFill(holder)
         styleCardShadow(holder)
         bindProgress(holder, item)
-        // 每张卡的标题要给一个不重复的转场名，否则同名的视图会让共享元素找不到起点
-        holder.title.transitionName = "todoTitle-${item.id}"
-        holder.itemView.setOnClickListener { onClick(item, holder.title) }
+        holder.itemView.setOnClickListener { onClick(item) }
         holder.itemView.setOnLongClickListener {
             onLongClick(item)
             true
