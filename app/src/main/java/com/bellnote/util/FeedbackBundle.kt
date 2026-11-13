@@ -165,13 +165,14 @@ object FeedbackBundle {
     private fun settings(context: Context): List<Pair<String, String>> = listOf(
         "配色" to "${ThemeManager.labelOf(Prefs.theme(context))}（${Prefs.theme(context)}）",
         "深浅色" to ThemeManager.nightModeLabel(Prefs.themeMode(context)),
-        "识别方式" to when (Prefs.ocrEngine(context)) {
-            Prefs.ENGINE_LOCAL -> "只用本地（ML Kit）"
-            Prefs.ENGINE_CLOUD -> "只用云端（DeepSeek）"
-            Prefs.ENGINE_LLM -> "本地模型（Gemma 3 1B 离线，已下载=" +
-                com.bellnote.ai.LocalLlm.isReady(context) + "）"
-            Prefs.ENGINE_AUTO -> "自动（联网走云端，断网用本地）"
-            else -> "还没选过"
+        "识别方式" to buildString {
+            append(if (Prefs.cloudModelEnabled(context)) "云端模型开" else "云端模型关")
+            append(" / ")
+            append(if (Prefs.localModelEnabled(context)) "本地模型开" else "本地模型关")
+            append(" / 本地规则常亮")
+            if (Prefs.localModelEnabled(context)) {
+                append("（模型已下载=").append(com.bellnote.ai.LocalLlm.isReady(context)).append("）")
+            }
         },
         "视觉模型" to Prefs.model(context),
         "API Key" to Diagnostics.maskSecret(Prefs.apiKey(context)),

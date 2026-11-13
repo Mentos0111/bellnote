@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/bnWindowBg"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="28dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="启用云端模型"
+                    android:textColor="?attr/bnTextPrimary"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="关掉就跳过云端，本地规则照样能用"
+                    android:textColor="?attr/bnTextSecondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/swCloud"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <TextView
+            style="@style/FormLabel"
+            android:layout_marginTop="18dp"
+            android:text="服务地址" />
+
+        <EditText
+            android:id="@+id/etBaseUrl"
+            style="@style/FormInput"
+            android:hint="https://api.deepseek.com"
+            android:inputType="textUri" />
+
+        <TextView
+            style="@style/HintText"
+            android:layout_marginTop="4dp"
+            android:text="任何 OpenAI 兼容地址都行，例如 https://api.deepseek.com、https://dashscope.aliyuncs.com/compatible-mode/v1。" />
+
+        <TextView
+            style="@style/FormLabel"
+            android:text="API Key" />
+
+        <EditText
+            android:id="@+id/etApiKey"
+            style="@style/FormInput"
+            android:hint="sk-…"
+            android:inputType="textPassword" />
+
+        <TextView
+            style="@style/FormLabel"
+            android:text="视觉模型" />
+
+        <EditText
+            android:id="@+id/etModel"
+            style="@style/FormInput"
+            android:inputType="text" />
+
+        <Button
+            android:id="@+id/btnListModels"
+            style="@style/BtnTonal"
+            android:layout_marginTop="14dp"
+            android:text="读取模型列表" />
+
+        <TextView
+            android:id="@+id/tvCloudState"
+            style="@style/HintText"
+            android:layout_marginTop="8dp" />
+
+        <Button
+            android:id="@+id/btnSaveCloud"
+            style="@style/BtnPrimary"
+            android:layout_marginTop="18dp"
+            android:text="保存" />
+
+        <TextView
+            style="@style/HintText"
+            android:layout_marginTop="12dp"
+            android:text="云端只在「开着 + 有 Key + 有网」时才会被调用；失败会自动退到本地模型或本地规则，不会让你空手。" />
+    </LinearLayout>
+</ScrollView>

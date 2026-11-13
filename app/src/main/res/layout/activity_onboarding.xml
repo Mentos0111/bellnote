@@ -237,21 +237,8 @@
                 android:textSize="14sp" />
 
             <TextView
-                style="@style/FormLabel"
-                android:layout_marginTop="14dp"
-                android:text="@string/onboarding_engine_label" />
-
-            <Spinner
-                android:id="@+id/spOnbEngine"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:background="@drawable/bg_input"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp" />
-
-            <TextView
                 style="@style/HintText"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="10dp"
                 android:text="@string/onboarding_engine_hint" />
 
             <TextView

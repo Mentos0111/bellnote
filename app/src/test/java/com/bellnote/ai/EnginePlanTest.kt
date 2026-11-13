@@ -1,81 +1,84 @@
 package com.bellnote.ai
 
-import com.bellnote.data.Prefs
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * 识别方式的调度表：这台机器上「按什么顺序试」只由这里决定。
- * 重点保两条：自动模式断网/无 Key 不试云端；装了本地模型时自动模式会用上它。
+ * 识别链路的调度表。
+ *
+ * 规则：本地规则永远在最后兜底；云端要「开着 + 有 Key + 有网」才排进去；
+ * 本地模型要「开着 + 已下载」才排进去。
  */
 class EnginePlanTest {
 
-    private fun chain(mode: String, key: Boolean = true, online: Boolean = true, llm: Boolean = false) =
-        EnginePlan.chain(EnginePlan.Input(mode = mode, hasKey = key, online = online, llmReady = llm))
+    private fun chain(
+        cloud: Boolean = false,
+        local: Boolean = false,
+        key: Boolean = true,
+        online: Boolean = true,
+        llmReady: Boolean = false
+    ) = EnginePlan.chain(
+        EnginePlan.Input(
+            cloudOn = cloud,
+            localOn = local,
+            hasKey = key,
+            online = online,
+            llmReady = llmReady
+        )
+    )
 
     @Test
-    fun `自动 有网有Key 没模型：云端再本地`() {
+    fun `什么都不开：只剩本地规则`() {
+        assertEquals(listOf(EnginePlan.Engine.LOCAL), chain())
+    }
+
+    @Test
+    fun `只开云端：云端再规则`() {
         assertEquals(
             listOf(EnginePlan.Engine.CLOUD, EnginePlan.Engine.LOCAL),
-            chain(Prefs.ENGINE_AUTO)
+            chain(cloud = true)
         )
     }
 
     @Test
-    fun `自动 有网有Key 有模型：云端 模型 本地`() {
+    fun `只开本地模型：模型再规则`() {
+        assertEquals(
+            listOf(EnginePlan.Engine.LLM, EnginePlan.Engine.LOCAL),
+            chain(local = true, llmReady = true)
+        )
+    }
+
+    @Test
+    fun `两个都开：云端 模型 规则`() {
         assertEquals(
             listOf(EnginePlan.Engine.CLOUD, EnginePlan.Engine.LLM, EnginePlan.Engine.LOCAL),
-            chain(Prefs.ENGINE_AUTO, llm = true)
+            chain(cloud = true, local = true, llmReady = true)
         )
     }
 
     @Test
-    fun `自动 断网但有模型：跳过云端，先用模型`() {
-        assertEquals(
-            listOf(EnginePlan.Engine.LLM, EnginePlan.Engine.LOCAL),
-            chain(Prefs.ENGINE_AUTO, online = false, llm = true)
-        )
+    fun `云端没配 Key 就不排它`() {
+        assertEquals(listOf(EnginePlan.Engine.LOCAL), chain(cloud = true, key = false))
     }
 
     @Test
-    fun `自动 没Key：不调云端`() {
+    fun `断网跳过云端`() {
         assertEquals(
             listOf(EnginePlan.Engine.LOCAL),
-            chain(Prefs.ENGINE_AUTO, key = false)
+            chain(cloud = true, online = false)
         )
     }
 
     @Test
-    fun `自动 断网又没模型：只剩本地规则`() {
-        assertEquals(
-            listOf(EnginePlan.Engine.LOCAL),
-            chain(Prefs.ENGINE_AUTO, online = false)
-        )
-    }
-
-    @Test
-    fun `只用本地：只有规则`() {
-        assertEquals(listOf(EnginePlan.Engine.LOCAL), chain(Prefs.ENGINE_LOCAL, llm = true))
-    }
-
-    @Test
-    fun `只用云端：只有云端，失败不降级`() {
-        assertEquals(listOf(EnginePlan.Engine.CLOUD), chain(Prefs.ENGINE_CLOUD, online = false))
-    }
-
-    @Test
-    fun `本地模型：模型没出结果也退回规则`() {
+    fun `断网但模型开着：先用模型`() {
         assertEquals(
             listOf(EnginePlan.Engine.LLM, EnginePlan.Engine.LOCAL),
-            chain(Prefs.ENGINE_LLM, llm = false)
+            chain(cloud = true, local = true, online = false, llmReady = true)
         )
     }
 
     @Test
-    fun `没选过按自动算`() {
-        assertEquals(
-            listOf(EnginePlan.Engine.CLOUD, EnginePlan.Engine.LOCAL),
-            chain("", llm = false)
-        )
+    fun `模型开了但没下载：走规则，不排队`() {
+        assertEquals(listOf(EnginePlan.Engine.LOCAL), chain(local = true, llmReady = false))
     }
 }

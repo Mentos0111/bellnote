@@ -1,36 +1,31 @@
 package com.bellnote.ai
 
-import com.bellnote.data.Prefs
-
 /**
- * 「识别方式」的调度表：给定模式与当前条件，算出这次要按什么顺序试。
+ * 识别链路：本地规则永远是地板，云端模型 / 本地模型是两张可开可关的「增强卡」。
  *
- * 为什么要单独算：以前云端 / 本地模型 / 本地规则各写一套回退，改一处忘一处；
- * 现在顺序只在这一个地方定义，导入页按顺序执行、拿到结果就停。
+ * - 两个都开：云端 → 本地模型 → 本地规则（越准越优先，失败就退下一个）
+ * - 只开云端：云端 → 本地规则
+ * - 只开本地模型：本地模型 → 本地规则
+ * - 都不开：只用本地规则
  *
- * 顺序原则：越准的越前，失败才退到下一个；「自动」在没有网络或没有 Key 时直接跳过云端。
+ * 顺序只在这一个地方定义，导入页按顺序执行、拿到结果就停。
  */
 object EnginePlan {
 
     enum class Engine { CLOUD, LLM, LOCAL }
 
     data class Input(
-        /** [Prefs.ocrEngine] 的值；空串表示还没选过（按自动算）。 */
-        val mode: String,
+        val cloudOn: Boolean,
+        val localOn: Boolean,
         val hasKey: Boolean,
         val online: Boolean,
+        /** 本地模型下载好没有：没下好就算开了也走不了 */
         val llmReady: Boolean
     )
 
-    fun chain(input: Input): List<Engine> = when (input.mode) {
-        Prefs.ENGINE_CLOUD -> listOf(Engine.CLOUD)
-        Prefs.ENGINE_LOCAL -> listOf(Engine.LOCAL)
-        // 选了本地模型：模型没装/没出结果时退回规则，不让用户空手
-        Prefs.ENGINE_LLM -> listOf(Engine.LLM, Engine.LOCAL)
-        else -> buildList {
-            if (input.online && input.hasKey) add(Engine.CLOUD)
-            if (input.llmReady) add(Engine.LLM)
-            add(Engine.LOCAL)
-        }
+    fun chain(input: Input): List<Engine> = buildList {
+        if (input.cloudOn && input.hasKey && input.online) add(Engine.CLOUD)
+        if (input.localOn && input.llmReady) add(Engine.LLM)
+        add(Engine.LOCAL)
     }
 }

@@ -1,4 +1,4 @@
-﻿package com.bellnote.ai
+package com.bellnote.ai
 
 import com.bellnote.data.DEFAULT_DURATION_MINUTES
 import com.bellnote.data.PARSED_DEFAULT_DURATION_MINUTES
@@ -24,7 +24,8 @@ object VisionExtractor {
 
     private data class Response(val code: Int, val body: String)
 
-    private const val ENDPOINT = "https://api.deepseek.com/chat/completions"
+    /** 默认服务地址；用户也可以填别的 OpenAI 兼容地址（Qwen、硅基、自建网关都行）。 */
+    const val DEFAULT_BASE_URL = "https://api.deepseek.com"
 
     /**
      * 系统提示。**必须把「现在是什么时候」告诉模型**，否则它会把「明天」瞎算成随便一年 —
@@ -106,12 +107,13 @@ object VisionExtractor {
         apiKey: String,
         model: String,
         jpegBase64: String,
-        now: Long = System.currentTimeMillis()
+        now: Long = System.currentTimeMillis(),
+        baseUrl: String = DEFAULT_BASE_URL
     ): Outcome {
-        if (apiKey.isBlank()) return Outcome(null, "还没配置 DeepSeek API Key")
+        if (apiKey.isBlank()) return Outcome(null, "还没配置云端 API Key")
 
         var usedModel = model
-        var response = postWithRetry(apiKey, buildPayload(model, jpegBase64, now))
+        var response = postWithRetry(apiKey, buildPayload(model, jpegBase64, now), baseUrl)
         var note = ""
 
         // 模型名被平台拒绝时（400 + supported API model names），自动换一个平台支持的模型重试一次
@@ -120,7 +122,7 @@ object VisionExtractor {
             val alternative = pickAlternative(supported, model)
             if (alternative != null) {
                 usedModel = alternative
-                val retry = postWithRetry(apiKey, buildPayload(alternative, jpegBase64, now))
+                val retry = postWithRetry(apiKey, buildPayload(alternative, jpegBase64, now), baseUrl)
                 response = retry
                 note = "（模型名 $model 不被支持，已自动改用 $alternative）"
             }
@@ -271,10 +273,10 @@ object VisionExtractor {
             .ifBlank { null }
     }
 
-    private fun post(apiKey: String, payload: String): Response {
+    private fun post(apiKey: String, payload: String, baseUrl: String): Response {
         var connection: HttpURLConnection? = null
         return try {
-            val conn = (URL(ENDPOINT).openConnection() as HttpURLConnection).apply {
+            val conn = (URL(chatEndpoint(baseUrl)).openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
                 connectTimeout = 20_000
                 readTimeout = 120_000
@@ -295,15 +297,21 @@ object VisionExtractor {
     }
 
     /** 网络断 / 超时 / 5xx 自动重试一次；4xx（Key 错、参数错）不重试，重试也没用。 */
-    private fun postWithRetry(apiKey: String, payload: String): Response {
-        var response = post(apiKey, payload)
+    private fun postWithRetry(apiKey: String, payload: String, baseUrl: String): Response {
+        var response = post(apiKey, payload, baseUrl)
         var attempt = 1
         while (attempt < MAX_ATTEMPTS && (response.code == -1 || response.code >= 500)) {
             Thread.sleep(1_000L * attempt)
-            response = post(apiKey, payload)
+            response = post(apiKey, payload, baseUrl)
             attempt++
         }
         return response
+    }
+
+    /** 只接受 OpenAI 兼容写法：{base}/chat/completions。 */
+    internal fun chatEndpoint(baseUrl: String): String {
+        val base = baseUrl.trim().trimEnd('/').ifBlank { DEFAULT_BASE_URL }
+        return if (base.endsWith("/chat/completions")) base else "$base/chat/completions"
     }
 
     /** 从 400 报错里抠出平台支持的模型名。 */

@@ -4,8 +4,6 @@ import android.Manifest
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.View
 import android.view.MenuItem
 import android.widget.AdapterView
@@ -20,7 +18,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.bellnote.ai.LocalLlm
-import com.bellnote.ai.ModelDownloader
+import com.bellnote.ai.LocalModels
 import com.bellnote.util.SidebarEntry
 import com.bellnote.util.ThemeManager
 import com.bellnote.R
@@ -42,14 +40,11 @@ import com.bellnote.util.SystemPages
 class SettingsActivity : AppCompatActivity() {
 
     private val repository by lazy { CalendarRepository(this) }
-    private val uiHandler = Handler(Looper.getMainLooper())
     private var calendars: List<CalendarRepository.CalendarInfo> = emptyList()
 
     private lateinit var spCalendar: Spinner
     private lateinit var tvCalendarHint: TextView
     private lateinit var etRemind: EditText
-    private lateinit var etApiKey: EditText
-    private lateinit var etModel: EditText
     private lateinit var cbReconcile: CheckBox
     private lateinit var cbReconcileNotify: CheckBox
     private lateinit var spReconcileInterval: Spinner
@@ -99,8 +94,6 @@ class SettingsActivity : AppCompatActivity() {
         spCalendar = findViewById(R.id.spCalendar)
         tvCalendarHint = findViewById(R.id.tvCalendarHint)
         etRemind = findViewById(R.id.etRemind)
-        etApiKey = findViewById(R.id.etApiKey)
-        etModel = findViewById(R.id.etModel)
         cbReconcile = findViewById(R.id.cbReconcile)
         cbReconcileNotify = findViewById(R.id.cbReconcileNotify)
         spReconcileInterval = findViewById(R.id.spReconcileInterval)
@@ -108,11 +101,9 @@ class SettingsActivity : AppCompatActivity() {
         btnMediaPerm = findViewById(R.id.btnMediaPerm)
         setupThemeSpinner()
         setupThemeModeSpinner()
-        setupEngineChooser()
+        setupEngineCards()
 
         etRemind.setText(Prefs.remindMinutes(this).ifEmpty { listOf(1440, 60) }.joinToString(","))
-        etApiKey.setText(Prefs.apiKey(this))
-        etModel.setText(Prefs.model(this))
         cbReconcile.isChecked = Prefs.reconcileEnabled(this)
         cbReconcileNotify.isChecked = Prefs.reconcileNotify(this)
         cbShotWatch.isChecked = Prefs.shotWatchEnabled(this)
@@ -214,162 +205,62 @@ class SettingsActivity : AppCompatActivity() {
         loadCalendars()
     }
 
-    // ---------------- 识别方式（四行单选 + 本地模型） ----------------
+    // ---------------- 识别方式（本地规则 → 云端模型 / 本地模型） ----------------
 
-    private var llmTicker: Runnable? = null
-
-    /** 一行 = 一个识别方式；点整行就选中，选中的那行右侧打勾。 */
-    private data class EngineRow(val engine: String, val rowId: Int, val checkId: Int)
-
-    private val engineRows by lazy {
-        listOf(
-            EngineRow(Prefs.ENGINE_AUTO, R.id.engineAuto, R.id.engineAutoCheck),
-            EngineRow(Prefs.ENGINE_LOCAL, R.id.engineLocal, R.id.engineLocalCheck),
-            EngineRow(Prefs.ENGINE_LLM, R.id.engineLlm, R.id.engineLlmCheck),
-            EngineRow(Prefs.ENGINE_CLOUD, R.id.engineCloud, R.id.engineCloudCheck)
-        )
-    }
-
-    private fun setupEngineChooser() {
-        engineRows.forEach { row ->
-            findViewById<View>(row.rowId).setOnClickListener { pickEngine(row.engine) }
+    private fun setupEngineCards() {
+        findViewById<View>(R.id.cardCloud).setOnClickListener {
+            startActivity(Intent(this, CloudModelActivity::class.java))
         }
-        findViewById<Button>(R.id.btnLlmAction).setOnClickListener { onLlmAction() }
-        renderEngineUi()
-    }
-
-    private fun pickEngine(engine: String) {
-        val previous = Prefs.ocrEngine(this)
-        Prefs.setOcrEngine(this, engine)
-        renderEngineUi()
-        // 选了本地模型但还没下：直接问一句，别让人自己找下载入口
-        if (engine == Prefs.ENGINE_LLM && previous != engine && !LocalLlm.isReady(this)) {
-            confirmDownloadModel()
+        findViewById<View>(R.id.cardLocal).setOnClickListener {
+            startActivity(Intent(this, LocalModelActivity::class.java))
         }
+        renderEngineCards()
     }
 
-    private fun confirmDownloadModel() {
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("下载本地模型？")
-            .setMessage("657 MB，下载一次就一直在手机上，之后断网也能识别。不想现在下可以先取消，识别方式保留不动。")
-            .setPositiveButton("下载") { _, _ -> startModelDownload() }
-            .setNegativeButton("先不下", null)
-            .show()
-    }
+    /** 三张卡的亮/暗与状态：亮了=这一路会参与识别。 */
+    private fun renderEngineCards() {
+        val cloudOn = Prefs.cloudModelEnabled(this)
+        val hasKey = Prefs.apiKey(this).isNotBlank()
+        val localOn = Prefs.localModelEnabled(this)
+        val localModel = LocalModels.selected(this)
+        val localReady = LocalModels.isReady(this, localModel)
 
-    private fun startModelDownload() {
-        if (ModelDownloader.enqueue(this)) {
-            toast("开始下载，通知栏也能看进度")
-        } else {
-            toast("下载没起来，检查一下网络")
+        lit(R.id.cardCloud, R.id.cardCloudCheck, R.id.tvCardCloudTitle, R.id.tvCardCloudState, cloudOn)
+        lit(R.id.cardLocal, R.id.cardLocalCheck, R.id.tvCardLocalTitle, R.id.tvCardLocalState, localOn)
+
+        findViewById<TextView>(R.id.tvCardCloudState).text = when {
+            !cloudOn -> "未启用"
+            !hasKey -> "已开 · 缺 Key"
+            else -> "已启用 · ${Prefs.model(this)}"
         }
-        renderEngineUi()
-    }
-
-    /** 本地模型那一块的动作按钮：没下就下，下着就取消，下好了就试跑。 */
-    private fun onLlmAction() {
-        when (ModelDownloader.status(this)) {
-            ModelDownloader.Status.Ready -> runLocalLlmProbe()
-            is ModelDownloader.Status.Downloading -> confirmCancelDownload()
-            else -> startModelDownload()
-        }
-    }
-
-    private fun confirmCancelDownload() {
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("取消下载？")
-            .setMessage("已经下了一部分，取消后下次要重新开始。")
-            .setPositiveButton("取消下载") { _, _ ->
-                ModelDownloader.cancel(this)
-                renderEngineUi()
-            }
-            .setNegativeButton("继续下", null)
-            .show()
-    }
-
-    /** 勾选状态、本地模型的小状态、下面的下载/试跑块，都从这里统一刷。 */
-    private fun renderEngineUi() {
-        val current = Prefs.ocrEngine(this).ifBlank { Prefs.ENGINE_AUTO }
-        engineRows.forEach { row ->
-            findViewById<ImageView>(row.checkId).visibility =
-                if (row.engine == current) View.VISIBLE else View.INVISIBLE
-        }
-
-        val state = ModelDownloader.status(this)
-        // 状态直接写在「本地模型」那行的说明里，不再挤一个右侧小字（会跟说明抢位置）
-        findViewById<TextView>(R.id.tvEngineLlmDesc).text = when (state) {
-            ModelDownloader.Status.Ready -> "手机上的 AI；失败会退回本地规则"
-            is ModelDownloader.Status.Downloading -> "手机上的 AI；正在下载 ${state.percent}%"
-            is ModelDownloader.Status.Failed -> "手机上的 AI；上次没下完"
-            ModelDownloader.Status.Missing -> "手机上的 AI；要先下载 657 MB"
-        }
-
-        llmTicker?.let { uiHandler.removeCallbacks(it) }
-        llmTicker = null
-
-        // 只有选了本地模型、或者正在下载时才展开，平时不占地方
-        val panel = findViewById<View>(R.id.llmPanel)
-        val showPanel = current == Prefs.ENGINE_LLM || state is ModelDownloader.Status.Downloading
-        panel.visibility = if (showPanel) View.VISIBLE else View.GONE
-        if (!showPanel) return
-
-        val button = findViewById<Button>(R.id.btnLlmAction)
-        val status = findViewById<TextView>(R.id.tvLlmStatus)
-        val totalMb = ModelDownloader.EXPECTED_BYTES / 1024 / 1024
-        when (state) {
-            ModelDownloader.Status.Ready -> {
-                button.text = "试跑一次"
-                status.text = "已就绪（$totalMb MB），识别时不联网。"
-            }
-            is ModelDownloader.Status.Downloading -> {
-                button.text = "取消下载"
-                status.text = "已下 ${state.bytes / 1024 / 1024} / $totalMb MB，通知栏也能看进度"
-                val tick = Runnable { renderEngineUi() }
-                llmTicker = tick
-                uiHandler.postDelayed(tick, 1000)
-            }
-            is ModelDownloader.Status.Failed -> {
-                button.text = "重新下载（$totalMb MB）"
-                status.text = "${state.reason}，点按钮重下"
-            }
-            ModelDownloader.Status.Missing -> {
-                button.text = "下载模型（$totalMb MB）"
-                status.text = "还没下载：下载一次，之后断网也能用它识别。"
-            }
+        findViewById<TextView>(R.id.tvCardLocalState).text = when {
+            !localOn -> "未启用"
+            !localReady -> "已开 · 未下载"
+            else -> "已启用 · ${localModel.short}"
         }
     }
 
     /**
-     * 离线大模型试跑：拿一段固定样例（就像聊天截图里的几行）跑一遍，
-     * 把耗时 / 原始输出 / 解析结果摊出来。
+     * 点亮 = 整张卡填主题色、文字换成 onPrimary、右上角打勾。
+     * 不用描边：深色配色下描边几乎看不出来，填色的开/关对比最直接。
      */
-    private fun runLocalLlmProbe() {
-        val sample = "化学课\n11月14日 周六\n20:30\n把第三章错题重做一遍\n明天 9:00 交实验报告"
-        toast("正在跑离线模型，第一次要几秒…")
-        Thread {
-            val probe = com.bellnote.ai.LocalLlm.probe(this, sample)
-            runOnUiThread {
-                val lines = buildString {
-                    appendLine("耗时：${probe.millis} ms")
-                    appendLine("解析出：${probe.specs.size} 条")
-                    probe.specs.forEach {
-                        appendLine(
-                            "· ${it.title} | ${com.bellnote.util.TimeFormat.full(it.startMillis)}" +
-                                " | ${it.durationMinutes} 分钟"
-                        )
-                    }
-                    probe.error?.let { appendLine("错误：$it") }
-                    appendLine()
-                    appendLine("原始输出：")
-                    appendLine(probe.raw.take(1500))
-                }
-                androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setTitle("离线模型试跑")
-                    .setMessage(lines)
-                    .setPositiveButton("知道了", null)
-                    .show()
-            }
-        }.start()
+    private fun lit(cardId: Int, checkId: Int, titleId: Int, stateId: Int, on: Boolean) {
+        findViewById<View>(cardId)
+            .setBackgroundResource(if (on) R.drawable.bg_card_primary else R.drawable.bg_card)
+        val titleColor = themeColor(if (on) R.attr.bnOnPrimary else R.attr.bnTextPrimary)
+        val subColor = themeColor(if (on) R.attr.bnOnPrimary else R.attr.bnTextSecondary)
+        findViewById<TextView>(titleId).setTextColor(titleColor)
+        findViewById<TextView>(stateId).setTextColor(subColor)
+
+        val check = findViewById<ImageView>(checkId)
+        // 占位常驻（INVISIBLE 而不是 GONE），两张卡的标题宽度才一致
+        check.visibility = if (on) View.VISIBLE else View.INVISIBLE
+        check.imageTintList = android.content.res.ColorStateList.valueOf(titleColor)
+    }
+
+    private fun themeColor(attr: Int): Int {
+        val value = android.util.TypedValue()
+        return if (theme.resolveAttribute(attr, value, true)) value.data else android.graphics.Color.GRAY
     }
 
     /** 配色主题：选中即生效，直接 recreate 让整页换成新调色板。 */
@@ -430,17 +321,11 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    /** 从「第三方通知」页回来时刷新这行状态。 */
+    /** 从子页面回来时刷新识别卡片（开关、缺 Key、模型下载状态都可能变了）。 */
     override fun onResume() {
         super.onResume()
         renderNtfyEntry()
-        renderEngineUi()
-    }
-
-    override fun onDestroy() {
-        llmTicker?.let { uiHandler.removeCallbacks(it) }
-        llmTicker = null
-        super.onDestroy()
+        renderEngineCards()
     }
 
 
@@ -621,8 +506,6 @@ class SettingsActivity : AppCompatActivity() {
             .take(Prefs.MAX_REMINDERS)
         val effective = minutes.ifEmpty { listOf(1440, 60) }
         Prefs.setRemindMinutes(this, effective)
-        Prefs.setApiKey(this, etApiKey.text.toString())
-        Prefs.setModel(this, etModel.text.toString())
         Prefs.setShotWatchEnabled(this, cbShotWatch.isChecked)
         if (cbShotWatch.isChecked) {
             // 打开截图监听时才要相册权限，没给就当场问一次

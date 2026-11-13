@@ -26,25 +26,20 @@ object LocalLlm {
     private const val TAG = "LocalLlm"
 
     const val MODEL_DIR = "models"
-    const val MODEL_NAME = "gemma3-1b-it-q4.task"
-
-    /** 小于这个体积的肯定是没下完的残包，别拿去加载（加载会直接崩）。 */
-    const val MIN_BYTES = 600L * 1024 * 1024
 
     /** 送进模型的屏幕文字上限：再多也只是浪费 token，还容易跑偏。 */
     private const val MAX_INPUT_CHARS = 1_200
 
+    /** 当前选中的模型文件（[LocalModels] 里选哪个就是哪个）。 */
     fun modelFile(context: Context): File =
-        File(File(context.getExternalFilesDir(null), MODEL_DIR), MODEL_NAME)
+        LocalModels.file(context, LocalModels.selected(context))
 
     fun isReady(context: Context): Boolean {
-        val file = modelFile(context)
-        val ok = file.isFile && file.length() > MIN_BYTES
-        Log.i(
-            "LocalLlm",
-            "模型检查 path=${file.absolutePath} exists=${file.exists()} file=${file.isFile} " +
-                "readable=${file.canRead()} size=${file.length()} ok=$ok"
-        )
+        val ok = LocalModels.isReady(context, LocalModels.selected(context))
+        if (!ok) {
+            val file = modelFile(context)
+            Log.i("LocalLlm", "模型未就绪 path=${file.absolutePath} size=${file.length()}")
+        }
         return ok
     }
 

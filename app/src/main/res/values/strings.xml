@@ -211,9 +211,11 @@
     <string name="feedback_onboarding_hint">包里含待办标题和推送原文，API Key 已打码。</string>
     <string name="about_action_feedback">反馈问题（附日志）</string>
 
-    <!-- 识别方式（本地 / 云端） -->
+    <!-- 识别方式（本地规则 / 云端模型 / 本地模型） -->
+    <string name="cloud_model_title">云端模型</string>
+    <string name="local_model_title">本地模型</string>
     <string name="onboarding_engine_label">识别方式</string>
-    <string name="onboarding_engine_hint">自动最省事：有网走云端（更准），没网自动改用本地；只用本地则完全不联网。</string>
+    <string name="onboarding_engine_hint">设置 → 输入渠道 → 截图识别里，本地规则常亮，云端模型 / 本地模型可以分别打开。</string>
 
     <string name="help_rules_title">推送怎么处理</string>
     <string name="help_rules_body">自动把推送写进日历：关掉后只记录，不写日历。\n\n只收带时间的待办（推荐）：不开的话，认不出「标题 / 时间」的推送也会按「当前时间 + 1 小时」塞进日历，很容易堆一堆没用的条目。</string>
