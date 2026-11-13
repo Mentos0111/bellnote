@@ -60,21 +60,213 @@
                 android:layout_marginTop="8dp"
                 android:text="识别方式" />
 
-            <Spinner
-                android:id="@+id/spEngine"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:background="@drawable/bg_input"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp" />
-
-            <TextView
-                android:id="@+id/tvEngineHint"
-                style="@style/HintText"
+            <!-- 四个选项改成可点的行：每个都能写一句「它是什么」，比塞进下拉框好认 -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="自动：有网走云端（更准），断网自动改用本地。本地：绝不联网，只在手机上识别。" />
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp">
+
+                <LinearLayout
+                    android:id="@+id/engineAuto"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_ripple_row"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/AboutKey"
+                            android:layout_width="match_parent"
+                            android:layout_weight="0"
+                            android:text="自动" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="有网走云端（更准），没网自动用本地"
+                            android:textColor="?attr/bnTextSecondary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/engineAutoCheck"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_nav_check"
+                        android:tint="?attr/bnPrimary" />
+                </LinearLayout>
+
+                <View style="@style/AboutDivider" />
+
+                <LinearLayout
+                    android:id="@+id/engineLocal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_ripple_row"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/AboutKey"
+                            android:layout_width="match_parent"
+                            android:layout_weight="0"
+                            android:text="只用本地" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="手机自带 OCR，不联网、不花钱"
+                            android:textColor="?attr/bnTextSecondary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/engineLocalCheck"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_nav_check"
+                        android:tint="?attr/bnPrimary" />
+                </LinearLayout>
+
+                <View style="@style/AboutDivider" />
+
+                <LinearLayout
+                    android:id="@+id/engineLlm"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_ripple_row"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/AboutKey"
+                            android:layout_width="match_parent"
+                            android:layout_weight="0"
+                            android:text="本地模型" />
+
+                        <TextView
+                            android:id="@+id/tvEngineLlmDesc"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="手机上的 AI，能理解口语；要先下载 657 MB"
+                            android:textColor="?attr/bnTextSecondary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/engineLlmCheck"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_nav_check"
+                        android:tint="?attr/bnPrimary" />
+                </LinearLayout>
+
+                <View style="@style/AboutDivider" />
+
+                <LinearLayout
+                    android:id="@+id/engineCloud"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_ripple_row"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/AboutKey"
+                            android:layout_width="match_parent"
+                            android:layout_weight="0"
+                            android:text="只用云端" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="DeepSeek 识别，要 Key 和网络"
+                            android:textColor="?attr/bnTextSecondary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/engineCloudCheck"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_nav_check"
+                        android:tint="?attr/bnPrimary" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 本地模型：只在选它或正在下载时出现，平时不占地方 -->
+            <LinearLayout
+                android:id="@+id/llmPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <Button
+                    android:id="@+id/btnLlmAction"
+                    style="@style/BtnTonal"
+                    android:layout_marginTop="8dp"
+                    android:text="下载模型（657 MB）" />
+
+                <TextView
+                    android:id="@+id/tvLlmStatus"
+                    style="@style/HintText"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
 
             <TextView
                 style="@style/FormLabel"
@@ -438,18 +630,6 @@
                 style="@style/HintText"
                 android:layout_marginTop="6dp"
                 android:text="@string/feedback_entry_hint" />
-
-            <Button
-                android:id="@+id/btnLlmProbe"
-                style="@style/BtnTonal"
-                android:layout_marginTop="14dp"
-                android:text="下载离线模型（约 657 MB）" />
-
-            <TextView
-                android:id="@+id/tvLlmStatus"
-                style="@style/HintText"
-                android:layout_marginTop="6dp"
-                android:text="离线大模型：装好后不联网也能把截图理解成待办，只在「识别方式」选它时才用。" />
 
             <Button
                 android:id="@+id/btnPrivacy"
