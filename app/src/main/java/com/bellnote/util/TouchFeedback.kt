@@ -43,8 +43,8 @@ object TouchFeedback {
         app.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
                 val decor = activity.window?.decorView ?: return
-                decor.viewTreeObserver.addOnGlobalLayoutListener { bindTree(decor) }
-                decor.post { bindTree(decor) }
+                decor.viewTreeObserver.addOnGlobalLayoutListener { scheduleBind(decor) }
+                scheduleBind(decor)
             }
 
             override fun onActivityStarted(activity: Activity) = Unit
@@ -54,6 +54,21 @@ object TouchFeedback {
             override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
             override fun onActivityDestroyed(activity: Activity) = Unit
         })
+    }
+
+    /**
+     * 布局每变一次就扫全树太浪费：抽屉滑入、键盘弹出时一帧一次布局，
+     * 扫树本身又会拖慢动画。合并成 48ms 最多一次，新控件最晚半帧就带上反馈。
+     */
+    private val pendingWalks: MutableSet<View> =
+        java.util.Collections.newSetFromMap(java.util.WeakHashMap<View, Boolean>())
+
+    private fun scheduleBind(root: View) {
+        if (!pendingWalks.add(root)) return
+        root.postDelayed({
+            pendingWalks.remove(root)
+            bindTree(root)
+        }, 48L)
     }
 
     private fun bindTree(root: View) {
