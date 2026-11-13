@@ -4,16 +4,13 @@
     android:viewportWidth="24"
     android:viewportHeight="24"
     android:tint="?attr/bnOnPrimary">
-    <!-- 一支斜着的笔：上端笔杆、下端笔尖，表示「记一条」 -->
+    <!-- 一支斜着的笔：上端笔杆（圆头笔帽）、下端笔尖，表示「记一条」。
+         整支笔是一个闭合路径，笔尖不做单独的短线 —— 之前那条短线在浅色主题下
+         会露出一个错位的方角，看起来像图标缺了一块。 -->
     <path
-        android:pathData="M4.2,19.8 L4.9,16.4 L15.9,5.4 A2.1,2.1 0 0 1 18.9,8.4 L7.9,19.4 Z"
+        android:pathData="M4.4,20.0 L4.9,16.6 L15.9,5.6 A2.1,2.1 0 0 1 18.9,8.6 L8.0,19.5 Z"
         android:fillColor="#FF000000"
         android:strokeColor="#FF000000"
-        android:strokeWidth="0.9"
+        android:strokeWidth="0.6"
         android:strokeLineJoin="round" />
-    <path
-        android:pathData="M3.2,20.8 L6.0,20.1"
-        android:strokeColor="#FF000000"
-        android:strokeWidth="1.6"
-        android:strokeLineCap="round" />
 </vector>
