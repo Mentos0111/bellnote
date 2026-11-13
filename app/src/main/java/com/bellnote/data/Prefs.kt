@@ -42,6 +42,7 @@ object Prefs {
     private const val KEY_NTFY_TOPIC = "ntfy_topic"
     private const val KEY_NTFY_SERVER = "ntfy_server"
     private const val KEY_NTFY_ENABLED = "ntfy_enabled"
+    private const val KEY_NTFY_SETUP_PROMPTED = "ntfy_setup_prompted"
     private const val KEY_NTFY_SINCE = "ntfy_since"
     private const val KEY_CATCHUP_AT = "catchup_last_at"
     private const val KEY_CATCHUP_SUMMARY = "catchup_last_summary"
@@ -250,6 +251,14 @@ object Prefs {
 
     fun setNtfyEnabled(context: Context, on: Boolean) {
         sp(context).edit().putBoolean(KEY_NTFY_ENABLED, on).apply()
+    }
+
+    /** 首次接好 ntfy（开关开着 + 主题非空）时提示过一次后台设置没有。 */
+    fun ntfySetupPrompted(context: Context): Boolean =
+        sp(context).getBoolean(KEY_NTFY_SETUP_PROMPTED, false)
+
+    fun setNtfySetupPrompted(context: Context, done: Boolean) {
+        sp(context).edit().putBoolean(KEY_NTFY_SETUP_PROMPTED, done).apply()
     }
 
     fun ntfyServer(context: Context): String =

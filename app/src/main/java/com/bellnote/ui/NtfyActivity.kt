@@ -12,6 +12,7 @@ import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
 import com.bellnote.R
@@ -20,6 +21,7 @@ import com.bellnote.data.Prefs
 import com.bellnote.service.NtfyFetcher
 import com.bellnote.service.NtfyPollScheduler
 import com.bellnote.service.NtfySender
+import com.bellnote.util.DeviceVendor
 import com.bellnote.util.Help
 import com.bellnote.util.NtfyEndpoint
 import com.bellnote.util.ThemeManager
@@ -73,6 +75,34 @@ class NtfyActivity : AppCompatActivity() {
         bindActions()
         attachHelp()
         renderStatus()
+        maybePromptSetup()
+    }
+
+    /**
+     * 第一次真正接通 ntfy（开关开着 + 主题非空）时讲一次后台要求：
+     * 补查是定时任务，不加白名单会被系统冻结——这是用户最容易漏的一步。
+     * 只弹一次，记在 Prefs.ntfy_setup_prompted。
+     */
+    private fun maybePromptSetup() {
+        if (!Prefs.ntfyEnabled(this)) return
+        if (Prefs.ntfyTopic(this).isBlank()) return
+        if (Prefs.ntfySetupPrompted(this)) return
+        Prefs.setNtfySetupPrompted(this, true)
+        val vendor = DeviceVendor.current()
+        AlertDialog.Builder(this)
+            .setTitle("让补查一直在跑")
+            .setMessage(
+                "ntfy 模式已经接好。要让它定时在后台拉消息，还需要三件事：\n\n" +
+                    "① 电池白名单：允许 Bellnote 在后台运行（最要紧，不加会被冻结）\n" +
+                    "② 自启动：开机或被系统清理后能自己起来\n" +
+                    "③ 通知：App 自己的提醒能弹出来\n\n" +
+                    "先加白名单就够用，另外两项用到时再去开。\n" +
+                    "按你这台机型：${DeviceVendor.backgroundGuide(vendor)}"
+            )
+            .setPositiveButton("去加白名单") { _, _ -> DeviceVendor.openBattery(this) }
+            .setNeutralButton("去开自启动") { _, _ -> DeviceVendor.openAutostart(this) }
+            .setNegativeButton("知道了", null)
+            .show()
     }
 
     override fun onResume() {

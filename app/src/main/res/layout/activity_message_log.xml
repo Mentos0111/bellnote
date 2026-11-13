@@ -41,6 +41,15 @@
         android:layout_marginTop="4dp"
         android:text="@string/ntfy_log_hint" />
 
+    <TextView
+        android:id="@+id/tvLogStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:lineSpacingExtra="3dp"
+        android:textColor="?attr/bnTextSecondary"
+        android:textSize="12sp" />
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"

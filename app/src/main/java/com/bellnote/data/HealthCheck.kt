@@ -34,6 +34,17 @@ object HealthCheck {
         val action: Action = Action.NONE
     )
 
+    /**
+     * 只在 ntfy 模式开着时才该出现的检查项。
+     * 模式关着时它们连「无法判定」都不该算（否则首页灯会显示「可优化」），
+     * 所以缓存里的旧结果也要按当前模式再滤一遍。
+     */
+    val NTFY_ONLY_IDS = setOf("ntfy_poll", "battery", "autostart")
+
+    /** 按当前模式过滤：ntfy 关着就藏掉补查 / 后台 / 自启动三项。 */
+    fun visible(items: List<Item>, ntfyOn: Boolean): List<Item> =
+        if (ntfyOn) items else items.filterNot { it.id in NTFY_ONLY_IDS }
+
     /** 取最严重的那一项 —— 首页的灯只显示它。 */
     fun indicator(items: List<Item>): Item? = items.maxByOrNull { it.status.weight }
 
