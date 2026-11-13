@@ -28,13 +28,16 @@ import com.bellnote.R
  */
 object TouchFeedback {
 
-    private const val PRESS_SCALE = 0.97f
-    private const val DOWN_MS = 80L
-    private const val UP_MS = 240L
+    private const val PRESS_SCALE = 0.975f
+    private const val DOWN_MS = 70L
+    private const val UP_MS = 200L
+    /** 按下不到这么久就松手 = 轻点：直接回位，不做回弹，避免「抖一下」。 */
+    private const val TAP_MS = 110L
 
     private val downInterpolator = DecelerateInterpolator()
-    // 稍微过冲一点点再回到 1.0，就是「弹一下」的手感
-    private val upInterpolator = OvershootInterpolator(1.6f)
+    // 稍微过冲一点点再回到 1.0，就是「弹一下」的手感；1.6 太硬，会像被捏了一下
+    private val upInterpolator = OvershootInterpolator(1.15f)
+    private val tapInterpolator = DecelerateInterpolator()
 
     fun install(app: Application) {
         app.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
@@ -84,10 +87,20 @@ object TouchFeedback {
 
     private fun bindBounce(view: View) {
         markBound(view)
+        var downAt = 0L
         view.setOnTouchListener { v, event ->
             when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> if (v.isEnabled) pressDown(v)
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> release(v)
+                MotionEvent.ACTION_DOWN -> {
+                    downAt = android.os.SystemClock.uptimeMillis()
+                    if (v.isEnabled) pressDown(v)
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    val held = android.os.SystemClock.uptimeMillis() - downAt
+                    release(v, bounce = held >= TAP_MS)
+                }
+
+                MotionEvent.ACTION_CANCEL -> release(v, bounce = false)
             }
             // 返回 false：点击、长按、涟漪仍然交给控件自己处理
             false
@@ -113,13 +126,13 @@ object TouchFeedback {
             .start()
     }
 
-    private fun release(view: View) {
+    private fun release(view: View, bounce: Boolean) {
         view.animate().cancel()
         view.animate()
             .scaleX(1f)
             .scaleY(1f)
-            .setDuration(UP_MS)
-            .setInterpolator(upInterpolator)
+            .setDuration(if (bounce) UP_MS else (UP_MS - 60L))
+            .setInterpolator(if (bounce) upInterpolator else tapInterpolator)
             .start()
     }
 

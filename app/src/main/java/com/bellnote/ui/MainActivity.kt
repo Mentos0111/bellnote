@@ -54,7 +54,8 @@ class MainActivity : AppCompatActivity() {
     private val ticker = android.os.Handler(android.os.Looper.getMainLooper())
     private val tick = object : Runnable {
         override fun run() {
-            adapter.notifyDataSetChanged()
+            // 只更新「还剩多久」那一层，整表别重绑，不然每分钟会抖一下
+            adapter.tickProgress()
             ticker.postDelayed(this, 60_000L)
         }
     }
@@ -62,6 +63,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var drawer: DrawerLayout
     private lateinit var etQuick: EditText
     private var pendingCameraUri: Uri? = null
+    /** 首次进场的错开淡入只演一次，之后靠 DiffUtil 的局部动画。 */
+    private var didPlayEnter = false
 
     private val requestCalendar = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -117,6 +120,13 @@ class MainActivity : AppCompatActivity() {
         val recycler: RecyclerView = findViewById(R.id.recycler)
         recycler.layoutManager = LinearLayoutManager(this)
         recycler.adapter = adapter
+        // 条目动画慢一点、软一点：默认 120ms 的硬切看着像闪
+        recycler.itemAnimator = androidx.recyclerview.widget.DefaultItemAnimator().apply {
+            addDuration = 220L
+            changeDuration = 180L
+            moveDuration = 220L
+            removeDuration = 160L
+        }
 
         setupQuickAdd()
         setupDrawer()
@@ -496,8 +506,7 @@ class MainActivity : AppCompatActivity() {
     private fun refresh() {
         updateStatus()
         if (!Permissions.hasCalendar(this)) {
-            adapter.items = emptyList()
-            adapter.notifyDataSetChanged()
+            adapter.submit(emptyList())
             emptyView.visibility = View.VISIBLE
             emptyView.text = "需要日历权限才能读取待办，点上方卡片去授权"
             return
@@ -505,12 +514,53 @@ class MainActivity : AppCompatActivity() {
         Thread {
             val items = repository.queryOwnEvents()
             runOnUiThread {
-                adapter.items = items
-                adapter.notifyDataSetChanged()
+                adapter.submit(items)
                 emptyView.text = getString(R.string.main_empty)
                 emptyView.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+                if (items.isNotEmpty()) playEnterAnimationOnce()
             }
         }.start()
+    }
+
+    /**
+     * 首次拿到数据时，可见的几张卡错开淡入（26ms 一条、220ms 时长）。
+     * 只跑一次：之后回到页面、每分钟刷新都用 DiffUtil 的局部动画，不再整屏重播。
+     */
+    private fun playEnterAnimationOnce() {
+        if (didPlayEnter) return
+        didPlayEnter = true
+        val recycler = findViewById<RecyclerView>(R.id.recycler)
+        if (recycler.childCount > 0) {
+            staggerIn(recycler)
+            return
+        }
+        // 首次加载时条目还没排过版，等一次布局再演
+        recycler.viewTreeObserver.addOnGlobalLayoutListener(
+            object : android.view.ViewTreeObserver.OnGlobalLayoutListener {
+                override fun onGlobalLayout() {
+                    if (recycler.childCount == 0) return
+                    recycler.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                    staggerIn(recycler)
+                }
+            }
+        )
+    }
+
+    private fun staggerIn(recycler: RecyclerView) {
+        val shift = 8 * resources.displayMetrics.density
+        for (i in 0 until recycler.childCount) {
+            val child = recycler.getChildAt(i) ?: continue
+            child.animate().cancel()
+            child.alpha = 0f
+            child.translationY = shift
+            child.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setStartDelay(i * 26L)
+                .setDuration(220L)
+                .setInterpolator(android.view.animation.DecelerateInterpolator())
+                .start()
+        }
     }
 
     /** 右边那颗灯：同步状态（对账 / 补查 / 写失败），和左边「体检」不是一回事。 */
