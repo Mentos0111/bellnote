@@ -355,11 +355,12 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun bindSection(headId: Int, groupId: Int, arrowId: Int) {
         val group = findViewById<View>(groupId)
+        val head = findViewById<View>(headId)
         val arrow = findViewById<android.widget.ImageView>(arrowId)
         var open = false
         group.visibility = View.GONE
         arrow.rotation = 0f
-        findViewById<View>(headId).setOnClickListener {
+        head.setOnClickListener {
             open = !open
             // 高度动画：以前直接 VISIBLE/GONE 是一刀切，页面上像「闪」了一下
             com.bellnote.util.Expand.setExpanded(group, open)
@@ -368,7 +369,24 @@ class SettingsActivity : AppCompatActivity() {
                 .setDuration(150L)
                 .setInterpolator(android.view.animation.DecelerateInterpolator())
                 .start()
+            if (open) bringSectionIntoView(head, group)
         }
+    }
+
+    /**
+     * 展开后如果这一组的下半截还在屏幕外，就把标题滚到顶部附近——
+     * 否则点下去内容全在视野下面，看着像「点了没反应」。
+     */
+    private fun bringSectionIntoView(head: View, group: View) {
+        val scroll = findViewById<android.widget.ScrollView>(R.id.settingsScroll) ?: return
+        // 等高度动画走完再算位置，否则拿到的还是展开前的高度
+        head.postDelayed({
+            val visibleBelow = scroll.height - (head.top - scroll.scrollY) - head.height
+            if (group.height > visibleBelow) {
+                val density = resources.displayMetrics.density
+                scroll.smoothScrollTo(0, (head.top - 8 * density).toInt().coerceAtLeast(0))
+            }
+        }, 200L)
     }
 
     /** 每个分组的问号：把原来铺在页面上的长说明收进弹窗。 */
