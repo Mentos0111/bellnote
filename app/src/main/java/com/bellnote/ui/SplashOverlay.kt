@@ -116,6 +116,8 @@ object SplashOverlay {
         "indigo" -> R.drawable.ic_launcher_indigo
         "sand" -> R.drawable.ic_launcher_sand
         "ink" -> R.drawable.ic_launcher_ink
+        "pink" -> R.drawable.ic_launcher_pink
+        "sakura" -> R.drawable.ic_launcher_sakura
         else -> R.drawable.ic_launcher_teal
     }
 

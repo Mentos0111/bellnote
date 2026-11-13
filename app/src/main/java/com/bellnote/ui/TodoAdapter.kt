@@ -3,8 +3,10 @@ package com.bellnote.ui
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bellnote.R
 import com.bellnote.data.RepeatRule
@@ -43,6 +45,49 @@ class TodoAdapter(
             rows = buildRows(value, collapsed)
         }
 
+    /**
+     * 整体换数据：走 DiffUtil，只通知真正变了的那几行。
+     * 以前这里是 notifyDataSetChanged()，整表重绑 → 卡片闪一下、新增的没有入场、删掉的直接消失。
+     */
+    fun submit(newItems: List<TodoItem>) {
+        source = newItems
+        val next = buildRows(newItems, collapsed)
+        dispatch(rows, next)
+        rows = next
+    }
+
+    /**
+     * 每分钟的时间进度刷新：只重绑进度条那一小块，不动标题/时间，也不触发条目动画。
+     * 用它替掉整表 notifyDataSetChanged()，首页才不会每分钟抖一次。
+     */
+    fun tickProgress() {
+        if (rows.isEmpty()) return
+        notifyItemRangeChanged(0, rows.size, PAYLOAD_PROGRESS)
+    }
+
+    private fun dispatch(old: List<Row>, next: List<Row>) {
+        DiffUtil.calculateDiff(Differ(old, next), true).dispatchUpdatesTo(this)
+    }
+
+    /** 行的身份：分组按标签认，条目按日历事件 id 认。 */
+    private class Differ(val old: List<Row>, val next: List<Row>) : DiffUtil.Callback() {
+        override fun getOldListSize(): Int = old.size
+        override fun getNewListSize(): Int = next.size
+
+        override fun areItemsTheSame(oldPos: Int, newPos: Int): Boolean {
+            val a = old[oldPos]
+            val b = next[newPos]
+            return when {
+                a is Row.Header && b is Row.Header -> a.label == b.label
+                a is Row.Entry && b is Row.Entry -> a.todo.id == b.todo.id
+                else -> false
+            }
+        }
+
+        override fun areContentsTheSame(oldPos: Int, newPos: Int): Boolean =
+            old[oldPos] == next[newPos]
+    }
+
     class ItemHolder(view: View) : RecyclerView.ViewHolder(view) {
         val title: TextView = view.findViewById(R.id.itemTitle)
         val time: TextView = view.findViewById(R.id.itemTime)
@@ -78,28 +123,42 @@ class TodoAdapter(
         }
     }
 
+    /** 进度条的局部刷新：只重绑「还剩多久」那一层，不重设标题和点击。 */
+    override fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        position: Int,
+        payloads: MutableList<Any>
+    ) {
+        val row = rows.getOrNull(position)
+        if (payloads.contains(PAYLOAD_PROGRESS) && holder is ItemHolder && row is Row.Entry) {
+            bindProgress(holder, row.todo)
+            return
+        }
+        super.onBindViewHolder(holder, position, payloads)
+    }
+
     private fun bindHeader(holder: HeaderHolder, row: Row.Header) {
         holder.text.text = if (row.collapsed) "${row.label} · ${row.count}" else row.label
-        // 收起时箭头朝右，展开时朝下
-        holder.arrow.rotation = if (row.collapsed) 0f else 90f
+        // 收起时箭头朝右，展开时朝下；转过去，别直接跳
+        val target = if (row.collapsed) 0f else 90f
+        if (holder.arrow.rotation != target) {
+            holder.arrow.animate()
+                .rotation(target)
+                .setDuration(170L)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+        }
         holder.itemView.setOnClickListener { toggleGroup(row.label) }
     }
 
-    /** 收起/展开：只通知被插/删的那几行，让 RecyclerView 自己把它们滑走或滑进来。 */
+    /** 收起/展开：重建行、交给 DiffUtil，收起的那几条自己滑走/滑进来。 */
     private fun toggleGroup(label: String) {
-        val headerIndex = rows.indexOfFirst { it is Row.Header && it.label == label }
-        if (headerIndex < 0) return
-        val header = rows[headerIndex] as Row.Header
-        val expanding = header.collapsed
-        if (expanding) collapsed.remove(label) else collapsed.add(label)
+        if (!rows.any { it is Row.Header && it.label == label }) return
+        if (!collapsed.remove(label)) collapsed.add(label)
 
-        rows = buildRows(source, collapsed)
-        notifyItemChanged(headerIndex)
-        if (expanding) {
-            notifyItemRangeInserted(headerIndex + 1, header.count)
-        } else {
-            notifyItemRangeRemoved(headerIndex + 1, header.count)
-        }
+        val next = buildRows(source, collapsed)
+        dispatch(rows, next)
+        rows = next
         onCollapseChanged(collapsed.toSet())
     }
 
@@ -215,6 +274,8 @@ class TodoAdapter(
     companion object {
         private const val TYPE_HEADER = 0
         private const val TYPE_ITEM = 1
+        /** 只刷新卡片上的时间进度，不重绑整条。 */
+        private const val PAYLOAD_PROGRESS = "progress"
 
         private fun dayLabel(millis: Long): String {
             val zone = ZoneId.systemDefault()
