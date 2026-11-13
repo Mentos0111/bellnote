@@ -25,6 +25,8 @@ class App : Application() {
         // 深浅色：跟随系统 / 浅色 / 深色，设置里可改
         ThemeManager.applyNightMode(this)
         ThemeManager.applyLauncherIcon(this)
+        // 礼包 APK：把预置的配色 / ntfy 主题 / Key 写进去（普通安装是空值，直接跳过）
+        com.bellnote.util.SeedConfig.applyIfNeeded(this)
         // 崩了要留痕：realme 后台被杀是不留日志的，至少能分清「崩」和「被杀」
         CrashLog.install(this)
         // 全局按压反馈：按钮按下回弹、可点行补涟漪（每个页面的控件树自动扫一遍）

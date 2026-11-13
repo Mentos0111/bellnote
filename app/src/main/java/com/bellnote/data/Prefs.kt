@@ -53,6 +53,8 @@ object Prefs {
     private const val KEY_THEME_MODE = "theme_mode"
     private const val KEY_HEALTH = "health_cache"
     private const val KEY_ONBOARDED = "onboarded"
+    /** 礼包预置值是否已经写过一次（写过就不再覆盖用户自己的设置）。 */
+    private const val KEY_SEED_APPLIED = "seed_applied"
     private const val KEY_HEALTH_AT = "health_cached_at"
     private const val KEY_COLLAPSED_GROUPS = "list_collapsed_groups"
 
@@ -335,6 +337,13 @@ object Prefs {
 
     fun setOnboardingDone(context: Context, done: Boolean) {
         sp(context).edit().putBoolean(KEY_ONBOARDED, done).apply()
+    }
+
+    /** 礼包预置值写过没有；普通安装没有预置值时也会置 true，避免每次启动重复判断。 */
+    fun seedApplied(context: Context): Boolean = sp(context).getBoolean(KEY_SEED_APPLIED, false)
+
+    fun setSeedApplied(context: Context, done: Boolean) {
+        sp(context).edit().putBoolean(KEY_SEED_APPLIED, done).apply()
     }
 
     // ---------------- 体检结果缓存 ----------------

@@ -1,4 +1,4 @@
-﻿plugins {
+plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
@@ -34,6 +34,18 @@ val bellnoteVersionName = bellnoteNormalizeVersion(
     providers.gradleProperty("bellnoteVersionName").orNull ?: bellnoteDefaultVersionName
 )
 
+/**
+ * 「礼包」预置值：把常用配置（主题 / ntfy 主题 / API Key）编进包里，首次启动自动写入。
+ * **只从 gradle 属性或环境变量读，不写进仓库**；普通构建和 CI 不传，这三个值就是空字符串，
+ * App 行为完全不变（见 util/SeedConfig.kt）。
+ */
+fun bellnoteSeed(prop: String, env: String): String =
+    (providers.gradleProperty(prop).orNull ?: System.getenv(env) ?: "").trim()
+
+val bellnoteSeedTheme = bellnoteSeed("seedTheme", "BELLNOTE_SEED_THEME")
+val bellnoteSeedNtfyTopic = bellnoteSeed("seedNtfyTopic", "BELLNOTE_SEED_NTFY_TOPIC")
+val bellnoteSeedApiKeyB64 = bellnoteSeed("seedApiKeyB64", "BELLNOTE_SEED_API_KEY_B64")
+
 // 正式签名：优先读环境变量 BELLNOTE_KEYSTORE（CI 里从 secrets 解出来的 jks 路径）。
 // 没配就退回仓库里的 debug key——本地能装、能验，但不能当正式发布用。
 val bellnoteReleaseKeyStore = System.getenv("BELLNOTE_KEYSTORE")
@@ -58,6 +70,11 @@ android {
         ndk {
             abiFilters += listOf("arm64-v8a")
         }
+
+        // 礼包预置值（普通构建为空，见上方 bellnoteSeed）
+        buildConfigField("String", "SEED_THEME", "\"$bellnoteSeedTheme\"")
+        buildConfigField("String", "SEED_NTFY_TOPIC", "\"$bellnoteSeedNtfyTopic\"")
+        buildConfigField("String", "SEED_API_KEY_B64", "\"$bellnoteSeedApiKeyB64\"")
     }
 
     signingConfigs {
@@ -120,6 +137,8 @@ android {
 
     buildFeatures {
         viewBinding = false
+        // 礼包预置值走 BuildConfig；AGP 8 默认关掉，这里显式开
+        buildConfig = true
     }
 
     packaging {
