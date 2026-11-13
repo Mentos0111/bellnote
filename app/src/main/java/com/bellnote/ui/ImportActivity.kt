@@ -214,7 +214,8 @@ class ImportActivity : AppCompatActivity() {
         }
         val chain = EnginePlan.chain(
             EnginePlan.Input(
-                mode = Prefs.ocrEngine(this),
+                cloudOn = Prefs.cloudModelEnabled(this),
+                localOn = Prefs.localModelEnabled(this),
                 hasKey = Prefs.apiKey(this).isNotBlank(),
                 online = isOnline(),
                 llmReady = LocalLlm.isReady(this)
@@ -360,7 +361,7 @@ class ImportActivity : AppCompatActivity() {
                 if (!isFinishing && !isDestroyed) tvStatus.text = "已上传（约 $kb KB），等模型返回…"
             }
             val started = System.currentTimeMillis()
-            val outcome = VisionExtractor.extract(apiKey, model, base64)
+            val outcome = VisionExtractor.extract(apiKey, model, base64, baseUrl = Prefs.cloudBaseUrl(this))
             val cost = System.currentTimeMillis() - started
             ui.post { if (!isFinishing && !isDestroyed) onDone(outcome, cost) }
         }.start()

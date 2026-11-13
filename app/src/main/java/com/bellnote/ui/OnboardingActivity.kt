@@ -62,7 +62,6 @@ class OnboardingActivity : AppCompatActivity() {
     private var suppressSelect = false
 
     private lateinit var spCalendar: Spinner
-    private lateinit var spOnbEngine: Spinner
     private lateinit var tvCalendarHint: TextView
     private lateinit var etApiKey: EditText
     private lateinit var etModel: EditText
@@ -105,14 +104,12 @@ class OnboardingActivity : AppCompatActivity() {
         body2 = findViewById(R.id.body2)
 
         spCalendar = findViewById(R.id.spOnbCalendar)
-        spOnbEngine = findViewById(R.id.spOnbEngine)
         tvCalendarHint = findViewById(R.id.tvOnbCalendarHint)
         etApiKey = findViewById(R.id.etOnbApiKey)
         etModel = findViewById(R.id.etOnbModel)
 
         etApiKey.setText(Prefs.apiKey(this))
         etModel.setText(Prefs.model(this))
-        setupEngineSpinner()
 
         btnNext.setOnClickListener {
             if (step == 1 && !hasBasicPermissions()) {
@@ -425,39 +422,6 @@ class OnboardingActivity : AppCompatActivity() {
         if (model.isNotEmpty()) Prefs.setModel(this, model)
     }
 
-    /** 识别方式：自动 / 只用本地 / 只用云端。选过就记住，不选就保持「自动」。 */
-    private fun setupEngineSpinner() {
-        val options = listOf(
-            Prefs.ENGINE_AUTO to "自动（推荐）",
-            Prefs.ENGINE_LOCAL to "只用本地（不联网）",
-            Prefs.ENGINE_CLOUD to "只用云端（要 Key）",
-            Prefs.ENGINE_LLM to "本地模型（要下载 657MB）"
-        )
-        spOnbEngine.adapter = ArrayAdapter(
-            this, android.R.layout.simple_spinner_item, options.map { it.second }
-        ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
-
-        val current = Prefs.ocrEngine(this).ifBlank { Prefs.ENGINE_AUTO }
-        spOnbEngine.setSelection(options.indexOfFirst { it.first == current }.coerceAtLeast(0))
-        var initial = true
-        spOnbEngine.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>?,
-                view: View?,
-                position: Int,
-                id: Long
-            ) {
-                if (initial) {
-                    initial = false
-                    return
-                }
-                val picked = options.getOrNull(position) ?: return
-                Prefs.setOcrEngine(this@OnboardingActivity, picked.first)
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-        }
-    }
 
     private fun showCalendarHelp() {
         androidx.appcompat.app.AlertDialog.Builder(this)

@@ -60,232 +60,132 @@
                 android:layout_marginTop="8dp"
                 android:text="识别方式" />
 
-            <!-- 四个选项改成可点的行：每个都能写一句「它是什么」，比塞进下拉框好认 -->
+            <TextView
+                style="@style/HintText"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="8dp"
+                android:text="看图识字一直开着（本地 OCR，不联网）。两张卡决定要不要再加模型，点卡片进设置。" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_card"
-                android:orientation="vertical"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp">
+                android:orientation="horizontal">
 
                 <LinearLayout
-                    android:id="@+id/engineAuto"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_ripple_row"
+                    android:id="@+id/cardCloud"
+                    android:layout_width="0dp"
+                    android:layout_height="92dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_card"
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingTop="10dp"
-                    android:paddingBottom="10dp">
+                    android:orientation="vertical"
+                    android:paddingLeft="14dp"
+                    android:paddingRight="12dp">
 
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
                         <TextView
-                            style="@style/AboutKey"
-                            android:layout_width="match_parent"
-                            android:layout_weight="0"
-                            android:text="自动" />
-
-                        <TextView
-                            android:layout_width="match_parent"
+                            android:id="@+id/tvCardCloudTitle"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="越准越优先：云端 → 本地"
-                            android:textColor="?attr/bnTextSecondary"
-                            android:textSize="12sp" />
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="云端模型"
+                            android:textColor="?attr/bnTextPrimary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:id="@+id/cardCloudCheck"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_nav_check"
+                            android:tint="?attr/bnPrimary"
+                            android:visibility="invisible" />
                     </LinearLayout>
 
-                    <ImageView
-                        android:id="@+id/engineAutoCheck"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_nav_check"
-                        android:tint="?attr/bnPrimary" />
+                    <TextView
+                        android:id="@+id/tvCardCloudState"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="未启用"
+                        android:textColor="?attr/bnTextSecondary"
+                        android:textSize="12sp" />
                 </LinearLayout>
 
-                <View style="@style/AboutDivider" />
+                <View
+                    android:layout_width="12dp"
+                    android:layout_height="1dp" />
 
                 <LinearLayout
-                    android:id="@+id/engineLocal"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_ripple_row"
+                    android:id="@+id/cardLocal"
+                    android:layout_width="0dp"
+                    android:layout_height="92dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_card"
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingTop="10dp"
-                    android:paddingBottom="10dp">
+                    android:orientation="vertical"
+                    android:paddingLeft="14dp"
+                    android:paddingRight="12dp">
 
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
                         <TextView
-                            style="@style/AboutKey"
-                            android:layout_width="match_parent"
-                            android:layout_weight="0"
-                            android:text="只用本地" />
-
-                        <TextView
-                            android:layout_width="match_parent"
+                            android:id="@+id/tvCardLocalTitle"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="手机自带 OCR，不联网、不花钱"
-                            android:textColor="?attr/bnTextSecondary"
-                            android:textSize="12sp" />
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="本地模型"
+                            android:textColor="?attr/bnTextPrimary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:id="@+id/cardLocalCheck"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_nav_check"
+                            android:tint="?attr/bnPrimary"
+                            android:visibility="invisible" />
                     </LinearLayout>
 
-                    <ImageView
-                        android:id="@+id/engineLocalCheck"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_nav_check"
-                        android:tint="?attr/bnPrimary" />
-                </LinearLayout>
-
-                <View style="@style/AboutDivider" />
-
-                <LinearLayout
-                    android:id="@+id/engineLlm"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_ripple_row"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingTop="10dp"
-                    android:paddingBottom="10dp">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
+                    <TextView
+                        android:id="@+id/tvCardLocalState"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            style="@style/AboutKey"
-                            android:layout_width="match_parent"
-                            android:layout_weight="0"
-                            android:text="本地模型" />
-
-                        <TextView
-                            android:id="@+id/tvEngineLlmDesc"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="手机上的 AI，能理解口语；要先下载 657 MB"
-                            android:textColor="?attr/bnTextSecondary"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <ImageView
-                        android:id="@+id/engineLlmCheck"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_nav_check"
-                        android:tint="?attr/bnPrimary" />
-                </LinearLayout>
-
-                <View style="@style/AboutDivider" />
-
-                <LinearLayout
-                    android:id="@+id/engineCloud"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_ripple_row"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingTop="10dp"
-                    android:paddingBottom="10dp">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            style="@style/AboutKey"
-                            android:layout_width="match_parent"
-                            android:layout_weight="0"
-                            android:text="只用云端" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="DeepSeek 识别；失败就报错，不降级"
-                            android:textColor="?attr/bnTextSecondary"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <ImageView
-                        android:id="@+id/engineCloudCheck"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_nav_check"
-                        android:tint="?attr/bnPrimary" />
+                        android:layout_marginTop="6dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="未启用"
+                        android:textColor="?attr/bnTextSecondary"
+                        android:textSize="12sp" />
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- 本地模型：只在选它或正在下载时出现，平时不占地方 -->
-            <LinearLayout
-                android:id="@+id/llmPanel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <Button
-                    android:id="@+id/btnLlmAction"
-                    style="@style/BtnTonal"
-                    android:layout_marginTop="8dp"
-                    android:text="下载模型（657 MB）" />
-
-                <TextView
-                    android:id="@+id/tvLlmStatus"
-                    style="@style/HintText"
-                    android:layout_marginTop="4dp" />
-            </LinearLayout>
-
             <TextView
-                style="@style/FormLabel"
-                android:layout_marginTop="4dp"
-                android:text="@string/label_api_key" />
-
-            <EditText
-                android:id="@+id/etApiKey"
-                style="@style/FormInput"
-                android:inputType="textPassword" />
-
-            <TextView
-                style="@style/FormLabel"
-                android:text="@string/label_model" />
-
-            <EditText
-                android:id="@+id/etModel"
-                style="@style/FormInput"
-                android:inputType="text" />
+                style="@style/HintText"
+                android:layout_marginTop="8dp"
+                android:text="两张都亮时先试云端模型，不行再试本地模型，最后退到看图识字；两张都不亮就只用看图识字。" />
 
             <CheckBox
                 android:id="@+id/cbShotWatch"

@@ -195,6 +195,18 @@
             android:parentActivityName=".ui.SettingsActivity" />
 
         <activity
+            android:name=".ui.CloudModelActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:parentActivityName=".ui.SettingsActivity" />
+
+        <activity
+            android:name=".ui.LocalModelActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:parentActivityName=".ui.SettingsActivity" />
+
+        <activity
             android:name=".ui.ReconcileActivity"
             android:exported="false"
             android:launchMode="singleTop"

@@ -485,4 +485,61 @@ object Prefs {
     fun setModelDownloadId(context: Context, id: Long) {
         sp(context).edit().putLong(KEY_MODEL_DOWNLOAD_ID, id).apply()
     }
+
+    // ---------------- 识别链路：本地规则（常亮）+ 云端模型 / 本地模型 ----------------
+
+    private const val KEY_CLOUD_MODEL = "cloud_model_enabled"
+    private const val KEY_LOCAL_MODEL = "local_model_enabled"
+
+    /**
+     * 云端模型开没开。没写过这个值时按老版本的「识别方式」推断：
+     * 老用户选过「只用本地 / 本地模型」就默认关，其余（自动/云端/没选过）默认开。
+     */
+    fun cloudModelEnabled(context: Context): Boolean {
+        val p = sp(context)
+        if (p.contains(KEY_CLOUD_MODEL)) return p.getBoolean(KEY_CLOUD_MODEL, true)
+        val legacy = ocrEngine(context)
+        return legacy != ENGINE_LOCAL && legacy != ENGINE_LLM
+    }
+
+    fun setCloudModelEnabled(context: Context, on: Boolean) {
+        sp(context).edit().putBoolean(KEY_CLOUD_MODEL, on).apply()
+    }
+
+    /** 本地模型开没开；老版本选过「本地模型」的算开。 */
+    fun localModelEnabled(context: Context): Boolean {
+        val p = sp(context)
+        if (p.contains(KEY_LOCAL_MODEL)) return p.getBoolean(KEY_LOCAL_MODEL, false)
+        return ocrEngine(context) == ENGINE_LLM
+    }
+
+    fun setLocalModelEnabled(context: Context, on: Boolean) {
+        sp(context).edit().putBoolean(KEY_LOCAL_MODEL, on).apply()
+    }
+
+    // ---------------- 云端服务地址 / 本地模型选择 ----------------
+
+    private const val KEY_CLOUD_BASE_URL = "cloud_base_url"
+    private const val KEY_LOCAL_MODEL_ID = "local_model_id"
+
+    /** 云端服务地址，默认 DeepSeek；换成任何 OpenAI 兼容地址都行。 */
+    fun cloudBaseUrl(context: Context): String =
+        sp(context).getString(KEY_CLOUD_BASE_URL, com.bellnote.ai.VisionExtractor.DEFAULT_BASE_URL)
+            .orEmpty()
+            .trim()
+            .ifBlank { com.bellnote.ai.VisionExtractor.DEFAULT_BASE_URL }
+
+    fun setCloudBaseUrl(context: Context, url: String) {
+        sp(context).edit().putString(KEY_CLOUD_BASE_URL, url.trim()).apply()
+    }
+
+    /** 本地模型选了哪一个（[com.bellnote.ai.LocalModels] 的 id）。 */
+    fun localModelId(context: Context): String =
+        sp(context).getString(KEY_LOCAL_MODEL_ID, com.bellnote.ai.LocalModels.DEFAULT_ID)
+            .orEmpty()
+            .ifBlank { com.bellnote.ai.LocalModels.DEFAULT_ID }
+
+    fun setLocalModelId(context: Context, id: String) {
+        sp(context).edit().putString(KEY_LOCAL_MODEL_ID, id).apply()
+    }
 }
