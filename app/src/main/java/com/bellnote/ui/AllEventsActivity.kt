@@ -51,6 +51,7 @@ class AllEventsActivity : AppCompatActivity() {
         findViewById<RecyclerView>(R.id.recycler).apply {
             layoutManager = LinearLayoutManager(this@AllEventsActivity)
             adapter = this@AllEventsActivity.adapter
+            com.bellnote.util.ListMotion.apply(this)
         }
         load()
     }

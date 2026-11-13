@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 返回时：下面那层页面从左边回到原位 -->
 <set xmlns:android="http://schemas.android.com/apk/res/android"
     android:interpolator="@android:interpolator/fast_out_slow_in">
+    <translate
+        android:duration="200"
+        android:fromXDelta="-6%"
+        android:toXDelta="0" />
     <alpha
-        android:duration="180"
-        android:fromAlpha="0.85"
+        android:duration="200"
+        android:fromAlpha="0.92"
         android:toAlpha="1" />
-    <scale
-        android:duration="220"
-        android:fromXScale="0.97"
-        android:fromYScale="0.97"
-        android:pivotX="50%"
-        android:pivotY="50%"
-        android:toXScale="1"
-        android:toYScale="1" />
 </set>

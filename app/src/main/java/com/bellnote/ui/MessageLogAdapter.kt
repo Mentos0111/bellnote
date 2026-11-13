@@ -16,12 +16,17 @@ class MessageLogAdapter(
     private val onRetry: (MessageLog.Entry) -> Unit
 ) : RecyclerView.Adapter<MessageLogAdapter.Holder>() {
 
-    private val items = mutableListOf<MessageLog.Entry>()
+    private var items: List<MessageLog.Entry> = emptyList()
 
+    /** 走 Diff：新消息淡入、清空时逐条淡出，不再是整屏硬刷。 */
     fun submit(entries: List<MessageLog.Entry>) {
-        items.clear()
-        items.addAll(entries)
-        notifyDataSetChanged()
+        val old = items
+        // 先换数据再派发，否则派发期间读到的还是旧数量
+        items = entries
+        com.bellnote.util.DiffDispatch.dispatch(
+            this, old, entries,
+            sameItem = { a, b -> a.id == b.id }
+        )
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {

@@ -40,6 +40,7 @@ class MessageLogActivity : AppCompatActivity() {
         tvLogStatus = findViewById(R.id.tvLogStatus)
         val recycler = findViewById<RecyclerView>(R.id.rvMessages)
         recycler.layoutManager = LinearLayoutManager(this)
+        com.bellnote.util.ListMotion.apply(recycler)
         adapter = MessageLogAdapter { entry -> retry(entry) }
         recycler.adapter = adapter
 
