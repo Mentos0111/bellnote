@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.NtfyCalendar" parent="Theme.AppCompat.DayNight.DarkActionBar">
         <item name="colorPrimary">?attr/bnPrimaryDark</item>
@@ -59,14 +59,6 @@
         <item name="android:windowSplashScreenAnimationDuration">0</item>
 
         <item name="android:windowAnimationStyle">@style/BellnoteWindowAnim</item>
-        <!-- 首页当「底页」时只淡一下；共享元素转场见 transition/todo_title_shared -->
-        <item name="android:windowActivityTransitions">true</item>
-        <item name="android:windowExitTransition">@transition/page_fade</item>
-        <item name="android:windowReenterTransition">@transition/page_fade</item>
-        <item name="android:windowSharedElementEnterTransition">@transition/todo_title_shared</item>
-        <item name="android:windowSharedElementExitTransition">@transition/todo_title_shared</item>
-        <item name="android:windowSharedElementReturnTransition">@transition/todo_title_shared</item>
-        <item name="android:windowSharedElementReenterTransition">@transition/todo_title_shared</item>
         <item name="bnPrimary">@color/primary</item>
         <item name="bnPrimaryDark">@color/primary_dark</item>
         <item name="bnOnPrimary">@color/text_on_primary</item>
@@ -87,19 +79,6 @@
         <item name="bnMuted">@color/muted</item>
         <item name="bnNavBg">@color/nav_bg</item>
         <item name="bnRipple">@color/ripple</item>
-    </style>
-
-    <!-- 编辑页：自己滑入滑出，标题走共享元素（卡片标题长成编辑页标题） -->
-    <style name="Theme.NtfyCalendar.Edit" parent="Theme.NtfyCalendar">
-        <item name="android:windowActivityTransitions">true</item>
-        <item name="android:windowEnterTransition">@transition/page_slide_in</item>
-        <item name="android:windowReturnTransition">@transition/page_slide_out</item>
-        <item name="android:windowExitTransition">@transition/page_fade</item>
-        <item name="android:windowReenterTransition">@transition/page_fade</item>
-        <item name="android:windowSharedElementEnterTransition">@transition/todo_title_shared</item>
-        <item name="android:windowSharedElementReturnTransition">@transition/todo_title_shared</item>
-        <item name="android:windowSharedElementExitTransition">@transition/todo_title_shared</item>
-        <item name="android:windowSharedElementReenterTransition">@transition/todo_title_shared</item>
     </style>
 
     <!-- 透明、无标题：侧边栏截屏入口和「分享文字」入口都靠它不挡内容 -->

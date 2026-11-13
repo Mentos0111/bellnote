@@ -37,7 +37,6 @@
             android:exported="true"
             android:launchMode="singleTop"
             android:parentActivityName=".ui.MainActivity"
-            android:theme="@style/Theme.NtfyCalendar.Edit"
             android:windowSoftInputMode="adjustResize" />
 
         <activity

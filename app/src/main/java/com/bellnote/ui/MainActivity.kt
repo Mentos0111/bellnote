@@ -113,7 +113,7 @@ class MainActivity : AppCompatActivity() {
         etQuick = findViewById(R.id.etQuick)
 
         adapter = TodoAdapter(
-            onClick = { item, source -> openEditWithSharedTitle(item, source) },
+            onClick = { item -> startActivity(EditActivity.intentForItem(this, item)) },
             onLongClick = { item -> confirmDelete(item) },
             collapsedGroups = Prefs.collapsedGroups(this),
             expandedGroups = Prefs.expandedGroups(this),
@@ -452,26 +452,6 @@ class MainActivity : AppCompatActivity() {
         }
         pendingDrawerAction = action
         closeDrawerFast()
-    }
-
-    /**
-     * 点卡片进编辑页：卡片上的标题当共享元素，直接长成编辑页的标题。
-     * 转场名必须两边一致，所以把名字放进 intent，由编辑页给它的标题设同一个名字。
-     */
-    private fun openEditWithSharedTitle(item: TodoItem, source: View) {
-        val name = "todoTitle-${item.id}"
-        source.transitionName = name
-        val intent = EditActivity.intentForItem(this, item)
-            .putExtra(EditActivity.EXTRA_SHARED_NAME, name)
-        val options = androidx.core.app.ActivityOptionsCompat
-            .makeSceneTransitionAnimation(this, source, name)
-        try {
-            startActivity(intent, options.toBundle())
-        } catch (e: Exception) {
-            // 转场起不来也不能把人挡在外面
-            android.util.Log.w("MainActivity", "共享元素转场启动失败，退回普通跳转", e)
-            startActivity(intent)
-        }
     }
 
     /** 说明类的东西都收在这里，抽屉里只留 8 个真入口。 */

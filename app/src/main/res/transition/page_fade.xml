@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- 首页作为「底页」的转场：只用淡入淡出，不抢戏——
-     新页面自己会从右边滑进来（EditActivity 用 slide），底页淡一下就够了。 -->
-<fade xmlns:android="http://schemas.android.com/apk/res/android"
-    android:duration="180"
-    android:interpolator="@android:interpolator/fast_out_slow_in" />
