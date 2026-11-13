@@ -114,6 +114,50 @@ object HealthInspector {
             )
         }
 
+        // 3.5) 识别方式：本地规则常亮，云端 / 本地模型是两张可开可关的卡
+        val cloudOn = Prefs.cloudModelEnabled(app)
+        val hasKey = Prefs.apiKey(app).isNotBlank()
+        val cloudModel = Prefs.model(app)
+        val cloudVision = com.bellnote.ai.CloudModels.inspect(cloudModel).vision
+        items.add(
+            when {
+                !cloudOn -> HealthCheck.Item(
+                    "cloud_model", "云端模型", HealthCheck.Status.OK,
+                    "关着：识别只用本地规则或本地模型", HealthCheck.Action.SETTINGS
+                )
+                !hasKey -> HealthCheck.Item(
+                    "cloud_model", "云端模型", HealthCheck.Status.WARN,
+                    "开着但没填 API Key，现在不会调用云端", HealthCheck.Action.SETTINGS
+                )
+                !cloudVision -> HealthCheck.Item(
+                    "cloud_model", "云端模型", HealthCheck.Status.WARN,
+                    "当前模型 $cloudModel 看着像纯文本模型，看不清截图", HealthCheck.Action.SETTINGS
+                )
+                else -> HealthCheck.Item(
+                    "cloud_model", "云端模型", HealthCheck.Status.OK,
+                    "已开：$cloudModel", HealthCheck.Action.SETTINGS
+                )
+            }
+        )
+        val localOn = Prefs.localModelEnabled(app)
+        val localModel = com.bellnote.ai.LocalModels.selected(app)
+        val localReady = com.bellnote.ai.LocalModels.isReady(app, localModel)
+        items.add(
+            when {
+                !localOn -> HealthCheck.Item(
+                    "local_model", "本地模型", HealthCheck.Status.OK,
+                    "关着：不占空间；需要离线理解口语时再开", HealthCheck.Action.SETTINGS
+                )
+                !localReady -> HealthCheck.Item(
+                    "local_model", "本地模型", HealthCheck.Status.WARN,
+                    "开着但 ${localModel.name} 没下载完，这一路会被跳过", HealthCheck.Action.SETTINGS
+                )
+                else -> HealthCheck.Item(
+                    "local_model", "本地模型", HealthCheck.Status.OK,
+                    "已就绪：${localModel.name}（${localModel.sizeMb} MB）", HealthCheck.Action.SETTINGS
+                )
+            }
+        )
         // 4) 后台 / 电池
         val ignoringBattery = isIgnoringBatteryOptimizations(app)
         items.add(
@@ -182,6 +226,22 @@ object HealthInspector {
                 )
             )
         }
+
+        // 9) 通知权限（已降级：只影响 App 自己的提醒，不影响推送补查）
+        items.add(
+            if (Permissions.hasPostNotifications(app)) {
+                HealthCheck.Item(
+                    "notify", "通知", HealthCheck.Status.OK,
+                    "能发提醒通知", HealthCheck.Action.SETTINGS
+                )
+            } else {
+                HealthCheck.Item(
+                    "notify", "通知", HealthCheck.Status.WARN,
+                    "没允许通知：App 自己的提醒发不出来（日历事件仍由日历 App 提醒）",
+                    HealthCheck.Action.SETTINGS
+                )
+            }
+        )
 
         Log.i(TAG, "体检完成：" + items.joinToString { "${it.label}=${it.status}" })
         return items
