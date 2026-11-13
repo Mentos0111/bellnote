@@ -1,4 +1,4 @@
-﻿plugins {
+plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
@@ -143,4 +143,8 @@ dependencies {
 
     // 离线 OCR：中文识别模型随包内置，不需要 GMS，也不联网
     implementation("com.google.mlkit:text-recognition-chinese:16.0.1")
+
+    // 离线大模型推理（MediaPipe LLM Inference）：模型文件不进包，首次用的时候下载。
+    // 原生库只保留 arm64（见上面的 abiFilters），包体 +11MB 左右。
+    implementation("com.google.mediapipe:tasks-genai:0.10.24")
 }

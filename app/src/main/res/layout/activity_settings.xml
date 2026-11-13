@@ -440,6 +440,18 @@
                 android:text="@string/feedback_entry_hint" />
 
             <Button
+                android:id="@+id/btnLlmProbe"
+                style="@style/BtnTonal"
+                android:layout_marginTop="14dp"
+                android:text="下载离线模型（约 657 MB）" />
+
+            <TextView
+                android:id="@+id/tvLlmStatus"
+                style="@style/HintText"
+                android:layout_marginTop="6dp"
+                android:text="离线大模型：装好后不联网也能把截图理解成待办，只在「识别方式」选它时才用。" />
+
+            <Button
                 android:id="@+id/btnPrivacy"
                 style="@style/BtnTonal"
                 android:layout_marginTop="10dp"

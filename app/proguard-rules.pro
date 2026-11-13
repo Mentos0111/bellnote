@@ -17,3 +17,10 @@
 -keep class com.bellnote.service.ReconcileReceiver { *; }
 # 通知栏磁贴服务：系统按类名绑定
 -keep class com.bellnote.service.QuickAddTileService { *; }
+
+# 离线大模型（MediaPipe LLM Inference）：native 方法靠 JNI 按类名找，
+# 生成的 protobuf 类只用到 javalite，缺的那几个注解类按 R8 建议忽略即可。
+-keep class com.google.mediapipe.** { *; }
+-keep class com.google.protobuf.** { *; }
+-dontwarn com.google.protobuf.**
+-dontwarn com.google.mediapipe.**

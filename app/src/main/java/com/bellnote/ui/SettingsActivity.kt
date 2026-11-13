@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.view.MenuItem
 import android.widget.AdapterView
@@ -16,6 +18,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.bellnote.ai.LocalLlm
+import com.bellnote.ai.ModelDownloader
 import com.bellnote.util.SidebarEntry
 import com.bellnote.util.ThemeManager
 import com.bellnote.R
@@ -37,6 +41,7 @@ import com.bellnote.util.SystemPages
 class SettingsActivity : AppCompatActivity() {
 
     private val repository by lazy { CalendarRepository(this) }
+    private val uiHandler = Handler(Looper.getMainLooper())
     private var calendars: List<CalendarRepository.CalendarInfo> = emptyList()
 
     private lateinit var spCalendar: Spinner
@@ -120,6 +125,9 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnFeedback).setOnClickListener {
             startActivity(Intent(this, FeedbackActivity::class.java))
         }
+
+        // 离线大模型：下载 / 取消 / 试跑，一个按钮按状态变
+        findViewById<Button>(R.id.btnLlmProbe).setOnClickListener { onLlmButton() }
         findViewById<Button>(R.id.btnPrivacy).setOnClickListener {
             com.bellnote.util.PrivacyGate.openFullText(this)
         }
@@ -206,6 +214,101 @@ class SettingsActivity : AppCompatActivity() {
         loadCalendars()
     }
 
+    // ---------------- 离线大模型（下载 / 取消 / 试跑） ----------------
+
+    private var llmTicker: Runnable? = null
+
+    private fun onLlmButton() {
+        when (ModelDownloader.status(this)) {
+            is ModelDownloader.Status.Ready -> runLocalLlmProbe()
+            is ModelDownloader.Status.Downloading -> confirmCancelDownload()
+            else -> {
+                if (ModelDownloader.enqueue(this)) {
+                    toast("开始下载，通知栏也能看到进度")
+                } else {
+                    toast("下载没起来，检查一下网络")
+                }
+                refreshLlmUi()
+            }
+        }
+    }
+
+    private fun confirmCancelDownload() {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("取消下载？")
+            .setMessage("已经下了一部分，取消后下次要重新开始。")
+            .setPositiveButton("取消下载") { _, _ ->
+                ModelDownloader.cancel(this)
+                refreshLlmUi()
+            }
+            .setNegativeButton("继续下", null)
+            .show()
+    }
+
+    /** 按钮文案和状态行跟着下载进度走；下载中每秒刷一次。 */
+    private fun refreshLlmUi() {
+        val button = findViewById<Button>(R.id.btnLlmProbe)
+        val status = findViewById<TextView>(R.id.tvLlmStatus)
+        llmTicker?.let { uiHandler.removeCallbacks(it) }
+        llmTicker = null
+        val totalMb = ModelDownloader.EXPECTED_BYTES / 1024 / 1024
+        val shown = ModelDownloader.status(this)
+        when (shown) {
+            is ModelDownloader.Status.Ready -> {
+                button.text = "离线模型已就绪（${totalMb} MB）· 跑一遍试试"
+                status.text = "已装好，识别时不联网。要用它把「识别方式」改成「本地大模型」。"
+            }
+            is ModelDownloader.Status.Downloading -> {
+                button.text = "下载中 ${shown.percent}% · 点此取消"
+                status.text = "已下 ${shown.bytes / 1024 / 1024} / $totalMb MB，通知栏也能看进度"
+                val tick = Runnable { refreshLlmUi() }
+                llmTicker = tick
+                uiHandler.postDelayed(tick, 1000)
+            }
+            is ModelDownloader.Status.Failed -> {
+                button.text = "重新下载离线模型"
+                status.text = "${shown.reason}，点按钮重下"
+            }
+            ModelDownloader.Status.Missing -> {
+                button.text = "下载离线模型（约 $totalMb MB）"
+                status.text = "离线大模型：装好后不联网也能把截图理解成待办，只在「识别方式」选它时才用。"
+            }
+        }
+    }
+
+    /**
+     * 离线大模型试跑：拿一段固定样例（就像聊天截图里的几行）跑一遍，
+     * 把耗时 / 原始输出 / 解析结果摊出来。
+     */
+    private fun runLocalLlmProbe() {
+        val sample = "化学课\n11月14日 周六\n20:30\n把第三章错题重做一遍\n明天 9:00 交实验报告"
+        toast("正在跑离线模型，第一次要几秒…")
+        Thread {
+            val probe = com.bellnote.ai.LocalLlm.probe(this, sample)
+            runOnUiThread {
+                val lines = buildString {
+                    appendLine("耗时：${probe.millis} ms")
+                    appendLine("解析出：${probe.specs.size} 条")
+                    probe.specs.forEach {
+                        appendLine(
+                            "· ${it.title} | ${com.bellnote.util.TimeFormat.full(it.startMillis)}" +
+                                " | ${it.durationMinutes} 分钟"
+                        )
+                    }
+                    probe.error?.let { appendLine("错误：$it") }
+                    appendLine()
+                    appendLine("原始输出：")
+                    appendLine(probe.raw.take(1500))
+                }
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("离线模型试跑")
+                    .setMessage(lines)
+                    .setPositiveButton("知道了", null)
+                    .show()
+            }
+        }.start()
+    }
+
     /**
      * 识别方式：自动 / 只用本地 / 只用云端。
      * 默认按「自动」显示，但没选过时不写入——首次启动会单独问一次。
@@ -215,7 +318,8 @@ class SettingsActivity : AppCompatActivity() {
         val options = listOf(
             Prefs.ENGINE_AUTO to "自动（联网走云端，断网用本地）",
             Prefs.ENGINE_LOCAL to "只用本地（不联网）",
-            Prefs.ENGINE_CLOUD to "只用云端（要 Key 和网络）"
+            Prefs.ENGINE_CLOUD to "只用云端（要 Key 和网络）",
+            Prefs.ENGINE_LLM to "本地大模型（离线，需先下载）"
         )
         spinner.adapter = ArrayAdapter(
             this,
@@ -240,6 +344,9 @@ class SettingsActivity : AppCompatActivity() {
                 val picked = options.getOrNull(position) ?: return
                 Prefs.setOcrEngine(this@SettingsActivity, picked.first)
                 toast("识别方式：${picked.second}")
+                if (picked.first == Prefs.ENGINE_LLM && !LocalLlm.isReady(this@SettingsActivity)) {
+                    toast("离线模型还没下载，先去「诊断与帮助」里下载")
+                }
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit
@@ -308,6 +415,13 @@ class SettingsActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         renderNtfyEntry()
+        refreshLlmUi()
+    }
+
+    override fun onDestroy() {
+        llmTicker?.let { uiHandler.removeCallbacks(it) }
+        llmTicker = null
+        super.onDestroy()
     }
 
 

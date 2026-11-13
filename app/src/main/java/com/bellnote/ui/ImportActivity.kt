@@ -19,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.IntentCompat
 import com.bellnote.util.ThemeManager
 import com.bellnote.R
+import com.bellnote.ai.LocalLlm
 import com.bellnote.ai.OfflineOcr
 import com.bellnote.ai.VisionExtractor
 import com.bellnote.data.CalendarRepository
@@ -211,13 +212,20 @@ class ImportActivity : AppCompatActivity() {
 
         // 用户选过就听用户的；没选过（或 auto）就按「有没有网 + 有没有 Key」自动决定
         val engine = Prefs.ocrEngine(this)
+        if (engine == Prefs.ENGINE_LLM && !LocalLlm.isReady(this)) {
+            toast("离线模型还没下载，先去设置里下载（约 657 MB）")
+            startActivity(Intent(this, SettingsActivity::class.java))
+            return
+        }
+        val useLlm = engine == Prefs.ENGINE_LLM
         val useLocal = when (engine) {
-            Prefs.ENGINE_LOCAL -> true
+            Prefs.ENGINE_LOCAL, Prefs.ENGINE_LLM -> true
             Prefs.ENGINE_CLOUD -> false
             else -> apiKey.isBlank() || !isOnline()
         }
         // 只有「自动」才允许云端失败后转本地；用户明确点「只用云端」就别偷偷降级
-        val allowFallback = engine != Prefs.ENGINE_LOCAL && engine != Prefs.ENGINE_CLOUD
+        val allowFallback = engine != Prefs.ENGINE_LOCAL && engine != Prefs.ENGINE_CLOUD &&
+            engine != Prefs.ENGINE_LLM
         fallbackFromCloud = null
 
         if (!useLocal && apiKey.isBlank()) {
@@ -226,19 +234,91 @@ class ImportActivity : AppCompatActivity() {
             return
         }
 
-        btnRecognize.text = if (useLocal) "本地识别这张图" else "识别这张图"
+        btnRecognize.text = when {
+            useLlm -> "本地大模型识别这张图"
+            useLocal -> "本地识别这张图"
+            else -> "识别这张图"
+        }
         btnRecognize.isEnabled = false
         btnPick.isEnabled = false
         btnRestore.visibility = View.GONE
         lastRaw = ""
         startWaiting()
 
-        if (useLocal) {
+        if (useLlm) {
+            tvStatus.text = "离线模型识别中（第一次要加载几秒）…"
+            recognizeWithLlm(uri)
+        } else if (useLocal) {
             tvStatus.text = "正在用本地 OCR 识别（不联网）…"
             recognizeLocally(uri)
         } else {
             recognizeInCloud(uri, apiKey, allowFallback)
         }
+    }
+
+    /**
+     * 离线大模型：先用 ML Kit 把图读成文字，再让手机上的 Gemma 3 1B 理解成待办。
+     *
+     * 模型没给出可用结果时退回规则解析——离线这条路不允许「什么都没给你」。
+     */
+    private fun recognizeWithLlm(uri: Uri) {
+        Thread {
+            val bitmap = ImageUtils.loadBitmap(this, uri, 1600)
+            if (bitmap == null) {
+                ui.post {
+                    if (isFinishing || isDestroyed) return@post
+                    stopWaiting()
+                    tvStatus.text = "这张图读不出来，换一张试试"
+                    btnRecognize.isEnabled = true
+                    btnPick.isEnabled = true
+                }
+                return@Thread
+            }
+            val ocrStarted = System.currentTimeMillis()
+            OfflineOcr.recognize(bitmap) { text ->
+                ui.post {
+                    if (isFinishing || isDestroyed) return@post
+                    if (text.startsWith("OCR 失败")) {
+                        handleLocalText(text, System.currentTimeMillis() - ocrStarted)
+                        return@post
+                    }
+                    tvStatus.text = "离线模型正在理解文字（第一次要十几秒）…"
+                    Thread {
+                        val started = System.currentTimeMillis()
+                        val outcome = LocalLlm.extract(this, text, System.currentTimeMillis())
+                        val cost = System.currentTimeMillis() - started
+                        val target = imageUri
+                        ui.post {
+                            if (isFinishing || isDestroyed || target == null) return@post
+                            if (outcome.specs.isNotEmpty()) {
+                                handleOutcome(
+                                    outcome.copy(error = "（离线大模型，${cost}ms，不联网）"),
+                                    target,
+                                    Prefs.ENGINE_CLOUD
+                                )
+                            } else {
+                                // 模型没输出可用 JSON：退回规则，至少给出兜底的那一条
+                                val specs = ScreenTextParser.parse(text)
+                                val finalSpecs = specs.ifEmpty {
+                                    ScreenTextParser.fallbackSpec(text)?.let { listOf(it) } ?: emptyList()
+                                }
+                                val hint = "离线模型没认出（${outcome.error}），已用本地规则解析（${cost}ms）"
+                                handleOutcome(
+                                    VisionExtractor.Outcome(
+                                        spec = finalSpecs.firstOrNull(),
+                                        error = hint,
+                                        raw = text,
+                                        specs = finalSpecs
+                                    ),
+                                    target,
+                                    Prefs.ENGINE_LOCAL
+                                )
+                            }
+                        }
+                    }.start()
+                }
+            }
+        }.start()
     }
 
     /** 离线兜底：整张图 OCR 成文字，再交给 [ScreenTextParser] 抽待办。 */
