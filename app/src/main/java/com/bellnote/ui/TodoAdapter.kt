@@ -144,7 +144,7 @@ class TodoAdapter(
         if (holder.arrow.rotation != target) {
             holder.arrow.animate()
                 .rotation(target)
-                .setDuration(170L)
+                .setDuration(130L)
                 .setInterpolator(DecelerateInterpolator())
                 .start()
         }

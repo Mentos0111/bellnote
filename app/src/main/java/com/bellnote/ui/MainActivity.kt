@@ -120,12 +120,12 @@ class MainActivity : AppCompatActivity() {
         val recycler: RecyclerView = findViewById(R.id.recycler)
         recycler.layoutManager = LinearLayoutManager(this)
         recycler.adapter = adapter
-        // 条目动画慢一点、软一点：默认 120ms 的硬切看着像闪
+        // 收展要跟手：150ms 左右就结束，再长会觉得「卡半拍」
         recycler.itemAnimator = androidx.recyclerview.widget.DefaultItemAnimator().apply {
-            addDuration = 220L
-            changeDuration = 180L
-            moveDuration = 220L
-            removeDuration = 160L
+            addDuration = 150L
+            changeDuration = 120L
+            moveDuration = 150L
+            removeDuration = 130L
         }
 
         setupQuickAdd()
