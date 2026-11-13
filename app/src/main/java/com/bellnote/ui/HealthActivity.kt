@@ -146,24 +146,39 @@ class HealthActivity : AppCompatActivity() {
     /** 点条目：讲清楚为什么 + 怎么开。 */
     private fun showHowTo(item: HealthCheck.Item) {
         val vendor = DeviceVendor.current()
-        val how = when (item.action) {
-            HealthCheck.Action.NOTIFICATION_ACCESS ->
-                "设置 → 通知 → 通知使用权 → 找到 Bellnote → 打开。\n" +
-                    "授权后监听服务才会把 ntfy 的通知读到。"
-            HealthCheck.Action.ACCESSIBILITY ->
-                "设置 → 无障碍（${vendor.label} 里可能叫「辅助功能」）→ 已下载的服务 → Bellnote 截屏 → 打开。\n" +
-                    "只用来截当前屏幕，不读输入内容。"
-            HealthCheck.Action.BATTERY ->
-                "设置 → 电池 → 应用耗电管理 → Bellnote → 允许后台运行 / 不优化。\n" +
-                    "不加白名单的话，息屏后 App 会被冻结，通知和补查都会停。"
-            HealthCheck.Action.AUTOSTART ->
-                "按机型找入口：\n${DeviceVendor.sidebarGuide().let { "" }}${vendorAutostartHint(vendor.label)}\n" +
-                    "各 ROM 没有公开接口能读这个开关，所以这里只能按电池策略推断，开着也不会影响别的。"
-            HealthCheck.Action.CALENDAR ->
-                "设置 → 权限与后台 → 日历读写权限；没有可写日历时点「创建本地日历」。"
-            HealthCheck.Action.SETTINGS ->
-                "设置 → 输入渠道 → 其他入口 → 高级 → 第三方通道 → ntfy 模式：打开开关并填主题（例如 todo-xxxx），再点「立即补查」确认能拉到消息。"
-            HealthCheck.Action.NONE -> item.detail
+        val how = when {
+            item.id == "cloud_model" ->
+                "设置 → 输入渠道 → 截图识别 → 点「云端模型」卡：填服务地址和 API Key，" +
+                    "再点「读取模型列表」选一个能看图的模型。\n" +
+                    "关掉这张卡就完全不联网，识别只走本地。"
+            item.id == "local_model" ->
+                "设置 → 输入渠道 → 截图识别 → 点「本地模型」卡：选一档模型下载，下完点「试跑」确认能出结果。\n" +
+                    "模型文件较大（289 MB 起），建议在 Wi-Fi 下下载；不想占空间就关掉这张卡。"
+            else -> when (item.action) {
+                HealthCheck.Action.NOTIFICATION_ACCESS ->
+                    "设置 → 通知 → 通知使用权 → 找到 Bellnote → 打开。\n" +
+                        "授权后监听服务才会把 ntfy 的通知读到。"
+                HealthCheck.Action.ACCESSIBILITY ->
+                    "设置 → 无障碍（${vendor.label} 里可能叫「辅助功能」）→ 已下载的服务 → Bellnote 截屏 → 打开。\n" +
+                        "只用来截当前屏幕，不读输入内容。"
+                HealthCheck.Action.BATTERY ->
+                    "设置 → 电池 → 应用耗电管理 → Bellnote → 允许后台运行 / 不优化。\n" +
+                        "不加白名单的话，息屏后 App 会被冻结，通知和补查都会停。"
+                HealthCheck.Action.AUTOSTART ->
+                    "按机型找入口：\n${DeviceVendor.sidebarGuide().let { "" }}${vendorAutostartHint(vendor.label)}\n" +
+                        "各 ROM 没有公开接口能读这个开关，所以这里只能按电池策略推断，开着也不会影响别的。"
+                HealthCheck.Action.CALENDAR ->
+                    "设置 → 权限与后台 → 日历读写权限；没有可写日历时点「创建本地日历」。"
+                HealthCheck.Action.SETTINGS ->
+                    if (item.id == "notify") {
+                        "设置 → 系统权限 → 通知 → 允许通知（Android 13 起会弹系统授权框）。\n" +
+                            "不开只影响 App 自己的提醒，日历事件仍由日历 App 提醒。"
+                    } else {
+                        "设置 → 输入渠道 → 其他入口 → 高级 → 第三方通道 → ntfy 模式：" +
+                            "打开开关并填主题（例如 todo-xxxx），再点「立即补查」确认能拉到消息。"
+                    }
+                HealthCheck.Action.NONE -> item.detail
+            }
         }
         AlertDialog.Builder(this)
             .setTitle("${item.label} · ${statusText(item.status)}")

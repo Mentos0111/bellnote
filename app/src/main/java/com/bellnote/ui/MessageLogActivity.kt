@@ -26,6 +26,7 @@ class MessageLogActivity : AppCompatActivity() {
     private lateinit var adapter: MessageLogAdapter
     private lateinit var tvCount: TextView
     private lateinit var tvEmpty: TextView
+    private lateinit var tvLogStatus: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeManager.apply(this)
@@ -36,6 +37,7 @@ class MessageLogActivity : AppCompatActivity() {
 
         tvCount = findViewById(R.id.tvLogCount)
         tvEmpty = findViewById(R.id.tvLogEmpty)
+        tvLogStatus = findViewById(R.id.tvLogStatus)
         val recycler = findViewById<RecyclerView>(R.id.rvMessages)
         recycler.layoutManager = LinearLayoutManager(this)
         adapter = MessageLogAdapter { entry -> retry(entry) }
@@ -58,12 +60,34 @@ class MessageLogActivity : AppCompatActivity() {
         val app = applicationContext
         Thread {
             val entries = MessageLog.recent(app)
+            val ignored = com.bellnote.data.Prefs.ignoredNotices(app)
             runOnUiThread {
                 adapter.submit(entries)
                 tvCount.text = "共 ${entries.size} 条"
                 tvEmpty.visibility = if (entries.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+                renderSyncStatus(ignored)
             }
         }.start()
+    }
+
+    /**
+     * 「推送未写入」原来挂在运行体检里，现在收在这一页当状态：进来了就能看到，
+     * 点对应的条目还能原地重试；体检只留会影响待办写不进去的开关。
+     */
+    private fun renderSyncStatus(ignored: List<com.bellnote.data.Prefs.IgnoredNotice>) {
+        tvLogStatus.text = if (ignored.isEmpty()) {
+            "最近没有写失败的推送。"
+        } else {
+            "最近有 ${ignored.size} 条推送没写进日历（最新：${ignored.first().reason}）。" +
+                "标「没写进日历」的条目可以点一下重试。"
+        }
+        tvLogStatus.setTextColor(colorOf(if (ignored.isEmpty()) R.attr.bnTextSecondary else R.attr.bnWarn))
+    }
+
+    private fun colorOf(attr: Int): Int {
+        val value = android.util.TypedValue()
+        theme.resolveAttribute(attr, value, true)
+        return value.data
     }
 
     /** 只重试「收到且没写进日历」的；结果会以一条新记录出现在最上面。 */

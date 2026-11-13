@@ -72,4 +72,32 @@ class HealthCheckTest {
     fun `空缓存反序列化成空列表`() {
         assertTrue(com.bellnote.service.HealthInspector.deserialize("").isEmpty())
     }
+
+    @Test
+    fun `ntfy 关着时补查后台自启动三项不出现`() {
+        val items = listOf(
+            HealthCheck.Item("calendar_permission", "日历权限", HealthCheck.Status.OK, "详情"),
+            HealthCheck.Item("notify", "通知权限", HealthCheck.Status.OK, "详情"),
+            HealthCheck.Item("ntfy_poll", "自动补查", HealthCheck.Status.BAD, "详情"),
+            HealthCheck.Item("battery", "后台", HealthCheck.Status.BAD, "详情"),
+            HealthCheck.Item("autostart", "自启动", HealthCheck.Status.BAD, "详情")
+        )
+        val visible = HealthCheck.visible(items, ntfyOn = false)
+        assertEquals(listOf("calendar_permission", "notify"), visible.map { it.id })
+        // 三项都被藏掉后，首页灯不该再报「可优化」
+        assertEquals(HealthCheck.Status.OK, HealthCheck.indicator(visible)?.status)
+        assertEquals("一切正常", HealthCheck.summary(visible))
+    }
+
+    @Test
+    fun `ntfy 开着时三项按顺序保留`() {
+        val items = listOf(
+            HealthCheck.Item("cloud_model", "云端模型", HealthCheck.Status.OK, "详情"),
+            HealthCheck.Item("ntfy_poll", "自动补查", HealthCheck.Status.WARN, "详情"),
+            HealthCheck.Item("battery", "后台", HealthCheck.Status.BAD, "详情"),
+            HealthCheck.Item("autostart", "自启动", HealthCheck.Status.UNKNOWN, "详情")
+        )
+        val visible = HealthCheck.visible(items, ntfyOn = true)
+        assertEquals(items, visible)
+    }
 }
