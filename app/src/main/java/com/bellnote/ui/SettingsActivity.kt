@@ -361,8 +361,13 @@ class SettingsActivity : AppCompatActivity() {
         arrow.rotation = 0f
         findViewById<View>(headId).setOnClickListener {
             open = !open
-            group.visibility = if (open) View.VISIBLE else View.GONE
-            arrow.animate().rotation(if (open) 90f else 0f).setDuration(150L).start()
+            // 高度动画：以前直接 VISIBLE/GONE 是一刀切，页面上像「闪」了一下
+            com.bellnote.util.Expand.setExpanded(group, open)
+            arrow.animate()
+                .rotation(if (open) 90f else 0f)
+                .setDuration(150L)
+                .setInterpolator(android.view.animation.DecelerateInterpolator())
+                .start()
         }
     }
 

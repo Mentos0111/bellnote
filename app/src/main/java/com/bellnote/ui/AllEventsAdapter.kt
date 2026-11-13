@@ -21,10 +21,19 @@ class AllEventsAdapter(
 
     private var rows: List<Row> = emptyList()
 
+    /** 走 Diff：只通知真正变了的那几行，新增/删除才有动画（以前是整表硬刷）。 */
     fun submit(events: List<EventInfo>) {
-        rows = buildRows(events)
-        @Suppress("NotifyDataSetChanged")
-        notifyDataSetChanged()
+        val next = buildRows(events)
+        val old = rows
+        // 先换数据再派发，否则派发期间读到的还是旧数量
+        rows = next
+        com.bellnote.util.DiffDispatch.dispatch(this, old, next, ::sameRow)
+    }
+
+    private fun sameRow(a: Row, b: Row): Boolean = when {
+        a is Row.Header && b is Row.Header -> a.label == b.label
+        a is Row.Event && b is Row.Event -> a.info.id == b.info.id
+        else -> false
     }
 
     override fun getItemCount(): Int = rows.size

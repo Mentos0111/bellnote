@@ -58,6 +58,7 @@ class ReconcileActivity : AppCompatActivity() {
         adapter = DiffAdapter()
         val recycler: RecyclerView = findViewById(R.id.recycler)
         recycler.layoutManager = LinearLayoutManager(this)
+        com.bellnote.util.ListMotion.apply(recycler)
         recycler.adapter = adapter
 
         btnRefresh.setOnClickListener { refresh() }

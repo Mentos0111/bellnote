@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 被盖住的旧页面：往左退一点并压暗，制造层次 -->
 <set xmlns:android="http://schemas.android.com/apk/res/android"
     android:interpolator="@android:interpolator/fast_out_slow_in">
+    <translate
+        android:duration="220"
+        android:fromXDelta="0"
+        android:toXDelta="-6%" />
     <alpha
-        android:duration="200"
+        android:duration="220"
         android:fromAlpha="1"
-        android:toAlpha="0.85" />
-    <scale
-        android:duration="240"
-        android:fromXScale="1"
-        android:fromYScale="1"
-        android:pivotX="50%"
-        android:pivotY="50%"
-        android:toXScale="0.97"
-        android:toYScale="0.97" />
+        android:toAlpha="0.92" />
 </set>

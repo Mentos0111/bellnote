@@ -63,6 +63,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var drawer: DrawerLayout
     private lateinit var etQuick: EditText
     private var pendingCameraUri: Uri? = null
+    /** 抽屉还在滑回时要执行的动作（见 afterDrawerClosed）。 */
+    private var pendingDrawerAction: (() -> Unit)? = null
 
     private val requestCalendar = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -122,14 +124,8 @@ class MainActivity : AppCompatActivity() {
         val recycler: RecyclerView = findViewById(R.id.recycler)
         recycler.layoutManager = LinearLayoutManager(this)
         recycler.adapter = adapter
-        // 用系统自带的条目动画（稳）；只把它调快一点、并关掉标题的交叉淡入
-        recycler.itemAnimator = androidx.recyclerview.widget.DefaultItemAnimator().apply {
-            supportsChangeAnimations = false
-            addDuration = 120L
-            changeDuration = 0L
-            moveDuration = 120L
-            removeDuration = 90L
-        }
+        // 条目动效统一在 ListMotion（只调那一个常量，别在各处写死时长）
+        com.bellnote.util.ListMotion.apply(recycler)
 
         setupQuickAdd()
         setupDrawer()
@@ -284,38 +280,51 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.btnMenu).setOnClickListener {
             drawer.openDrawer(GravityCompat.START)
         }
+        // 抽屉滑回是 200ms 左右；以前点完立刻切页，抽屉只收了一半就被盖掉
+        drawer.addDrawerListener(object : DrawerLayout.SimpleDrawerListener() {
+            override fun onDrawerClosed(drawerView: View) {
+                val pending = pendingDrawerAction
+                pendingDrawerAction = null
+                pending?.invoke()
+            }
+        })
         findViewById<View>(R.id.navAddManual).setOnClickListener {
-            closeDrawer()
-            startActivity(Intent(this, EditActivity::class.java))
+            afterDrawerClosed { startActivity(Intent(this, EditActivity::class.java)) }
         }
         findViewById<View>(R.id.navQuick).setOnClickListener {
-            closeDrawer()
-            focusQuick(getString(R.string.quick_hint))
+            afterDrawerClosed { focusQuick(getString(R.string.quick_hint)) }
         }
         findViewById<View>(R.id.navVoice).setOnClickListener {
-            closeDrawer()
-            startVoiceInput()
+            afterDrawerClosed { startVoiceInput() }
         }
         findViewById<View>(R.id.navCamera).setOnClickListener {
-            closeDrawer()
-            takePhoto()
+            afterDrawerClosed { takePhoto() }
         }
         findViewById<View>(R.id.navAllEvents).setOnClickListener {
-            closeDrawer()
-            startActivity(Intent(this, AllEventsActivity::class.java))
+            afterDrawerClosed { startActivity(Intent(this, AllEventsActivity::class.java)) }
         }
         findViewById<View>(R.id.navReconcile).setOnClickListener {
-            closeDrawer()
-            startActivity(Intent(this, ReconcileActivity::class.java))
+            afterDrawerClosed { startActivity(Intent(this, ReconcileActivity::class.java)) }
         }
         findViewById<View>(R.id.navSettings).setOnClickListener {
-            closeDrawer()
-            startActivity(Intent(this, SettingsActivity::class.java))
+            afterDrawerClosed { startActivity(Intent(this, SettingsActivity::class.java)) }
         }
         findViewById<View>(R.id.navHelp).setOnClickListener {
-            closeDrawer()
-            showHelp()
+            afterDrawerClosed { showHelp() }
         }
+    }
+
+    /**
+     * 等抽屉收好再执行动作。抽屉本来就关着就直接执行，
+     * 这样程序化调用（通知磁贴、分享进来）不受影响。
+     */
+    private fun afterDrawerClosed(action: () -> Unit) {
+        if (!drawer.isDrawerOpen(GravityCompat.START)) {
+            action()
+            return
+        }
+        pendingDrawerAction = action
+        drawer.closeDrawer(GravityCompat.START)
     }
 
     /** 说明类的东西都收在这里，抽屉里只留 8 个真入口。 */
@@ -341,10 +350,6 @@ class MainActivity : AppCompatActivity() {
             }
             .setNegativeButton("关闭", null)
             .show()
-    }
-
-    private fun closeDrawer() {
-        if (drawer.isDrawerOpen(GravityCompat.START)) drawer.closeDrawer(GravityCompat.START)
     }
 
     private fun focusQuick(hint: String? = null) {
