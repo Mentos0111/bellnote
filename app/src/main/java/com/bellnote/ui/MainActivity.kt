@@ -112,7 +112,11 @@ class MainActivity : AppCompatActivity() {
             onClick = { item -> startActivity(EditActivity.intentForItem(this, item)) },
             onLongClick = { item -> confirmDelete(item) },
             collapsedGroups = Prefs.collapsedGroups(this),
-            onCollapseChanged = { labels -> Prefs.setCollapsedGroups(this, labels) }
+            expandedGroups = Prefs.expandedGroups(this),
+            onGroupStateChanged = { folded, unfolded ->
+                Prefs.setCollapsedGroups(this, folded)
+                Prefs.setExpandedGroups(this, unfolded)
+            }
         )
 
         val recycler: RecyclerView = findViewById(R.id.recycler)

@@ -57,6 +57,8 @@ object Prefs {
     private const val KEY_SEED_APPLIED = "seed_applied"
     private const val KEY_HEALTH_AT = "health_cached_at"
     private const val KEY_COLLAPSED_GROUPS = "list_collapsed_groups"
+    private const val KEY_EXPANDED_GROUPS = "list_expanded_groups"
+    private const val KEY_GROUP_DEFAULT_V2 = "list_group_default_v2"
 
     /**
      * 识别方式：auto（联网走云端、断网用本地）/ local（只用本地）/ cloud（只用云端）。
@@ -73,9 +75,6 @@ object Prefs {
     /** 存「被忽略的通知」用的分隔符：\u0001 分条、\u0002 分字段，正常正文里不会出现。 */
     private const val ENTRY_SEP = "\u0001"
     private const val FIELD_SEP = "\u0002"
-
-    /** 默认收起的分组：过期的事平时不用看，但收起时标题上会写条数。 */
-    private const val DEFAULT_COLLAPSED_GROUP = "已过期"
 
     const val DEFAULT_NTFY_SERVER = "https://ntfy.sh"
     const val MAX_IGNORED = 10
@@ -452,15 +451,39 @@ object Prefs {
                 context, android.Manifest.permission.WRITE_CALENDAR
             )
 
-    /** 列表里哪些分组是收起来的（默认只收「已过期」）。 */
-    fun collapsedGroups(context: Context): Set<String> {
-        val raw = sp(context).getString(KEY_COLLAPSED_GROUPS, null)
-            ?: return setOf(DEFAULT_COLLAPSED_GROUP)
-        return raw.split('\u0001').filter { it.isNotBlank() }.toSet()
-    }
+    /** 列表里哪些分组被用户显式收起来了（默认状态由 DayGroups 决定）。 */
+    fun collapsedGroups(context: Context): Set<String> =
+        readGroupSet(context, KEY_COLLAPSED_GROUPS)
 
     fun setCollapsedGroups(context: Context, labels: Set<String>) {
         sp(context).edit().putString(KEY_COLLAPSED_GROUPS, labels.joinToString("\u0001")).apply()
+    }
+
+    /** 列表里哪些分组被用户显式展开过（默认收起的分组靠它记住「我展开过」）。 */
+    fun expandedGroups(context: Context): Set<String> =
+        readGroupSet(context, KEY_EXPANDED_GROUPS)
+
+    fun setExpandedGroups(context: Context, labels: Set<String>) {
+        sp(context).edit().putString(KEY_EXPANDED_GROUPS, labels.joinToString("\u0001")).apply()
+    }
+
+    private fun readGroupSet(context: Context, key: String): Set<String> {
+        val raw = sp(context).getString(key, null) ?: return emptySet()
+        return raw.split('\u0001').filter { it.isNotBlank() }.toSet()
+    }
+
+    /**
+     * 一次性迁移：分组默认状态改成「今天/明天展开、其余收起」以后，
+     * 老的收展记录（老逻辑下默认全展开）会跟新默认打架，清掉重来一次。
+     */
+    fun migrateGroupDefaults(context: Context) {
+        val prefs = sp(context)
+        if (prefs.getBoolean(KEY_GROUP_DEFAULT_V2, false)) return
+        prefs.edit()
+            .remove(KEY_COLLAPSED_GROUPS)
+            .remove(KEY_EXPANDED_GROUPS)
+            .putBoolean(KEY_GROUP_DEFAULT_V2, true)
+            .apply()
     }
 
     // ---------------- 识别方式（用户自己选，不替他决定） ----------------

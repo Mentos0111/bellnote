@@ -9,24 +9,25 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bellnote.R
+import com.bellnote.data.DayGroups
 import com.bellnote.data.RepeatRule
 import com.bellnote.data.TodoItem
 import com.bellnote.util.StatusColors
 import com.bellnote.util.TimeFormat
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
 
 /**
  * 主页待办列表：按「今天 / 明天 / 后天 / 已过期 / 具体日期」分组，条目多了也不糊。
  * 分组标题可以点一下收起／展开，收起时标题上写着这一组有几条；状态记在 Prefs 里。
+ * 默认展开「今天」「明天」，其余默认收起（见 DayGroups）。
  */
 class TodoAdapter(
     items: List<TodoItem> = emptyList(),
     collapsedGroups: Set<String> = emptySet(),
+    expandedGroups: Set<String> = emptySet(),
     private val onClick: (TodoItem) -> Unit,
     private val onLongClick: (TodoItem) -> Unit,
-    private val onCollapseChanged: (Set<String>) -> Unit = {}
+    private val onGroupStateChanged: (collapsed: Set<String>, expanded: Set<String>) -> Unit =
+        { _, _ -> }
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private sealed interface Row {
@@ -36,14 +37,19 @@ class TodoAdapter(
 
     private var source: List<TodoItem> = items
     private var collapsed: MutableSet<String> = collapsedGroups.toMutableSet()
-    private var rows: List<Row> = buildRows(items, collapsed)
+    private var expanded: MutableSet<String> = expandedGroups.toMutableSet()
+    private var rows: List<Row> = buildRows(items)
 
     var items: List<TodoItem>
         get() = source
         set(value) {
             source = value
-            rows = buildRows(value, collapsed)
+            rows = buildRows(value)
         }
+
+    /** 这一组现在收没收起：用户点过的优先，没点过按默认（今天/明天展开）。 */
+    private fun isCollapsed(label: String): Boolean =
+        DayGroups.isCollapsed(label, collapsed, expanded)
 
     /**
      * 整体换数据：走 DiffUtil，只通知真正变了的那几行。
@@ -51,7 +57,7 @@ class TodoAdapter(
      */
     fun submit(newItems: List<TodoItem>) {
         source = newItems
-        val next = buildRows(newItems, collapsed)
+        val next = buildRows(newItems)
         // 先换 rows 再派发：RecyclerView 在 dispatch 期间就会回读 getItemCount()，
         // 顺序反了会出现「有的条目跟着动、有的直接跳位」。
         val old = rows
@@ -158,16 +164,24 @@ class TodoAdapter(
         }
     }
 
-    /** 收起/展开：重建行、交给 DiffUtil，收起的那几条自己滑走/滑进来。 */
+    /** 收起/展开：把用户这次的选择记进对应的集合，再交给 DiffUtil 重算。 */
     private fun toggleGroup(label: String) {
         if (!rows.any { it is Row.Header && it.label == label }) return
-        if (!collapsed.remove(label)) collapsed.add(label)
+        if (isCollapsed(label)) {
+            // 这次是展开：从「收起」里拿掉，记进「展开过」
+            collapsed.remove(label)
+            expanded.add(label)
+        } else {
+            // 这次是收起：从「展开过」里拿掉，记进「收起」
+            expanded.remove(label)
+            collapsed.add(label)
+        }
 
-        val next = buildRows(source, collapsed)
+        val next = buildRows(source)
         val old = rows
         rows = next
         dispatch(old, next)
-        onCollapseChanged(collapsed.toSet())
+        onGroupStateChanged(collapsed.toSet(), expanded.toSet())
     }
 
     private fun bindItem(holder: ItemHolder, item: TodoItem) {
@@ -268,13 +282,13 @@ class TodoAdapter(
         }
     }
 
-    private fun buildRows(source: List<TodoItem>, collapsed: Set<String>): List<Row> {
+    private fun buildRows(source: List<TodoItem>): List<Row> {
         val out = mutableListOf<Row>()
-        val groups = source.sortedBy { it.startMillis }.groupBy { dayLabel(it.startMillis) }
+        val groups = source.sortedBy { it.startMillis }.groupBy { DayGroups.label(it.startMillis) }
         for ((label, entries) in groups) {
-            val isCollapsed = collapsed.contains(label)
-            out.add(Row.Header(label, entries.size, isCollapsed))
-            if (!isCollapsed) entries.forEach { out.add(Row.Entry(it)) }
+            val folded = isCollapsed(label)
+            out.add(Row.Header(label, entries.size, folded))
+            if (!folded) entries.forEach { out.add(Row.Entry(it)) }
         }
         return out
     }
@@ -284,18 +298,5 @@ class TodoAdapter(
         private const val TYPE_ITEM = 1
         /** 只刷新卡片上的时间进度，不重绑整条。 */
         private const val PAYLOAD_PROGRESS = "progress"
-
-        private fun dayLabel(millis: Long): String {
-            val zone = ZoneId.systemDefault()
-            val day = Instant.ofEpochMilli(millis).atZone(zone).toLocalDate()
-            val today = LocalDate.now(zone)
-            return when {
-                day.isBefore(today) -> "已过期"
-                day == today -> "今天"
-                day == today.plusDays(1) -> "明天"
-                day == today.plusDays(2) -> "后天"
-                else -> "${day.monthValue} 月 ${day.dayOfMonth} 日"
-            }
-        }
     }
 }
