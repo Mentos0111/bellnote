@@ -36,10 +36,11 @@
                     android:textSize="14sp" />
 
                 <TextView
+                    android:id="@+id/tvLocalSubtitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="在手机上跑 Gemma 3 1B，要先把模型下下来"
+                    android:text="在手机上跑本地模型，要先把它下下来"
                     android:textColor="?attr/bnTextSecondary"
                     android:textSize="12sp" />
             </LinearLayout>

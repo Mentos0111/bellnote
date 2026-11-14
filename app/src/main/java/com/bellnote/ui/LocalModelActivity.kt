@@ -28,6 +28,7 @@ class LocalModelActivity : AppCompatActivity() {
 
     private lateinit var swLocal: SwitchCompat
     private lateinit var tvState: TextView
+    private lateinit var tvSubtitle: TextView
     private lateinit var btnAction: Button
     private lateinit var btnDelete: Button
 
@@ -43,6 +44,7 @@ class LocalModelActivity : AppCompatActivity() {
 
         swLocal = findViewById(R.id.swLocal)
         tvState = findViewById(R.id.tvLocalState)
+        tvSubtitle = findViewById(R.id.tvLocalSubtitle)
         btnAction = findViewById(R.id.btnLocalAction)
         btnDelete = findViewById(R.id.btnLocalDelete)
 
@@ -166,6 +168,8 @@ class LocalModelActivity : AppCompatActivity() {
         val state = ModelDownloader.status(this)
         val model = LocalModels.selected(this)
         val totalMb = model.sizeMb
+        // 标题下面那行要跟着当前选的模型走，别写死某一个模型名
+        tvSubtitle.text = "在手机上跑 ${model.name}（$totalMb MB），不联网"
         tvState.text = when (state) {
             ModelDownloader.Status.Ready ->
                 "已下载：${model.name}（$totalMb MB）。识别时在手机上跑，不联网。"
