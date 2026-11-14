@@ -239,11 +239,13 @@ class TodoAdapter(
                 android.content.res.ColorStateList.valueOf(tint)
             holder.progressBar.alpha = if (ended) 0.55f else 0.95f
         } else {
-            // 盖在文字上面的一层中性灰：扫过的部分（连同文字）被压暗一档，边界看得见。
-            // 深色模式的黑更重一些——深底吃层次，颜色太淡就完全看不出进度走到哪了。
+            // 铺色用「页面底色」而不是黑/白：
+            // 扫过的部分朝页面背景靠拢 → 卡片看起来像被页面吃掉一块，进度天然不抢眼。
+            // 用纯黑会在浅色模式下变成一块灰，反而显眼（2026-11-14 老师指出）。
+            val veil = StatusColors.attr(context, R.attr.bnWindowBg)
             holder.progressFill.backgroundTintList =
-                android.content.res.ColorStateList.valueOf(android.graphics.Color.BLACK)
-            holder.progressFill.alpha = if (night) 0.26f else 0.06f
+                android.content.res.ColorStateList.valueOf(veil)
+            holder.progressFill.alpha = if (night) 0.55f else 0.60f
         }
         // 文字：没做完的永远满对比、时间用主题色；
         // 已结束的**时间一律去掉主题色**（两种模式都去掉，不然那串彩色时间最扎眼）；
