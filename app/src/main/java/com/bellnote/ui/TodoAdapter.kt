@@ -259,6 +259,23 @@ class TodoAdapter(
         notifyItemRangeChanged(0, rows.size)
     }
 
+    /** 迷你地图用：一共有几条事件（不含分组标题）。 */
+    fun eventCount(): Int = rows.count { it is Row.Entry }
+
+    /** 迷你地图用：第 position 行是第几条事件；表头返回 null。 */
+    fun eventIndexAt(position: Int): Int? {
+        if (position !in rows.indices) return null
+        var index = 0
+        for (i in 0..position) {
+            val row = rows[i]
+            if (row is Row.Entry) {
+                if (i == position) return index
+                index++
+            }
+        }
+        return null
+    }
+
     /**
      * 卡片阴影：不用系统那层发灰的黑影，改成带主题色的柔和投影
      * （Android 9+ 才能单独指定投影颜色，低版本退回系统默认）。

@@ -220,26 +220,40 @@
             android:paddingTop="0dp"
             android:paddingBottom="16dp" />
 
+        <!-- 最左侧「整份日程」迷你地图：每条事件占一段，已结束/进行中/未开始三种颜色；
+             右边 1.5dp 亮线跟着滑动走；「今天」开头打一条刻度 -->
         <FrameLayout
             android:id="@+id/dayProgress"
-            android:layout_width="3dp"
+            android:layout_width="4dp"
             android:layout_height="match_parent"
             android:layout_gravity="start"
             android:layout_marginTop="4dp"
             android:layout_marginBottom="20dp"
+            android:background="@drawable/bg_day_progress"
+            android:clipToOutline="true"
             android:visibility="gone">
 
-            <View
-                android:id="@+id/dayProgressTrack"
+            <LinearLayout
+                android:id="@+id/dayProgressSegments"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@drawable/bg_day_progress" />
+                android:orientation="vertical" />
 
             <View
-                android:id="@+id/dayProgressFill"
+                android:id="@+id/dayProgressTodayTick"
                 android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:layout_gravity="top"
+                android:background="@drawable/bg_day_progress"
+                android:visibility="gone" />
+
+            <View
+                android:id="@+id/dayProgressViewport"
+                android:layout_width="1.5dp"
                 android:layout_height="match_parent"
-                android:background="@drawable/bg_day_progress" />
+                android:layout_gravity="end"
+                android:background="@drawable/bg_day_progress"
+                android:visibility="gone" />
         </FrameLayout>
     </FrameLayout>
     </LinearLayout>
