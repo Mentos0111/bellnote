@@ -239,13 +239,20 @@ class TodoAdapter(
                 android.content.res.ColorStateList.valueOf(tint)
             holder.progressBar.alpha = if (ended) 0.55f else 0.95f
         } else {
-            // 铺色用「页面底色」而不是黑/白：
-            // 扫过的部分朝页面背景靠拢 → 卡片看起来像被页面吃掉一块，进度天然不抢眼。
-            // 用纯黑会在浅色模式下变成一块灰，反而显眼（2026-11-14 老师指出）。
-            val veil = StatusColors.attr(context, R.attr.bnWindowBg)
+            // 铺色：往前面的「页面底色」靠，但浅色模式下页面底色几乎就是白，单靠它看不清边界，
+            // 所以再往灰里压一点（页面底色掺 9% 黑），扫过的部分变成一层很淡的灰。
+            // 深色模式页面底色本来就比卡片深，直接用就够。
+            val base = StatusColors.attr(context, R.attr.bnWindowBg)
+            val veil = if (night) {
+                base
+            } else {
+                androidx.core.graphics.ColorUtils.blendARGB(
+                    base, android.graphics.Color.BLACK, 0.09f
+                )
+            }
             holder.progressFill.backgroundTintList =
                 android.content.res.ColorStateList.valueOf(veil)
-            holder.progressFill.alpha = if (night) 0.55f else 0.68f
+            holder.progressFill.alpha = if (night) 0.55f else 0.85f
         }
 
         // 浅色模式下卡片底子稍微带一点主题色：全白卡上那层「页面底色」几乎看不出边界，
