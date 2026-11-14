@@ -94,7 +94,7 @@
 
         <activity-alias
             android:name=".ui.IconTeal"
-            android:enabled="true"
+            android:enabled="false"
             android:exported="true"
             android:icon="@drawable/ic_launcher_teal"
             android:label="@string/app_name"
@@ -136,7 +136,7 @@
 
         <activity-alias
             android:name=".ui.IconInk"
-            android:enabled="false"
+            android:enabled="true"
             android:exported="true"
             android:icon="@drawable/ic_launcher_ink"
             android:label="@string/app_name"

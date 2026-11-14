@@ -98,7 +98,7 @@ class CalendarRepository(private val context: Context) {
             put(Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
             put(Calendars.NAME, displayName)
             put(Calendars.CALENDAR_DISPLAY_NAME, displayName)
-            put(Calendars.CALENDAR_COLOR, 0xFF156B5A.toInt())
+            put(Calendars.CALENDAR_COLOR, 0xFF1F2321.toInt())
             put(Calendars.CALENDAR_ACCESS_LEVEL, Calendars.CAL_ACCESS_OWNER)
             put(Calendars.OWNER_ACCOUNT, ACCOUNT_NAME)
             put(Calendars.VISIBLE, 1)
