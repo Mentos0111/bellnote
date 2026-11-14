@@ -281,20 +281,23 @@ class TodoAdapter(
      * 以前是反的：进行中直接涂满、没开始的按「离开始还有多久」提前涂，看着像进度错了。
      */
     /**
-     * 时间进度（最初的样子）：开始前 2 小时内卡片从左边开始逐渐涂一层主题色，越接近开始涂得越满；
-     * 进行中整张涂满并显示剩余时间；已经结束的也整张涂满（做完的样子）。
+     * 时间进度（最初版本的样式 + 正确的语义）：
+     *  - 还没开始：0（一点不涂）
+     *  - 进行中：按「已经过去 / 总时长」从左往右涂主题色
+     *  - 已结束：涂满
+     * 样式就是最初那版：整张卡铺一层主题色（深色模式铺浅色），文字原色、卡片底不着色。
      */
     private fun bindProgress(holder: ItemHolder, item: TodoItem) {
         val now = System.currentTimeMillis()
         val start = item.startMillis
         val end = start + item.durationMinutes * 60_000L
-        val window = 2 * 60 * 60 * 1000L
+        val total = (end - start).coerceAtLeast(1L)
         val barStyle = Prefs.endedStyle(holder.itemView.context) == Prefs.ENDED_STYLE_BAR
 
         when {
             now >= end -> {
                 setProgressFraction(holder, 1f)
-                // 条状只靠一条线，需要文字补一句；整卡铺色靠涂满表达
+                // 条状只靠一条线，需要文字补一句；整卡铺色涂满就够
                 if (barStyle) {
                     holder.progressLabel.visibility = View.VISIBLE
                     holder.progressLabel.text = "已结束"
@@ -304,29 +307,26 @@ class TodoAdapter(
             }
 
             now >= start -> {
-                setProgressFraction(holder, 1f)
+                setProgressFraction(holder, ((now - start).toFloat() / total).coerceIn(0f, 1f))
                 holder.progressLabel.visibility = View.VISIBLE
                 holder.progressLabel.text = "进行中 · 还剩 ${humanize(end - now)}"
             }
 
-            start - now <= window -> {
-                val remain = start - now
-                val fraction = (100f - remain * 100f / window).coerceIn(0f, 100f) / 100f
-                setProgressFraction(holder, fraction)
-                holder.progressLabel.visibility = View.VISIBLE
-                holder.progressLabel.text = "还有 ${humanize(remain)}"
-            }
-
             else -> {
                 setProgressFraction(holder, 0f)
-                holder.progressLabel.visibility = View.GONE
+                val remain = start - now
+                if (remain <= 2 * 60 * 60 * 1000L) {
+                    holder.progressLabel.visibility = View.VISIBLE
+                    holder.progressLabel.text = "还有 ${humanize(remain)}"
+                } else {
+                    holder.progressLabel.visibility = View.GONE
+                }
             }
         }
     }
 
     private fun setProgressFraction(holder: ItemHolder, fraction: Float) {
         val f = fraction.coerceIn(0f, 1f)
-        // 整卡铺色：跟着「已过去多少」从左往右涂（最初的画法）
         holder.progressFill.pivotX = 0f
         holder.progressFill.scaleX = f
         holder.progressBar.scaleX = f
