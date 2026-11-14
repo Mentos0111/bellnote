@@ -245,12 +245,18 @@ class TodoAdapter(
                 android.content.res.ColorStateList.valueOf(android.graphics.Color.BLACK)
             holder.progressFill.alpha = if (night) 0.26f else 0.06f
         }
-        // 文字颜色两种形态都不动：靠进度本身表达状态，没做完的永远是满对比
-        holder.title.setTextColor(StatusColors.attr(context, R.attr.bnTextPrimary))
-        holder.time.setTextColor(StatusColors.attr(context, R.attr.bnPrimary))
-        holder.duration.setTextColor(StatusColors.attr(context, R.attr.bnTextSecondary))
-        holder.note.setTextColor(StatusColors.attr(context, R.attr.bnTextSecondary))
-        holder.progressLabel.setTextColor(StatusColors.attr(context, R.attr.bnTextSecondary))
+        // 文字：没做完的永远满对比、时间用主题色；
+        // 已结束的**时间一律去掉主题色**（两种模式都去掉，不然那串彩色时间最扎眼）；
+        // 亮色模式另外把标题/备注也压一档——浅色那层 6% 的灰扫过还不够淡。
+        val primary = StatusColors.attr(context, R.attr.bnTextPrimary)
+        val secondary = StatusColors.attr(context, R.attr.bnTextSecondary)
+        val muted = StatusColors.attr(context, R.attr.bnMuted)
+        val accent = StatusColors.attr(context, R.attr.bnPrimary)
+        holder.title.setTextColor(if (ended && !night) muted else primary)
+        holder.time.setTextColor(if (ended) muted else accent)
+        holder.duration.setTextColor(if (ended) muted else secondary)
+        holder.note.setTextColor(if (ended) muted else secondary)
+        holder.progressLabel.setTextColor(if (ended) muted else secondary)
     }
 
     /** 换了「已结束的样子」以后，把列表整体重绑一遍（数据没变，Diff 不会动）。 */
