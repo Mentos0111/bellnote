@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 深色模式下的「记一条」按钮：底色换成主色（深色主题里主色是浅的一档），
+     笔用 bnOnPrimary（近黑），对比才够。浅色模式仍用 drawable/bg_circle_send 的深底。 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#33FFFFFF">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="?attr/bnPrimary" />
+        </shape>
+    </item>
+</ripple>
