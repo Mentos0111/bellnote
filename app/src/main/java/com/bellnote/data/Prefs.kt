@@ -43,6 +43,7 @@ object Prefs {
     private const val KEY_NTFY_SERVER = "ntfy_server"
     private const val KEY_NTFY_ENABLED = "ntfy_enabled"
     private const val KEY_NTFY_SETUP_PROMPTED = "ntfy_setup_prompted"
+    private const val KEY_NTFY_GUIDE_DONE = "ntfy_guide_done"
     private const val KEY_NTFY_SINCE = "ntfy_since"
     private const val KEY_CATCHUP_AT = "catchup_last_at"
     private const val KEY_CATCHUP_SUMMARY = "catchup_last_summary"
@@ -73,6 +74,9 @@ object Prefs {
      * keyword（命中关键词才提醒）/ auto（自动建）。默认 off，别自作主张。
      */
     private const val KEY_NOTIFY_LEVEL = "notify_level"
+
+    /** ntfy 后台接收方式，见 [ntfyBackgroundMode]。 */
+    private const val KEY_NTFY_BACKGROUND = "ntfy_background_mode"
 
     /** 存「被忽略的通知」用的分隔符：\u0001 分条、\u0002 分字段，正常正文里不会出现。 */
     private const val ENTRY_SEP = "\u0001"
@@ -262,6 +266,14 @@ object Prefs {
 
     fun setNtfySetupPrompted(context: Context, done: Boolean) {
         sp(context).edit().putBoolean(KEY_NTFY_SETUP_PROMPTED, done).apply()
+    }
+
+    /** ntfy 专属引导（主题 → 后台接收 → 权限）走过一遍没有。 */
+    fun ntfyGuideDone(context: Context): Boolean =
+        sp(context).getBoolean(KEY_NTFY_GUIDE_DONE, false)
+
+    fun setNtfyGuideDone(context: Context, done: Boolean) {
+        sp(context).edit().putBoolean(KEY_NTFY_GUIDE_DONE, done).apply()
     }
 
     fun ntfyServer(context: Context): String =
@@ -539,6 +551,29 @@ object Prefs {
     fun setNotifyLevel(context: Context, level: String) {
         sp(context).edit().putString(KEY_NOTIFY_LEVEL, level).apply()
     }
+
+    // ---------------- ntfy 后台接收 ----------------
+
+    /**
+     * 后台怎么收 ntfy 消息：
+     * - [BG_OFF]：不在后台收，打开 App 时补查一次
+     * - [BG_ALARM]（默认）：精确闹钟每 10 分钟唤醒一次；没有精确闹钟权限时退回 15 分钟系统任务
+     * - [BG_SERVICE]：前台服务常驻，60 秒一轮，最快但通知栏会常驻一条
+     */
+    fun ntfyBackgroundMode(context: Context): String =
+        sp(context).getString(KEY_NTFY_BACKGROUND, BG_ALARM).orEmpty().ifBlank { BG_ALARM }
+
+    fun setNtfyBackgroundMode(context: Context, mode: String) {
+        val cleaned = when (mode) {
+            BG_OFF, BG_ALARM, BG_SERVICE -> mode
+            else -> BG_ALARM
+        }
+        sp(context).edit().putString(KEY_NTFY_BACKGROUND, cleaned).apply()
+    }
+
+    const val BG_OFF = "off"
+    const val BG_ALARM = "alarm"
+    const val BG_SERVICE = "service"
 
     // ---------------- 离线大模型 ----------------
 

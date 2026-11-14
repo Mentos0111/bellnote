@@ -54,6 +54,7 @@ class OnboardingActivity : AppCompatActivity() {
     private companion object {
         const val STAGE2_INTRO = "如何实现"
         const val STAGE2_TITLE = "先授权，再开始"
+        const val REQ_NOTIFY = 8001
     }
     private var pendingStage: Runnable? = null
 
@@ -154,6 +155,16 @@ class OnboardingActivity : AppCompatActivity() {
             if (a11yServiceEnabled()) toast("截屏服务已经开着")
             else if (!DeviceVendor.openAccessibility(this)) {
                 toast("打不开无障碍页面，请手动到 设置 → 无障碍 → Bellnote 截屏")
+            }
+        }
+
+        findViewById<LinearLayout>(R.id.permNotify).setOnClickListener {
+            if (Permissions.hasPostNotifications(this)) {
+                toast("通知已经开着")
+            } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), REQ_NOTIFY)
+            } else {
+                toast("去系统设置里允许 Bellnote 的通知")
             }
         }
 
@@ -490,8 +501,16 @@ class OnboardingActivity : AppCompatActivity() {
         }.start()
     }
 
-    private fun refreshPermissionRows() {
-        setState(R.id.permCalendarState, Permissions.hasCalendar(this))
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQ_NOTIFY) refreshPermissionRows()
+    }
+
+    private fun refreshPermissionRows() {        setState(R.id.permCalendarState, Permissions.hasCalendar(this))
         val media = findViewById<TextView>(R.id.permMediaState)
         if (Permissions.hasMediaImages(this)) {
             media.text = "已开启"
@@ -507,6 +526,14 @@ class OnboardingActivity : AppCompatActivity() {
         } else {
             a11y.text = "建议开启"
             a11y.setTextColor(themeColor(R.attr.bnTextSecondary))
+        }
+        val notify = findViewById<TextView>(R.id.permNotifyState)
+        if (Permissions.hasPostNotifications(this)) {
+            notify.text = "已开启"
+            notify.setTextColor(themeColor(R.attr.bnOk))
+        } else {
+            notify.text = "建议开启"
+            notify.setTextColor(themeColor(R.attr.bnTextSecondary))
         }
         updatePermGate()
     }

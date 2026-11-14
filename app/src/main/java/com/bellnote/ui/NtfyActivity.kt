@@ -18,9 +18,12 @@ import androidx.appcompat.widget.SwitchCompat
 import com.bellnote.R
 import com.bellnote.data.MessageLog
 import com.bellnote.data.Prefs
+import com.bellnote.service.NtfyBackground
 import com.bellnote.service.NtfyFetcher
 import com.bellnote.service.NtfyPollScheduler
+import com.bellnote.service.NtfyReceiveService
 import com.bellnote.service.NtfySender
+import com.bellnote.util.Permissions
 import com.bellnote.util.DeviceVendor
 import com.bellnote.util.Help
 import com.bellnote.util.NtfyEndpoint
@@ -48,6 +51,14 @@ class NtfyActivity : AppCompatActivity() {
     private lateinit var cbStrictParse: CheckBox
     private lateinit var btnCatchUp: Button
     private lateinit var btnSendTest: Button
+    private lateinit var rbBgOff: android.widget.RadioButton
+    private lateinit var rbBgAlarm: android.widget.RadioButton
+    private lateinit var rbBgService: android.widget.RadioButton
+    private lateinit var tvBgHint: TextView
+    private lateinit var tvBgStatus: TextView
+    private lateinit var btnBgNotifyPerm: Button
+    private lateinit var btnBgExactAlarm: Button
+    private lateinit var btnBgBattery: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeManager.apply(this)
@@ -66,6 +77,16 @@ class NtfyActivity : AppCompatActivity() {
         cbStrictParse = findViewById(R.id.cbStrictParse)
         btnCatchUp = findViewById(R.id.btnCatchUpNow)
         btnSendTest = findViewById(R.id.btnSendTest)
+        rbBgOff = findViewById(R.id.rbBgOff)
+        rbBgAlarm = findViewById(R.id.rbBgAlarm)
+        rbBgService = findViewById(R.id.rbBgService)
+        tvBgHint = findViewById(R.id.tvBgHint)
+        tvBgStatus = findViewById(R.id.tvBgStatus)
+        btnBgNotifyPerm = findViewById(R.id.btnBgNotifyPerm)
+        btnBgExactAlarm = findViewById(R.id.btnBgExactAlarm)
+        btnBgBattery = findViewById(R.id.btnBgBattery)
+
+        renderBackground()
 
         etTopic.setText(Prefs.ntfyTopic(this))
         cbAutoImport.isChecked = Prefs.autoImport(this)
@@ -79,36 +100,21 @@ class NtfyActivity : AppCompatActivity() {
     }
 
     /**
-     * 第一次真正接通 ntfy（开关开着 + 主题非空）时讲一次后台要求：
-     * 补查是定时任务，不加白名单会被系统冻结——这是用户最容易漏的一步。
-     * 只弹一次，记在 Prefs.ntfy_setup_prompted。
+     * 第一次真正接通 ntfy（开关开着 + 主题非空）时，进 ntfy 专属引导：
+     * 主题 → 后台接收方式 → 权限。只走一次，记在 Prefs.ntfyGuideDone。
      */
     private fun maybePromptSetup() {
         if (!Prefs.ntfyEnabled(this)) return
         if (Prefs.ntfyTopic(this).isBlank()) return
-        if (Prefs.ntfySetupPrompted(this)) return
-        Prefs.setNtfySetupPrompted(this, true)
-        val vendor = DeviceVendor.current()
-        AlertDialog.Builder(this)
-            .setTitle("让补查一直在跑")
-            .setMessage(
-                "ntfy 模式已经接好。要让它定时在后台拉消息，还需要三件事：\n\n" +
-                    "① 电池白名单：允许 Bellnote 在后台运行（最要紧，不加会被冻结）\n" +
-                    "② 自启动：开机或被系统清理后能自己起来\n" +
-                    "③ 通知：App 自己的提醒能弹出来\n\n" +
-                    "先加白名单就够用，另外两项用到时再去开。\n" +
-                    "按你这台机型：${DeviceVendor.backgroundGuide(vendor)}"
-            )
-            .setPositiveButton("去加白名单") { _, _ -> DeviceVendor.openBattery(this) }
-            .setNeutralButton("去开自启动") { _, _ -> DeviceVendor.openAutostart(this) }
-            .setNegativeButton("知道了", null)
-            .show()
+        if (Prefs.ntfyGuideDone(this)) return
+        startActivity(Intent(this, NtfyGuideActivity::class.java))
     }
 
     override fun onResume() {
         super.onResume()
         renderStatus()
         renderLogEntry()
+        renderBackgroundStatus()
     }
 
     override fun onPause() {
@@ -136,6 +142,102 @@ class NtfyActivity : AppCompatActivity() {
         btnCatchUp.setOnClickListener { catchUpNow() }
         btnSendTest.setOnClickListener { sendTestPush() }
         findViewById<Button>(R.id.btnSaveNtfy).setOnClickListener { saveAndFinish() }
+
+        rbBgOff.setOnCheckedChangeListener { _, checked -> if (checked) setBackgroundMode(Prefs.BG_OFF) }
+        rbBgAlarm.setOnCheckedChangeListener { _, checked -> if (checked) setBackgroundMode(Prefs.BG_ALARM) }
+        rbBgService.setOnCheckedChangeListener { _, checked -> if (checked) setBackgroundMode(Prefs.BG_SERVICE) }
+        btnBgNotifyPerm.setOnClickListener { requestNotificationPermission() }
+        btnBgExactAlarm.setOnClickListener { openExactAlarmSettings() }
+        btnBgBattery.setOnClickListener { DeviceVendor.openBattery(this) }
+    }
+
+    // ---------------- 后台接收 ----------------
+
+    private fun renderBackground() {
+        when (Prefs.ntfyBackgroundMode(this)) {
+            Prefs.BG_OFF -> rbBgOff.isChecked = true
+            Prefs.BG_SERVICE -> rbBgService.isChecked = true
+            else -> rbBgAlarm.isChecked = true
+        }
+        tvBgHint.setText(
+            when (Prefs.ntfyBackgroundMode(this)) {
+                Prefs.BG_OFF -> R.string.ntfy_bg_hint_off
+                Prefs.BG_SERVICE -> R.string.ntfy_bg_hint_service
+                else -> R.string.ntfy_bg_hint_alarm
+            }
+        )
+        renderBackgroundStatus()
+    }
+
+    private fun setBackgroundMode(mode: String) {
+        Prefs.setNtfyBackgroundMode(this, mode)
+        NtfyBackground.sync(this)
+        renderBackground()
+    }
+
+    /** 「当前状态：通知已允许 · 闹钟权限可用 · 电池白名单」这行 + 缺什么才显示哪个按钮。 */
+    private fun renderBackgroundStatus() {
+        val mode = Prefs.ntfyBackgroundMode(this)
+        val notifyOk = Permissions.hasPostNotifications(this)
+        val exactOk = NtfyBackground.canUseExactAlarm(this)
+        val batteryOk = isBatteryIgnored()
+        val sb = StringBuilder(getString(R.string.ntfy_bg_status_prefix))
+        sb.append(if (notifyOk) "通知已允许" else "通知未允许")
+        when (mode) {
+            Prefs.BG_SERVICE -> sb.append(" · ").append(
+                if (NtfyReceiveService.isAlive) "前台服务在跑" else "前台服务没起来（打开 App 会自动拉起）"
+            )
+            Prefs.BG_ALARM -> sb.append(" · ").append(
+                if (exactOk) "闹钟权限可用" else "闹钟权限未开（暂时用 15 分钟系统任务）"
+            )
+            else -> sb.append(" · 后台不收")
+        }
+        sb.append(" · ").append(if (batteryOk) "后台不受限" else "电池白名单未加")
+        tvBgStatus.text = sb.toString()
+
+        btnBgNotifyPerm.visibility = if (notifyOk) View.GONE else View.VISIBLE
+        btnBgExactAlarm.visibility =
+            if (mode == Prefs.BG_ALARM && !exactOk) View.VISIBLE else View.GONE
+        btnBgBattery.visibility = if (batteryOk) View.GONE else View.VISIBLE
+    }
+
+    private fun isBatteryIgnored(): Boolean {
+        val pm = getSystemService(android.os.PowerManager::class.java) ?: return true
+        return pm.isIgnoringBatteryOptimizations(packageName)
+    }
+
+    private fun requestNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            requestPermissions(
+                arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                REQUEST_NOTIFICATIONS
+            )
+        } else {
+            toast("系统版本太老，去系统设置里允许通知")
+        }
+    }
+
+    private fun openExactAlarmSettings() {
+        val uri = android.net.Uri.parse("package:$packageName")
+        val intent = Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, uri)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            toast("打不开闹钟权限页，去 设置 → 应用 → 特殊权限 里找")
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_NOTIFICATIONS) {
+            renderBackgroundStatus()
+            NtfyBackground.sync(this)
+        }
     }
 
     /** 只有不好一句话说清的才挂「?」；简单的用下面一行批注。 */
@@ -313,5 +415,9 @@ class NtfyActivity : AppCompatActivity() {
 
     private fun toast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    companion object {
+        private const val REQUEST_NOTIFICATIONS = 7001
     }
 }

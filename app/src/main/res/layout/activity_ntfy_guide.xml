@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/bnWindowBg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="22dp"
+        android:paddingRight="22dp"
+        android:paddingTop="18dp"
+        android:paddingBottom="24dp">
+
+        <TextView
+            android:id="@+id/tvGuideTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/ntfy_guide_title"
+            android:textColor="?attr/bnTextPrimary"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <!-- ===== 第 1 页：填主题 ===== -->
+
+        <LinearLayout
+            android:id="@+id/g1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/FormLabel"
+                android:layout_marginTop="18dp"
+                android:text="① 填主题" />
+
+            <EditText
+                android:id="@+id/etGuideTopic"
+                style="@style/FormInput"
+                android:hint="todo-xxxx"
+                android:inputType="text" />
+
+            <TextView
+                style="@style/HintText"
+                android:text="主题就是收信的地址，得和你发消息那边完全一致。填错一个字符就收不到。" />
+        </LinearLayout>
+
+        <!-- ===== 第 2 页：后台接收 ===== -->
+
+        <LinearLayout
+            android:id="@+id/g2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                style="@style/FormLabel"
+                android:layout_marginTop="18dp"
+                android:text="② 后台怎么收" />
+
+            <RadioGroup
+                android:id="@+id/rgGuideBg"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/rbGuideAlarm"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="40dp"
+                    android:text="@string/ntfy_bg_alarm"
+                    android:textColor="?attr/bnTextPrimary" />
+
+                <RadioButton
+                    android:id="@+id/rbGuideService"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="40dp"
+                    android:text="@string/ntfy_bg_service"
+                    android:textColor="?attr/bnTextPrimary" />
+
+                <RadioButton
+                    android:id="@+id/rbGuideOff"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="40dp"
+                    android:text="@string/ntfy_bg_off"
+                    android:textColor="?attr/bnTextPrimary" />
+            </RadioGroup>
+
+            <TextView
+                android:id="@+id/tvGuideBgHint"
+                style="@style/HintText"
+                android:text="@string/ntfy_bg_hint_alarm" />
+        </LinearLayout>
+
+        <!-- ===== 第 3 页：权限 ===== -->
+
+        <LinearLayout
+            android:id="@+id/g3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                style="@style/FormLabel"
+                android:layout_marginTop="18dp"
+                android:text="③ 放行这三样" />
+
+            <TextView
+                style="@style/HintText"
+                android:text="通知：App 才能告诉你收到待办。\n闹钟与提醒：只有「十分钟」模式需要。\n电池白名单：不加的话系统会把后台任务冻掉，这是最容易被漏的一步。" />
+
+            <Button
+                android:id="@+id/btnGuideNotify"
+                style="@style/BtnTonal"
+                android:layout_marginTop="14dp"
+                android:text="@string/ntfy_bg_perm_notify" />
+
+            <Button
+                android:id="@+id/btnGuideExact"
+                style="@style/BtnTonal"
+                android:layout_marginTop="8dp"
+                android:text="@string/ntfy_bg_perm_exact" />
+
+            <Button
+                android:id="@+id/btnGuideBattery"
+                style="@style/BtnTonal"
+                android:layout_marginTop="8dp"
+                android:text="@string/ntfy_bg_perm_battery" />
+
+            <TextView
+                android:id="@+id/tvGuidePermState"
+                style="@style/HintText"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_input"
+                android:padding="12dp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnGuideNext"
+            style="@style/BtnPrimary"
+            android:layout_marginTop="26dp"
+            android:text="@string/ntfy_guide_next" />
+
+        <Button
+            android:id="@+id/btnGuideSkip"
+            style="@style/BtnTonal"
+            android:layout_marginTop="10dp"
+            android:text="@string/ntfy_guide_skip" />
+    </LinearLayout>
+</ScrollView>

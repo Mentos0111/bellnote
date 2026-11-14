@@ -13,16 +13,18 @@
         android:paddingTop="12dp"
         android:paddingBottom="28dp">
 
+        <!-- ================= ① 连接 ================= -->
+
         <TextView
             style="@style/SectionSubLabel"
             android:layout_marginTop="0dp"
-            android:text="总开关" />
+            android:text="@string/ntfy_group_connect" />
 
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/swNtfyMode"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="6dp"
             android:minHeight="44dp"
             android:text="@string/ntfy_mode_switch"
             android:textColor="?attr/bnTextPrimary"
@@ -49,7 +51,7 @@
             android:orientation="horizontal">
 
             <TextView
-                style="@style/SectionSubLabel"
+                style="@style/FieldCaption"
                 android:layout_width="0dp"
                 android:layout_marginTop="0dp"
                 android:layout_weight="1"
@@ -105,40 +107,87 @@
             style="@style/HintText"
             android:text="@string/cap_topic" />
 
-        <Button
-            android:id="@+id/btnCatchUpNow"
-            style="@style/BtnTonal"
-            android:layout_marginTop="12dp"
-            android:text="@string/btn_catch_up_now" />
-
-        <Button
-            android:id="@+id/btnSendTest"
-            style="@style/BtnTonal"
-            android:layout_marginTop="10dp"
-            android:text="@string/btn_send_test" />
-
-        <TextView
-            style="@style/HintText"
-            android:text="@string/cap_actions" />
+        <!-- ================= ② 后台接收 ================= -->
 
         <TextView
             style="@style/SectionSubLabel"
-            android:text="消息记录" />
-
-        <Button
-            android:id="@+id/btnMessageLog"
-            style="@style/BtnTonal"
-            android:layout_marginTop="8dp"
-            android:text="@string/ntfy_log_entry" />
+            android:layout_marginTop="22dp"
+            android:text="@string/ntfy_group_background" />
 
         <TextView
+            style="@style/FieldCaption"
+            android:layout_marginTop="6dp"
+            android:text="@string/ntfy_bg_title" />
+
+        <RadioGroup
+            android:id="@+id/rgBackground"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/rbBgOff"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="40dp"
+                android:text="@string/ntfy_bg_off"
+                android:textColor="?attr/bnTextPrimary" />
+
+            <RadioButton
+                android:id="@+id/rbBgAlarm"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="40dp"
+                android:text="@string/ntfy_bg_alarm"
+                android:textColor="?attr/bnTextPrimary" />
+
+            <RadioButton
+                android:id="@+id/rbBgService"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="40dp"
+                android:text="@string/ntfy_bg_service"
+                android:textColor="?attr/bnTextPrimary" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/tvBgHint"
             style="@style/HintText"
-            android:text="@string/cap_log" />
+            android:text="@string/ntfy_bg_hint_alarm" />
+
+        <TextView
+            android:id="@+id/tvBgStatus"
+            style="@style/HintText"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_input"
+            android:padding="12dp"
+            android:text="" />
+
+        <Button
+            android:id="@+id/btnBgNotifyPerm"
+            style="@style/BtnTonal"
+            android:layout_marginTop="10dp"
+            android:text="@string/ntfy_bg_perm_notify" />
+
+        <Button
+            android:id="@+id/btnBgExactAlarm"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
+            android:text="@string/ntfy_bg_perm_exact" />
+
+        <Button
+            android:id="@+id/btnBgBattery"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
+            android:text="@string/ntfy_bg_perm_battery" />
+
+        <!-- ================= ③ 收到后怎么处理 ================= -->
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
+            android:layout_marginTop="22dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -147,7 +196,7 @@
                 android:layout_width="0dp"
                 android:layout_marginTop="0dp"
                 android:layout_weight="1"
-                android:text="推送怎么处理" />
+                android:text="@string/ntfy_group_receive" />
 
             <ImageButton
                 android:id="@+id/btnHelpRules"
@@ -160,18 +209,52 @@
             android:id="@+id/cbAutoImport"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:text="@string/label_auto_import" />
 
         <CheckBox
             android:id="@+id/cbStrictParse"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:text="@string/label_strict_parse" />
+
+        <Button
+            android:id="@+id/btnCatchUpNow"
+            style="@style/BtnTonal"
+            android:layout_marginTop="12dp"
+            android:text="@string/btn_catch_up_now" />
+
+        <Button
+            android:id="@+id/btnSendTest"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
+            android:text="@string/btn_send_test" />
+
+        <TextView
+            style="@style/HintText"
+            android:text="@string/cap_actions" />
+
+        <!-- ================= ④ 诊断 ================= -->
 
         <TextView
             style="@style/SectionSubLabel"
+            android:layout_marginTop="22dp"
+            android:text="@string/ntfy_group_diag" />
+
+        <Button
+            android:id="@+id/btnMessageLog"
+            style="@style/BtnTonal"
+            android:layout_marginTop="8dp"
+            android:text="@string/ntfy_log_entry" />
+
+        <TextView
+            style="@style/HintText"
+            android:text="@string/cap_log" />
+
+        <TextView
+            style="@style/SectionSubLabel"
+            android:layout_marginTop="18dp"
             android:text="其他 App 的通知" />
 
         <TextView

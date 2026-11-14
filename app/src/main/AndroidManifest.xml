@@ -11,6 +11,12 @@
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
+    <!-- ntfy「秒级」后台接收：常驻前台服务 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- ntfy「十分钟」后台接收：精确闹钟（Android 12+ 需要用户授予「闹钟与提醒」） -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
 
     <application
         android:name=".App"
@@ -183,6 +189,12 @@
             android:parentActivityName=".ui.ThirdPartyActivity" />
 
         <activity
+            android:name=".ui.NtfyGuideActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:parentActivityName=".ui.NtfyActivity" />
+
+        <activity
             android:name=".ui.MessageLogActivity"
             android:exported="false"
             android:launchMode="singleTop"
@@ -286,6 +298,21 @@
             android:name=".service.NtfyPollJob"
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <!-- ntfy「秒级」后台接收：常驻前台服务，60 秒拉一次 -->
+        <service
+            android:name=".service.NtfyReceiveService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <!-- ntfy「十分钟」后台接收：精确闹钟到点触发 -->
+        <receiver
+            android:name=".service.NtfyAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.bellnote.action.NTFY_ALARM_TICK" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".service.QuickAddTileService"
