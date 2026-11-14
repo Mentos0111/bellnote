@@ -109,8 +109,8 @@ object NtfyFetcher {
             Prefs.setLastCatchUpSummary(app, "ntfy 模式已关闭，跳过补查")
             return Result(skipped = true)
         }
-        val topic = Prefs.ntfyTopic(app)
-        if (topic.isBlank()) {
+        val topics = Prefs.ntfyTopics(app).filter { it.topic.isNotBlank() }
+        if (topics.isEmpty()) {
             Prefs.setLastCatchUpSummary(app, "还没填 ntfy 主题，跳过补查")
             return Result(skipped = true)
         }
@@ -118,46 +118,68 @@ object NtfyFetcher {
 
         try {
             val nowSeconds = System.currentTimeMillis() / 1000
-            val stored = Prefs.ntfySince(app)
             val floor = nowSeconds - windowSeconds
-            val since = if (stored in (floor + 1)..nowSeconds) stored else floor
-
-            val messages = fetch(app, topic, since)
-            Log.i(TAG, "补查 topic=$topic since=$since 拉到 ${messages.size} 条")
-
-            // 只处理比上次更晚的（服务器 since 是闭区间的，边界那条会重复回来）
-            val fresh = messages
-                .filter { stored <= 0 || it.timeSeconds > stored }
-                .takeLast(MAX_MESSAGES)
-
+            var fetched = 0
             var wrote = 0
             var dropped = 0
-            var newest = stored
-            for (message in fresh) {
-                // 用消息自己的时间做「重放保护」：旧删除指令不许删后来新建的事件
-                val outcome = TodoIngestor.handle(
-                    app,
-                    message.title,
-                    message.text,
-                    messageTime = if (message.timeSeconds > 0) {
-                        message.timeSeconds * 1000
-                    } else {
-                        System.currentTimeMillis()
-                    },
-                    source = "补查"
-                )
-                wrote += outcome.wrote + outcome.updated
-                dropped += outcome.dropped
-                if (message.timeSeconds > newest) newest = message.timeSeconds
-            }
-            if (fresh.isNotEmpty()) Prefs.setNtfySince(app, newest)
-            else if (stored <= 0) Prefs.setNtfySince(app, nowSeconds)
+            var failedTopics = 0
+            var lastError: String? = null
 
-            val result = Result(
-                fetched = fresh.size,
-                wrote = wrote,
-                dropped = dropped
-            )
+            for (t in topics) {
+                val stored = t.since
+                val since = if (stored in (floor + 1)..nowSeconds) stored else floor
+                val messages = try {
+                    fetch(app, t.topic, since)
+                } catch (e: Exception) {
+                    failedTopics++
+                    lastError = e.message ?: e.javaClass.simpleName
+                    Log.w(TAG, "补查失败 topic=${t.topic}", e)
+                    continue
+                }
+                Log.i(TAG, "补查 topic=${t.topic} since=$since 拉到 ${messages.size} 条")
+
+                // 只处理比上次更晚的（服务器 since 是闭区间的，边界那条会重复回来）
+                val fresh = messages
+                    .filter { stored <= 0 || it.timeSeconds > stored }
+                    .takeLast(MAX_MESSAGES)
+
+                var newest = stored
+                for (message in fresh) {
+                    // 用消息自己的时间做「重放保护」：旧删除指令不许删后来新建的事件
+                    val outcome = TodoIngestor.handle(
+                        app,
+                        message.title,
+                        message.text,
+                        messageTime = if (message.timeSeconds > 0) {
+                            message.timeSeconds * 1000
+                        } else {
+                            System.currentTimeMillis()
+                        },
+                        source = "补查"
+                    )
+                    wrote += outcome.wrote + outcome.updated
+                    dropped += outcome.dropped
+                    if (message.timeSeconds > newest) newest = message.timeSeconds
+                }
+                fetched += fresh.size
+
+                // 每条主题各自推进游标，避免互相污染
+                if (fresh.isNotEmpty()) {
+                    Prefs.setNtfySinceFor(app, t.topic, newest)
+                } else if (stored <= 0) {
+                    Prefs.setNtfySinceFor(app, t.topic, nowSeconds)
+                }
+            }
+
+            if (failedTopics > 0 && wrote == 0 && dropped == 0) {
+                val failed = Result(failed = lastError ?: "$failedTopics 个主题没拉到")
+                Prefs.setLastCatchUpAt(app, System.currentTimeMillis())
+                Prefs.setLastCatchUpSummary(app, failed.summary())
+                Log.w(TAG, failed.summary())
+                return failed
+            }
+
+            val result = Result(fetched = fetched, wrote = wrote, dropped = dropped)
             Prefs.setLastCatchUpAt(app, System.currentTimeMillis())
             Prefs.setLastCatchUpSummary(app, result.summary())
             Log.i(TAG, result.summary())
@@ -171,7 +193,7 @@ object NtfyFetcher {
                 MessageLog.DIR_IN,
                 "补查",
                 "拉取失败",
-                "服务器 ${Prefs.ntfyServer(app)}，主题 $topic",
+                "服务器 ${Prefs.ntfyServer(app)}",
                 MessageLog.RESULT_FAILED,
                 result.summary()
             )
@@ -242,15 +264,16 @@ object NtfyFetcher {
             context, 0, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+        val title = "收到 ${result.wrote} 条新待办"
         val body = buildString {
-            append("补齐漏掉的推送：写进日历 ${result.wrote} 条")
-            if (result.dropped > 0) append("，没写 ${result.dropped} 条（设置里能看到原因）")
-            append("\n倒回 ${TimeFormat.full(System.currentTimeMillis())} 为止")
+            append("已写进日历")
+            if (result.dropped > 0) append("；另有 ${result.dropped} 条没写进去（消息记录里能看到原因）")
+            append("\n时间 ${TimeFormat.full(System.currentTimeMillis())}")
         }
         val notification = NotificationCompat.Builder(context, App.CHANNEL_EVENTS)
             .setSmallIcon(R.drawable.ic_launcher)
-            .setContentTitle("补查 ntfy：补进 ${result.wrote} 条")
-            .setContentText("补查 ntfy：补进 ${result.wrote} 条")
+            .setContentTitle(title)
+            .setContentText("已写进日历")
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setAutoCancel(true)
             .setContentIntent(pending)

@@ -95,17 +95,23 @@
 
         <TextView
             style="@style/FormLabel"
-            android:text="@string/label_push_topic" />
+            android:text="收哪些主题" />
 
-        <EditText
-            android:id="@+id/etNtfyTopic"
-            style="@style/FormInput"
-            android:hint="todo-xxxx"
-            android:inputType="text" />
+        <LinearLayout
+            android:id="@+id/topicList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <Button
+            android:id="@+id/btnAddTopic"
+            style="@style/BtnTonal"
+            android:layout_marginTop="10dp"
+            android:text="添加主题" />
 
         <TextView
             style="@style/HintText"
-            android:text="@string/cap_topic" />
+            android:text="最多 5 个主题，都写进同一个日历。通知里只报条数，不显示主题名。" />
 
         <!-- ================= ② 后台接收 ================= -->
 

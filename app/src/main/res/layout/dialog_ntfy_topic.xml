@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingLeft="20dp"
+    android:paddingTop="8dp"
+    android:paddingRight="20dp"
+    android:paddingBottom="4dp">
+
+    <TextView
+        style="@style/FieldCaption"
+        android:layout_marginTop="4dp"
+        android:text="备注名（只给你自己看）" />
+
+    <EditText
+        android:id="@+id/etTopicLabel"
+        style="@style/FormInput"
+        android:hint="比如：家里 / 工作"
+        android:inputType="text"
+        android:maxLength="12" />
+
+    <TextView
+        style="@style/FieldCaption"
+        android:layout_marginTop="10dp"
+        android:text="主题" />
+
+    <EditText
+        android:id="@+id/etTopicName"
+        style="@style/FormInput"
+        android:hint="todo-xxxx"
+        android:inputType="text" />
+
+    <TextView
+        style="@style/HintText"
+        android:text="主题必须和发消息那边完全一致；通知里不会显示主题名。" />
+</LinearLayout>
