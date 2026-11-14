@@ -8,7 +8,8 @@
     android:elevation="7dp"
     android:foreground="@drawable/bg_ripple_card">
 
-    <!-- 时间进度：从左往右涂一层主题色（深色模式涂一层浅色），由代码控制 scaleX -->
+    <!-- 时间进度：从左往右把整张卡铺一层（由代码控制 scaleX），
+         铺满 = 这段结束了，卡片整体再淡出（alpha 在代码里按状态给） -->
     <View
         android:id="@+id/itemProgressFill"
         android:layout_width="match_parent"

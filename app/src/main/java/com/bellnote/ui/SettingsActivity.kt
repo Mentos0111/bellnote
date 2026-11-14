@@ -101,6 +101,7 @@ class SettingsActivity : AppCompatActivity() {
         btnMediaPerm = findViewById(R.id.btnMediaPerm)
         setupThemeSpinner()
         setupThemeModeSpinner()
+        setupEndedStyleSpinner()
         setupEngineCards()
 
         etRemind.setText(Prefs.remindMinutes(this).ifEmpty { listOf(1440, 60) }.joinToString(","))
@@ -321,6 +322,46 @@ class SettingsActivity : AppCompatActivity() {
                 Prefs.setThemeMode(this@SettingsActivity, picked.id)
                 ThemeManager.applyNightMode(this@SettingsActivity)
                 toast("外观：${picked.label}")
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
+    }
+
+    /**
+     * 已结束的待办怎么表现：整卡读满后淡出 / 只淡文字。
+     * 首页在 onResume 会重新绑定，所以选完返回就生效。
+     */
+    private fun setupEndedStyleSpinner() {
+        val spinner = findViewById<Spinner>(R.id.spEndedStyle)
+        val styles = listOf(
+            Prefs.ENDED_STYLE_FADE to "整卡读满后淡出",
+            Prefs.ENDED_STYLE_DIM to "只淡文字（卡片保持原样）"
+        )
+        spinner.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            styles.map { it.second }
+        ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+        spinner.setSelection(
+            styles.indexOfFirst { it.first == Prefs.endedStyle(this) }.coerceAtLeast(0)
+        )
+        var initial = true
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: android.view.View?,
+                position: Int,
+                id: Long
+            ) {
+                if (initial) {
+                    initial = false
+                    return
+                }
+                val picked = styles.getOrNull(position) ?: return
+                if (picked.first == Prefs.endedStyle(this@SettingsActivity)) return
+                Prefs.setEndedStyle(this@SettingsActivity, picked.first)
+                toast("已结束的待办：${picked.second}")
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit

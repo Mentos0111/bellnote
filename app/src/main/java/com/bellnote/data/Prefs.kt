@@ -59,6 +59,7 @@ object Prefs {
     private const val KEY_COLLAPSED_GROUPS = "list_collapsed_groups"
     private const val KEY_EXPANDED_GROUPS = "list_expanded_groups"
     private const val KEY_GROUP_DEFAULT_V2 = "list_group_default_v4"
+    private const val KEY_ENDED_STYLE = "ended_style"
 
     /**
      * 识别方式：auto（联网走云端、断网用本地）/ local（只用本地）/ cloud（只用云端）。
@@ -470,6 +471,21 @@ object Prefs {
     private fun readGroupSet(context: Context, key: String): Set<String> {
         val raw = sp(context).getString(key, null) ?: return emptySet()
         return raw.split('\u0001').filter { it.isNotBlank() }.toSet()
+    }
+
+    // ---------------- 已结束的待办长什么样（外观 → 已结束的待办） ----------------
+
+    /** 整卡读完再淡出：进度铺满后整张卡降低不透明度。 */
+    const val ENDED_STYLE_FADE = "fade"
+
+    /** 只淡文字：卡片保持不透明，标题/时间/备注降到弱色。 */
+    const val ENDED_STYLE_DIM = "dim"
+
+    fun endedStyle(context: Context): String =
+        sp(context).getString(KEY_ENDED_STYLE, ENDED_STYLE_FADE) ?: ENDED_STYLE_FADE
+
+    fun setEndedStyle(context: Context, style: String) {
+        sp(context).edit().putString(KEY_ENDED_STYLE, style).apply()
     }
 
     /**

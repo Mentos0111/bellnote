@@ -595,6 +595,8 @@ class MainActivity : AppCompatActivity() {
         }
         // 相册权限给过了就顺手挂上截图监听（没权限时内部直接返回）
         ScreenshotWatcher.ensureStarted(this)
+        // 设置里可能改了「已结束的待办」的样子：数据没变 Diff 不会重绑，这里手动刷一遍
+        adapter.refreshStyles()
         if (intent?.getBooleanExtra(EXTRA_FOCUS_QUICK, false) == true) {
             intent?.removeExtra(EXTRA_FOCUS_QUICK)
             focusQuick(getString(R.string.quick_hint))
