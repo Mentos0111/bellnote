@@ -212,11 +212,9 @@ class TodoAdapter(
     /**
      * 进度的两种形态（设置 → 外观 → 进度条）：
      *
-     * - **wash（默认）**：整张卡从左往右铺一层**不显眼的中性色**。它能表示「走到哪了」，
-     *   又不会抢走没做完的事；铺满时整张卡被压暗一档，自己就退下去了——不需要再额外加
-     *   透明度或改文字颜色。深色模式也铺黑（深底铺白会把卡片点亮，反而更显眼）。
-     * - **bar**：卡片底边一条 3dp 进度条。进行中使用主题色（面积小，可以亮）；结束后转成
-     *   弱色，避免整条亮线跳出来。
+     * - **wash（默认）**：最初的样子——整张卡从左往右涂一层**主题色**，越接近开始涂得越满，
+     *   进行中/已结束是满的。文字颜色一律原样，卡片底也不额外着色。
+     * - **bar**：卡片底边一条 3dp 进度条（进行中用主题色，结束后转弱色）。
      *
      * 注意用 `View.backgroundTintList`，别用 `drawable.setTint`：后者改的是所有卡片
      * 共用的 ConstantState，会串色（2026-11-14 踩过）。
@@ -239,72 +237,38 @@ class TodoAdapter(
                 android.content.res.ColorStateList.valueOf(tint)
             holder.progressBar.alpha = if (ended) 0.55f else 0.95f
         } else {
-            // 整卡着色垫在**文字下面**：给「还没走完的那一段」上一层淡主题色。
-            // 以前是盖在文字上面洗淡，结果已结束的卡糊成一块灰（老师 2026-11-14 指出）。
-            // 现在：没走完的部分有色、走完的部分是干净底色，文字始终清晰。
-            val tint = StatusColors.attr(context, R.attr.bnPrimary)
+            val tint = if (night) android.graphics.Color.WHITE
+            else StatusColors.attr(context, R.attr.bnPrimary)
             holder.progressFill.backgroundTintList =
                 android.content.res.ColorStateList.valueOf(tint)
-            holder.progressFill.alpha = if (night) 0.16f else 0.13f
+            holder.progressFill.alpha = if (night) 0.10f else 0.14f
         }
 
-        // 浅色模式下卡片底子稍微带一点主题色：全白卡上那层「页面底色」几乎看不出边界，
-        // 稍微着色之后进度线才读得出来（老师 2026-11-14 提）。深色模式原样不动。
-        holder.itemView.backgroundTintList = if (night) {
-            null
-        } else {
-            val card = StatusColors.attr(context, R.attr.bnCard)
-            val primary = StatusColors.attr(context, R.attr.bnPrimary)
-            android.content.res.ColorStateList.valueOf(
-                androidx.core.graphics.ColorUtils.blendARGB(card, primary, 0.07f)
-            )
-        }
-        // 文字：没做完的永远满对比、时间用主题色；
-        // 已结束的**时间一律去掉主题色**（两种模式都去掉，不然那串彩色时间最扎眼）；
-        // 亮色模式另外把标题/备注也压一档——浅色那层 6% 的灰扫过还不够淡。
-        val primary = StatusColors.attr(context, R.attr.bnTextPrimary)
-        val secondary = StatusColors.attr(context, R.attr.bnTextSecondary)
-        val muted = StatusColors.attr(context, R.attr.bnMuted)
-        val accent = StatusColors.attr(context, R.attr.bnPrimary)
-        holder.title.setTextColor(if (ended && !night) muted else primary)
-        holder.time.setTextColor(if (ended) muted else accent)
-        holder.duration.setTextColor(if (ended) muted else secondary)
-        holder.note.setTextColor(if (ended) muted else secondary)
-        holder.progressLabel.setTextColor(if (ended) muted else secondary)
+        // 卡片本身不额外着色、文字颜色也不降级——回到最初的样子
+        holder.itemView.backgroundTintList = null
+        holder.title.setTextColor(StatusColors.attr(context, R.attr.bnTextPrimary))
+        holder.time.setTextColor(StatusColors.attr(context, R.attr.bnPrimary))
+        holder.duration.setTextColor(StatusColors.attr(context, R.attr.bnTextSecondary))
+        holder.note.setTextColor(StatusColors.attr(context, R.attr.bnTextSecondary))
+        holder.progressLabel.setTextColor(StatusColors.attr(context, R.attr.bnTextSecondary))
     }
 
-    /** 换了「已结束的样子」以后，把列表整体重绑一遍（数据没变，Diff 不会动）。 */
+    /** 换了进度形态以后，把列表整体重绑一遍（数据没变，Diff 不会动）。 */
     fun refreshStyles() {
         if (rows.isEmpty()) return
         notifyItemRangeChanged(0, rows.size)
     }
 
     /**
-     * 进度底色：内部把「整卡铺色」和「条状」两种形态的进度都按同一个比例画出来，
-     * 具体显示哪个由 styleProgressLook 决定。
-     */
-    private fun styleProgressFill(holder: ItemHolder) {
-        val context = holder.progressFill.context
-        val night = StatusColors.isNight(context)
-        val tint = if (night) android.graphics.Color.WHITE else StatusColors.attr(context, R.attr.bnPrimary)
-        holder.progressFill.backgroundTintList = android.content.res.ColorStateList.valueOf(tint)
-        holder.progressFill.alpha = if (night) 0.10f else 0.14f
-    }
-
-    /**
      * 卡片阴影：不用系统那层发灰的黑影，改成带主题色的柔和投影
      * （Android 9+ 才能单独指定投影颜色，低版本退回系统默认）。
-     * 已结束的卡片不给主题色光晕——不然做完的事反而比没做的更扎眼。
      */
     private fun styleCardShadow(holder: ItemHolder, ended: Boolean) {
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.P) return
         val context = holder.itemView.context
         val tint = StatusColors.attr(context, R.attr.bnPrimary)
-        holder.itemView.outlineSpotShadowColor = if (ended) {
-            android.graphics.Color.TRANSPARENT
-        } else {
+        holder.itemView.outlineSpotShadowColor =
             androidx.core.graphics.ColorUtils.setAlphaComponent(tint, 120)
-        }
         holder.itemView.outlineAmbientShadowColor = android.graphics.Color.TRANSPARENT
     }
 
@@ -316,17 +280,21 @@ class TodoAdapter(
      *
      * 以前是反的：进行中直接涂满、没开始的按「离开始还有多久」提前涂，看着像进度错了。
      */
+    /**
+     * 时间进度（最初的样子）：开始前 2 小时内卡片从左边开始逐渐涂一层主题色，越接近开始涂得越满；
+     * 进行中整张涂满并显示剩余时间；已经结束的也整张涂满（做完的样子）。
+     */
     private fun bindProgress(holder: ItemHolder, item: TodoItem) {
         val now = System.currentTimeMillis()
         val start = item.startMillis
         val end = start + item.durationMinutes * 60_000L
-        val total = (end - start).coerceAtLeast(1L)
+        val window = 2 * 60 * 60 * 1000L
         val barStyle = Prefs.endedStyle(holder.itemView.context) == Prefs.ENDED_STYLE_BAR
 
         when {
             now >= end -> {
                 setProgressFraction(holder, 1f)
-                // 整卡铺色靠「被压暗的卡」表达结束；条状只靠一条线，需要文字补一句
+                // 条状只靠一条线，需要文字补一句；整卡铺色靠涂满表达
                 if (barStyle) {
                     holder.progressLabel.visibility = View.VISIBLE
                     holder.progressLabel.text = "已结束"
@@ -336,33 +304,32 @@ class TodoAdapter(
             }
 
             now >= start -> {
-                setProgressFraction(holder, ((now - start).toFloat() / total).coerceIn(0f, 1f))
+                setProgressFraction(holder, 1f)
                 holder.progressLabel.visibility = View.VISIBLE
                 holder.progressLabel.text = "进行中 · 还剩 ${humanize(end - now)}"
             }
 
-            else -> {
-                // 还没开始：进度就是 0；两个小时内给一句「还有多久」，方便安排
-                setProgressFraction(holder, 0f)
+            start - now <= window -> {
                 val remain = start - now
-                if (remain <= 2 * 60 * 60 * 1000L) {
-                    holder.progressLabel.visibility = View.VISIBLE
-                    holder.progressLabel.text = "还有 ${humanize(remain)}"
-                } else {
-                    holder.progressLabel.visibility = View.GONE
-                }
+                val fraction = (100f - remain * 100f / window).coerceIn(0f, 100f) / 100f
+                setProgressFraction(holder, fraction)
+                holder.progressLabel.visibility = View.VISIBLE
+                holder.progressLabel.text = "还有 ${humanize(remain)}"
+            }
+
+            else -> {
+                setProgressFraction(holder, 0f)
+                holder.progressLabel.visibility = View.GONE
             }
         }
     }
 
     private fun setProgressFraction(holder: ItemHolder, fraction: Float) {
-        // 整卡着色表达的是「还剩多少」：以右边为轴，剩得越少涂得越窄，走完就没有了
-        holder.progressFill.pivotX = holder.progressFill.width.toFloat()
-        holder.progressFill.scaleX = (1f - fraction).coerceIn(0f, 1f)
-        holder.progressFill.post {
-            holder.progressFill.pivotX = holder.progressFill.width.toFloat()
-        }
-        holder.progressBar.scaleX = fraction
+        val f = fraction.coerceIn(0f, 1f)
+        // 整卡铺色：跟着「已过去多少」从左往右涂（最初的画法）
+        holder.progressFill.pivotX = 0f
+        holder.progressFill.scaleX = f
+        holder.progressBar.scaleX = f
     }
 
     private fun humanize(millis: Long): String {
