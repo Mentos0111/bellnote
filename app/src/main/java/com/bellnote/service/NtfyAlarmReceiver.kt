@@ -21,6 +21,7 @@ class NtfyAlarmReceiver : BroadcastReceiver() {
             try {
                 val result = NtfyFetcher.catchUp(app)
                 Log.i(TAG, "闹钟补查：${result.summary()}")
+                NtfyFetcher.notifyChanged(app, result)
             } catch (e: Exception) {
                 Log.w(TAG, "闹钟补查失败", e)
             } finally {

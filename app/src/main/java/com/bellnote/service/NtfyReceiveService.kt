@@ -68,9 +68,11 @@ class NtfyReceiveService : Service() {
     private fun pollLoop() {
         while (running) {
             try {
-                if (Prefs.ntfyEnabled(this) && Prefs.ntfyTopic(this).isNotBlank()) {
+                if (Prefs.ntfyEnabled(this) && Prefs.ntfyTopics(this).isNotEmpty()) {
                     val result = NtfyFetcher.catchUp(this)
                     Log.i(TAG, "常驻补查：${result.summary()}")
+                    // 后台拉到新待办时也要弹一条，不然用户只看到日历多了一条、不知道是谁发的
+                    NtfyFetcher.notifyChanged(this, result)
                 }
             } catch (e: InterruptedException) {
                 break

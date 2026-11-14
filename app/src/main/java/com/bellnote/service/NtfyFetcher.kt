@@ -256,7 +256,12 @@ object NtfyFetcher {
         return out
     }
 
-    private fun notifyChanged(context: Context, result: Result) {
+    /**
+     * 补进待办后弹一条通知。前台服务 / 闹钟这两条后台路径自己调它，
+     * 「打开 App 时补查」则由 [catchUpInBackground] 调。
+     */
+    fun notifyChanged(context: Context, result: Result) {
+        if (!result.changed) return
         if (!Permissions.hasPostNotifications(context)) return
         val intent = Intent(context, MainActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
