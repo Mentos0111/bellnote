@@ -34,7 +34,20 @@ class NtfyReceiveService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForegroundCompat()
+        if (!Prefs.ntfyEnabled(this) || Prefs.ntfyTopic(this).isBlank()) {
+            // 开关关了/主题清空了：别留一个空转的常驻通知
+            stopSelf()
+            return START_NOT_STICKY
+        }
+        try {
+            startForegroundCompat()
+        } catch (e: Exception) {
+            // Android 12+ 后台起前台服务会抛 ForegroundServiceStartNotAllowedException，
+            // 或者通知权限被收回时某些 ROM 直接抛；这种情况下安静退出，等下次进 App 再起
+            Log.w(TAG, "上线前台服务失败", e)
+            stopSelf()
+            return START_NOT_STICKY
+        }
         isAlive = true
         if (worker == null) {
             running = true
