@@ -197,7 +197,7 @@ class TodoAdapter(
             holder.note.text = note
         }
         val ended = System.currentTimeMillis() >= item.startMillis + item.durationMinutes * 60_000L
-        styleProgressFill(holder)
+        styleProgressFill(holder, ended)
         styleCardShadow(holder, ended)
         styleEmphasis(holder, ended)
         bindProgress(holder, item)
@@ -211,6 +211,10 @@ class TodoAdapter(
     /**
      * 已结束的待办要**淡下去**：文字降到次要/更弱一级，主题色光晕也收掉。
      * 没结束的保持原来的对比度（标题正文色、时间用主色）。
+     *
+     * 明暗要分开调：深色底上「更弱一级」很快就糊成一片，所以底纹（进度底色）在深色里
+     * 用稍强一点的白（0.065 对浅色的 0.045），文字则统一按层级降——标题降一级、时间降到
+     * 最弱，别让时间的亮度压过标题。
      */
     private fun styleEmphasis(holder: ItemHolder, ended: Boolean) {
         val context = holder.title.context
@@ -222,15 +226,30 @@ class TodoAdapter(
         holder.time.setTextColor(if (ended) muted else accent)
         holder.duration.setTextColor(if (ended) muted else secondary)
         holder.note.setTextColor(if (ended) muted else secondary)
+        holder.progressLabel.setTextColor(if (ended) muted else secondary)
     }
 
-    /** 进度底色：浅色模式用主题色淡淡铺一层，深色模式用白色铺一层。 */
-    private fun styleProgressFill(holder: ItemHolder) {
+    /**
+     * 进度底纹：主题色淡淡铺一层，越接近/越过开始越满。
+     *
+     * 已结束的不用主题色（那样反而更抢眼），换成中性灰：
+     *  - 浅色：极淡的黑（灰洗），卡片像被压了一层旧纸
+     *  - 深色：稍强一点的白（0.065 对 0.045），因为深底会吞掉太细微的层次
+     */
+    private fun styleProgressFill(holder: ItemHolder, ended: Boolean) {
         val context = holder.progressFill.context
         val night = StatusColors.isNight(context)
-        val color = if (night) android.graphics.Color.WHITE else StatusColors.attr(context, R.attr.bnPrimary)
-        holder.progressFill.background?.setTint(color)
-        holder.progressFill.alpha = if (night) 0.10f else 0.14f
+        val tint = when {
+            ended -> if (night) android.graphics.Color.WHITE else android.graphics.Color.BLACK
+            night -> android.graphics.Color.WHITE
+            else -> StatusColors.attr(context, R.attr.bnPrimary)
+        }
+        holder.progressFill.background?.setTint(tint)
+        holder.progressFill.alpha = when {
+            ended -> if (night) 0.065f else 0.045f
+            night -> 0.10f
+            else -> 0.14f
+        }
     }
 
     /**
@@ -252,7 +271,8 @@ class TodoAdapter(
 
     /**
      * 时间进度：开始前 2 小时内，卡片从左边开始逐渐涂上一块底色，越接近开始涂得越满；
-     * 进行中整张涂满并显示剩余时间；已经结束的不涂（做完的事不该更抢眼）。
+     * 进行中整张涂满并显示剩余时间；已经结束的也整张涂满（进度走到底），
+     * 只是底色换成极淡的灰、文字写「已结束」——进度信息保留，强调留给没做完的事。
      */
     private fun bindProgress(holder: ItemHolder, item: TodoItem) {
         val now = System.currentTimeMillis()
@@ -261,7 +281,11 @@ class TodoAdapter(
         val window = 2 * 60 * 60 * 1000L
 
         when {
-            now >= end -> hideProgress(holder)
+            now >= end -> {
+                holder.progressFill.scaleX = 1f
+                holder.progressLabel.visibility = View.VISIBLE
+                holder.progressLabel.text = "已结束"
+            }
 
             now >= start -> {
                 holder.progressFill.scaleX = 1f
