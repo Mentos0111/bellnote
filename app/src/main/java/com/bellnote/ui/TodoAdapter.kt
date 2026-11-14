@@ -202,15 +202,12 @@ class TodoAdapter(
         holder.progress.visibility = View.VISIBLE
         holder.progressTrack.backgroundTintList =
             android.content.res.ColorStateList.valueOf(StatusColors.attr(context, R.attr.bnDivider))
-        // 明暗两套：浅色用主题色，深色用白色（和卡片上的进度铺色一致）；跑完也是主题色，不转灰
+        // 明暗两套：都用主题色，深色再压一点亮度（纯白在深底上太扎眼）
         val night = StatusColors.isNight(context)
-        val fillColor = if (night) {
-            android.graphics.Color.WHITE
-        } else {
-            StatusColors.attr(context, R.attr.bnPrimary)
-        }
+        val fillColor = StatusColors.attr(context, R.attr.bnPrimary)
         holder.progressFill.backgroundTintList =
             android.content.res.ColorStateList.valueOf(fillColor)
+        holder.progressFill.alpha = if (night) 0.70f else 1f
         holder.progressFill.scaleX = (done.toFloat() / total).coerceIn(0f, 1f)
     }
 
