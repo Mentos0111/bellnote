@@ -9,10 +9,17 @@
     android:foreground="@drawable/bg_ripple_card">
 
     <!-- 进度（两种形态，设置里切换）：
-         ① 整卡铺色：盖在内容**上面**的一层中性色——扫过的地方（包括文字）一起被压淡，
-            涂满整张卡就自然「退下去」了
+         ① 整卡着色：给「还没走完的那一段」垫一层淡主题色（垫在文字下面，文字永远清晰），
+            时间越走这部分越窄，走完就没有了 → 卡片只剩干净底色 + 淡文字
          ② 条状：卡片底边一条 3dp 的进度条
-         代码按当前选择只显示其中一个，scaleX 按「已过去 / 总时长」给 -->
+         代码按当前选择只显示其中一个 -->
+    <View
+        android:id="@+id/itemProgressFill"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_progress_fill"
+        android:scaleX="1"
+        android:transformPivotX="0dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -96,15 +103,6 @@
                 android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
-
-    <!-- 整卡铺色层：盖在内容上面，才能把文字一起「洗淡」 -->
-    <View
-        android:id="@+id/itemProgressFill"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/bg_progress_fill"
-        android:scaleX="0"
-        android:transformPivotX="0dp" />
 
     <!-- 条状进度条（另一种形态）：只在「条状」模式下可见 -->
     <View

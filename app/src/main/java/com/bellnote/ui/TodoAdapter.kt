@@ -239,20 +239,13 @@ class TodoAdapter(
                 android.content.res.ColorStateList.valueOf(tint)
             holder.progressBar.alpha = if (ended) 0.55f else 0.95f
         } else {
-            // 铺色：往前面的「页面底色」靠，但浅色模式下页面底色几乎就是白，单靠它看不清边界，
-            // 所以再往灰里压一点（页面底色掺 9% 黑），扫过的部分变成一层很淡的灰。
-            // 深色模式页面底色本来就比卡片深，直接用就够。
-            val base = StatusColors.attr(context, R.attr.bnWindowBg)
-            val veil = if (night) {
-                base
-            } else {
-                androidx.core.graphics.ColorUtils.blendARGB(
-                    base, android.graphics.Color.BLACK, 0.09f
-                )
-            }
+            // 整卡着色垫在**文字下面**：给「还没走完的那一段」上一层淡主题色。
+            // 以前是盖在文字上面洗淡，结果已结束的卡糊成一块灰（老师 2026-11-14 指出）。
+            // 现在：没走完的部分有色、走完的部分是干净底色，文字始终清晰。
+            val tint = StatusColors.attr(context, R.attr.bnPrimary)
             holder.progressFill.backgroundTintList =
-                android.content.res.ColorStateList.valueOf(veil)
-            holder.progressFill.alpha = if (night) 0.55f else 0.85f
+                android.content.res.ColorStateList.valueOf(tint)
+            holder.progressFill.alpha = if (night) 0.16f else 0.13f
         }
 
         // 浅色模式下卡片底子稍微带一点主题色：全白卡上那层「页面底色」几乎看不出边界，
@@ -363,7 +356,12 @@ class TodoAdapter(
     }
 
     private fun setProgressFraction(holder: ItemHolder, fraction: Float) {
-        holder.progressFill.scaleX = fraction
+        // 整卡着色表达的是「还剩多少」：以右边为轴，剩得越少涂得越窄，走完就没有了
+        holder.progressFill.pivotX = holder.progressFill.width.toFloat()
+        holder.progressFill.scaleX = (1f - fraction).coerceIn(0f, 1f)
+        holder.progressFill.post {
+            holder.progressFill.pivotX = holder.progressFill.width.toFloat()
+        }
         holder.progressBar.scaleX = fraction
     }
 
