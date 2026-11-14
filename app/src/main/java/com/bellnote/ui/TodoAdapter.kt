@@ -230,23 +230,27 @@ class TodoAdapter(
     }
 
     /**
-     * 进度底纹：主题色淡淡铺一层，越接近/越过开始越满。
+     * 进度底纹。
      *
-     * 已结束的不用主题色（那样反而更抢眼），换成中性灰：
-     *  - 浅色：极淡的黑（灰洗），卡片像被压了一层旧纸
-     *  - 深色：稍强一点的白（0.065 对 0.045），因为深底会吞掉太细微的层次
+     * 1. **必须用 View 的 `backgroundTintList`，不能用 `background.setTint`**——后者改的是
+     *    drawable 的 ConstantState，所有卡片共用一份，一张卡设了颜色会串到别的卡上
+     *    （2026-11-14 就是这里出过 bug：已结束的灰把进行中的卡片也染成灰的）。
+     * 2. 「已结束」的淡出方向明暗相反：
+     *    - 浅色：铺一层黑（灰洗感，卡片往下沉）
+     *    - 深色：**不能铺白**——深底上铺白等于把卡片点亮，已完成反而更抢眼，所以要铺黑让它退后
      */
     private fun styleProgressFill(holder: ItemHolder, ended: Boolean) {
         val context = holder.progressFill.context
         val night = StatusColors.isNight(context)
         val tint = when {
-            ended -> if (night) android.graphics.Color.WHITE else android.graphics.Color.BLACK
+            // 已结束：两种模式都往暗里压
+            ended -> android.graphics.Color.BLACK
             night -> android.graphics.Color.WHITE
             else -> StatusColors.attr(context, R.attr.bnPrimary)
         }
-        holder.progressFill.background?.setTint(tint)
+        holder.progressFill.backgroundTintList = android.content.res.ColorStateList.valueOf(tint)
         holder.progressFill.alpha = when {
-            ended -> if (night) 0.065f else 0.045f
+            ended -> if (night) 0.14f else 0.06f
             night -> 0.10f
             else -> 0.14f
         }
@@ -270,15 +274,18 @@ class TodoAdapter(
     }
 
     /**
-     * 时间进度：开始前 2 小时内，卡片从左边开始逐渐涂上一块底色，越接近开始涂得越满；
-     * 进行中整张涂满并显示剩余时间；已经结束的也整张涂满（进度走到底），
-     * 只是底色换成极淡的灰、文字写「已结束」——进度信息保留，强调留给没做完的事。
+     * 时间进度 = **这条待办自身走过了多少**：
+     *  - 还没开始：0（一点不涂，别提前给进度）
+     *  - 进行中：按「已经过去 / 总时长」从 0 长到 1
+     *  - 已结束：1（走满），文字写「已结束」，颜色更淡（强调留给没做完的事）
+     *
+     * 以前是反的：进行中直接涂满、没开始的按「离开始还有多久」提前涂，看着像进度错了。
      */
     private fun bindProgress(holder: ItemHolder, item: TodoItem) {
         val now = System.currentTimeMillis()
         val start = item.startMillis
         val end = start + item.durationMinutes * 60_000L
-        val window = 2 * 60 * 60 * 1000L
+        val total = (end - start).coerceAtLeast(1L)
 
         when {
             now >= end -> {
@@ -288,26 +295,24 @@ class TodoAdapter(
             }
 
             now >= start -> {
-                holder.progressFill.scaleX = 1f
+                val fraction = ((now - start).toFloat() / total).coerceIn(0f, 1f)
+                holder.progressFill.scaleX = fraction
                 holder.progressLabel.visibility = View.VISIBLE
                 holder.progressLabel.text = "进行中 · 还剩 ${humanize(end - now)}"
             }
 
-            start - now <= window -> {
+            else -> {
+                // 还没开始：进度就是 0；两个小时内给一句「还有多久」，方便安排
+                holder.progressFill.scaleX = 0f
                 val remain = start - now
-                val fraction = (100f - remain * 100f / window).coerceIn(0f, 100f) / 100f
-                holder.progressFill.scaleX = fraction
-                holder.progressLabel.visibility = View.VISIBLE
-                holder.progressLabel.text = "还有 ${humanize(remain)}"
+                if (remain <= 2 * 60 * 60 * 1000L) {
+                    holder.progressLabel.visibility = View.VISIBLE
+                    holder.progressLabel.text = "还有 ${humanize(remain)}"
+                } else {
+                    holder.progressLabel.visibility = View.GONE
+                }
             }
-
-            else -> hideProgress(holder)
         }
-    }
-
-    private fun hideProgress(holder: ItemHolder) {
-        holder.progressFill.scaleX = 0f
-        holder.progressLabel.visibility = View.GONE
     }
 
     private fun humanize(millis: Long): String {
