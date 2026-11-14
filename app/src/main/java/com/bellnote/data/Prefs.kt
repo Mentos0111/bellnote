@@ -58,7 +58,7 @@ object Prefs {
     private const val KEY_HEALTH_AT = "health_cached_at"
     private const val KEY_COLLAPSED_GROUPS = "list_collapsed_groups"
     private const val KEY_EXPANDED_GROUPS = "list_expanded_groups"
-    private const val KEY_GROUP_DEFAULT_V2 = "list_group_default_v2"
+    private const val KEY_GROUP_DEFAULT_V2 = "list_group_default_v3"
 
     /**
      * 识别方式：auto（联网走云端、断网用本地）/ local（只用本地）/ cloud（只用云端）。
@@ -473,8 +473,8 @@ object Prefs {
     }
 
     /**
-     * 一次性迁移：分组默认状态改成「今天/明天展开、其余收起」以后，
-     * 老的收展记录（老逻辑下默认全展开）会跟新默认打架，清掉重来一次。
+     * 一次性迁移：分组默认状态又改过一次（2026-11-14 起默认全展开），
+     * 老版本记下的收展状态会跟新默认打架，清掉重来一次。
      */
     fun migrateGroupDefaults(context: Context) {
         val prefs = sp(context)

@@ -65,12 +65,12 @@ class DayGroupsTest {
     // ---- 默认展开 / 收起 ----
 
     @Test
-    fun 默认只展开今天和明天() {
+    fun 默认全展开() {
         assertFalse(DayGroups.isCollapsed(DayGroups.TODAY, emptySet(), emptySet()))
         assertFalse(DayGroups.isCollapsed(DayGroups.TOMORROW, emptySet(), emptySet()))
-        assertTrue(DayGroups.isCollapsed(DayGroups.EXPIRED, emptySet(), emptySet()))
-        assertTrue(DayGroups.isCollapsed(DayGroups.DAY_AFTER, emptySet(), emptySet()))
-        assertTrue(DayGroups.isCollapsed("11 月 20 日", emptySet(), emptySet()))
+        assertFalse(DayGroups.isCollapsed(DayGroups.EXPIRED, emptySet(), emptySet()))
+        assertFalse(DayGroups.isCollapsed(DayGroups.DAY_AFTER, emptySet(), emptySet()))
+        assertFalse(DayGroups.isCollapsed("11 月 20 日", emptySet(), emptySet()))
     }
 
     @Test

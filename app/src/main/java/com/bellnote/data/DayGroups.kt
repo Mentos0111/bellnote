@@ -22,9 +22,6 @@ object DayGroups {
     const val TOMORROW = "明天"
     const val DAY_AFTER = "后天"
 
-    /** 打开首页默认展开这两组：今天要先看到，明天要提前知道；其余默认收起。 */
-    val DEFAULT_EXPANDED: Set<String> = setOf(TODAY, TOMORROW)
-
     /** 某条待办属于哪一组。today 可注入，方便单测。 */
     fun label(
         millis: Long,
@@ -42,8 +39,8 @@ object DayGroups {
     }
 
     /**
-     * 这一组收没收起：用户自己点过的优先；没点过的按默认——
-     * 「今天」「明天」展开，其它（含已过期、后天、具体日期）收起。
+     * 这一组收没收起：用户自己点过的优先，没点过的一律展开。
+     * `expanded` 目前恒等于「没在 collapsed 里」，留着是为了兼容老数据（曾经记过显式展开）。
      */
     fun isCollapsed(
         label: String,
@@ -52,6 +49,6 @@ object DayGroups {
     ): Boolean = when {
         collapsed.contains(label) -> true
         expanded.contains(label) -> false
-        else -> label !in DEFAULT_EXPANDED
+        else -> false // 默认全展开
     }
 }
