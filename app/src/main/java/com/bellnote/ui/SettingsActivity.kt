@@ -1,4 +1,4 @@
-package com.bellnote.ui
+﻿package com.bellnote.ui
 
 import android.Manifest
 import android.content.Intent
@@ -49,6 +49,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var cbReconcileNotify: CheckBox
     private lateinit var spReconcileInterval: Spinner
     private lateinit var cbShotWatch: CheckBox
+    private lateinit var cbDayProgress: CheckBox
     private lateinit var btnMediaPerm: Button
     private var intervalValues: List<Int> = emptyList()
 
@@ -98,6 +99,7 @@ class SettingsActivity : AppCompatActivity() {
         cbReconcileNotify = findViewById(R.id.cbReconcileNotify)
         spReconcileInterval = findViewById(R.id.spReconcileInterval)
         cbShotWatch = findViewById(R.id.cbShotWatch)
+        cbDayProgress = findViewById(R.id.cbDayProgress)
         btnMediaPerm = findViewById(R.id.btnMediaPerm)
         setupThemeSpinner()
         setupThemeModeSpinner()
@@ -108,6 +110,7 @@ class SettingsActivity : AppCompatActivity() {
         cbReconcile.isChecked = Prefs.reconcileEnabled(this)
         cbReconcileNotify.isChecked = Prefs.reconcileNotify(this)
         cbShotWatch.isChecked = Prefs.shotWatchEnabled(this)
+        cbDayProgress.isChecked = Prefs.showDayProgress(this)
         btnMediaPerm.setOnClickListener { requestMediaPermission() }
         findViewById<Button>(R.id.btnNtfy).setOnClickListener {
             startActivity(Intent(this, ThirdPartyActivity::class.java))
@@ -335,7 +338,7 @@ class SettingsActivity : AppCompatActivity() {
     private fun setupEndedStyleSpinner() {
         val spinner = findViewById<Spinner>(R.id.spEndedStyle)
         val styles = listOf(
-            Prefs.ENDED_STYLE_WASH to "整卡铺色（涂满后整张卡变暗）",
+            Prefs.ENDED_STYLE_WASH to "整卡铺色",
             Prefs.ENDED_STYLE_BAR to "条状进度条"
         )
         spinner.adapter = ArrayAdapter(
@@ -361,7 +364,6 @@ class SettingsActivity : AppCompatActivity() {
                 val picked = styles.getOrNull(position) ?: return
                 if (picked.first == Prefs.endedStyle(this@SettingsActivity)) return
                 Prefs.setEndedStyle(this@SettingsActivity, picked.first)
-                toast("已结束的待办：${picked.second}")
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit
@@ -583,6 +585,7 @@ class SettingsActivity : AppCompatActivity() {
             .take(Prefs.MAX_REMINDERS)
         val effective = minutes.ifEmpty { listOf(1440, 60) }
         Prefs.setRemindMinutes(this, effective)
+        Prefs.setShowDayProgress(this, cbDayProgress.isChecked)
         Prefs.setShotWatchEnabled(this, cbShotWatch.isChecked)
         if (cbShotWatch.isChecked) {
             // 打开截图监听时才要相册权限，没给就当场问一次

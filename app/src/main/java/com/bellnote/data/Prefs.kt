@@ -60,6 +60,7 @@ object Prefs {
     private const val KEY_EXPANDED_GROUPS = "list_expanded_groups"
     private const val KEY_GROUP_DEFAULT_V2 = "list_group_default_v4"
     private const val KEY_ENDED_STYLE = "ended_style"
+    private const val KEY_DAY_PROGRESS = "day_progress_visible"
 
     /**
      * 识别方式：auto（联网走云端、断网用本地）/ local（只用本地）/ cloud（只用云端）。
@@ -486,6 +487,14 @@ object Prefs {
 
     fun setEndedStyle(context: Context, style: String) {
         sp(context).edit().putString(KEY_ENDED_STYLE, style).apply()
+    }
+
+    /** 「今天」标题右边那条横向进度条要不要显示（设置 → 外观 → 显示今天进度条），默认显示。 */
+    fun showDayProgress(context: Context): Boolean =
+        sp(context).getBoolean(KEY_DAY_PROGRESS, true)
+
+    fun setShowDayProgress(context: Context, show: Boolean) {
+        sp(context).edit().putBoolean(KEY_DAY_PROGRESS, show).apply()
     }
 
     /**

@@ -182,7 +182,8 @@ class TodoAdapter(
     private fun bindHeaderProgress(holder: HeaderHolder, row: Row.Header) {
         val context = holder.itemView.context
         val todayLabel = com.bellnote.data.DayGroups.label(System.currentTimeMillis())
-        if (row.label != todayLabel) {
+        // 设置里可以关掉（默认开）
+        if (row.label != todayLabel || !com.bellnote.data.Prefs.showDayProgress(context)) {
             holder.progress.visibility = View.GONE
             return
         }

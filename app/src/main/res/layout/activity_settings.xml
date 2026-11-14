@@ -519,9 +519,12 @@
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp" />
 
-            <TextView
-                style="@style/HintText"
-                android:text="整卡铺色：用不显眼的灰色从左往右铺满整张卡，涂满后卡片自然变暗；条状进度条：卡片底边一条细线。没结束的事都用主题色，所以更醒目。" />
+            <CheckBox
+                android:id="@+id/cbDayProgress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="显示今天进度条" />
         </LinearLayout>
 
         <!-- ================= 诊断与帮助 ================= -->
