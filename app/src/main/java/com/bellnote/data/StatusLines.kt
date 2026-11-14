@@ -1,4 +1,4 @@
-package com.bellnote.data
+﻿package com.bellnote.data
 
 import android.content.Context
 import com.bellnote.util.TimeFormat
@@ -16,7 +16,7 @@ object StatusLines {
         if (Prefs.ignoredNotices(context).isNotEmpty()) return Level.WARN
         val reconciled = Prefs.lastReconcileAt(context)
         if (reconciled > 0 && Prefs.lastReconcileSummary(context) != "一致") return Level.WARN
-        if (!Prefs.ntfyEnabled(context) || Prefs.ntfyTopic(context).isBlank()) return Level.IDLE
+        if (!Prefs.ntfyEnabled(context) || Prefs.ntfyTopics(context).isEmpty()) return Level.IDLE
         return Level.OK
     }
 
@@ -26,7 +26,7 @@ object StatusLines {
         val reconciled = Prefs.lastReconcileAt(context)
         if (reconciled > 0 && Prefs.lastReconcileSummary(context) != "一致") return "对账有差"
         if (!Prefs.ntfyEnabled(context)) return "推送未开"
-        if (Prefs.ntfyTopic(context).isBlank()) return "补查未开"
+        if (Prefs.ntfyTopics(context).isEmpty()) return "补查未开"
         return "同步正常"
     }
 
@@ -43,7 +43,7 @@ object StatusLines {
 
         lines += if (!Prefs.ntfyEnabled(context)) {
             "补查：ntfy 模式关着（打开后才会去服务器拉消息）"
-        } else if (Prefs.ntfyTopic(context).isBlank()) {
+        } else if (Prefs.ntfyTopics(context).isEmpty()) {
             "补查：没填主题（设置 → 输入渠道 → 其他入口 → 第三方通道里填）"
         } else {
             val catchAt = Prefs.lastCatchUpAt(context)

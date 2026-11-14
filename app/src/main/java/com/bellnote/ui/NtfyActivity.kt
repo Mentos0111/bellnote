@@ -17,6 +17,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
 import com.bellnote.R
 import com.bellnote.data.MessageLog
+import com.bellnote.data.NtfyTopic
+import com.bellnote.data.NtfyTopicCodec
 import com.bellnote.data.Prefs
 import com.bellnote.service.NtfyBackground
 import com.bellnote.service.NtfyFetcher
@@ -46,7 +48,8 @@ class NtfyActivity : AppCompatActivity() {
     private lateinit var spChannel: Spinner
     private lateinit var groupServer: View
     private lateinit var etServer: EditText
-    private lateinit var etTopic: EditText
+    private lateinit var topicList: android.widget.LinearLayout
+    private lateinit var btnAddTopic: Button
     private lateinit var cbAutoImport: CheckBox
     private lateinit var cbStrictParse: CheckBox
     private lateinit var btnCatchUp: Button
@@ -72,7 +75,8 @@ class NtfyActivity : AppCompatActivity() {
         spChannel = findViewById(R.id.spNtfyChannel)
         groupServer = findViewById(R.id.groupServer)
         etServer = findViewById(R.id.etNtfyServer)
-        etTopic = findViewById(R.id.etNtfyTopic)
+        topicList = findViewById(R.id.topicList)
+        btnAddTopic = findViewById(R.id.btnAddTopic)
         cbAutoImport = findViewById(R.id.cbAutoImport)
         cbStrictParse = findViewById(R.id.cbStrictParse)
         btnCatchUp = findViewById(R.id.btnCatchUpNow)
@@ -88,7 +92,7 @@ class NtfyActivity : AppCompatActivity() {
 
         renderBackground()
 
-        etTopic.setText(Prefs.ntfyTopic(this))
+        renderTopics()
         cbAutoImport.isChecked = Prefs.autoImport(this)
         cbStrictParse.isChecked = Prefs.strictParse(this)
         swMode.isChecked = Prefs.ntfyEnabled(this)
@@ -105,7 +109,7 @@ class NtfyActivity : AppCompatActivity() {
      */
     private fun maybePromptSetup() {
         if (!Prefs.ntfyEnabled(this)) return
-        if (Prefs.ntfyTopic(this).isBlank()) return
+        if (Prefs.ntfyTopics(this).isEmpty()) return
         if (Prefs.ntfyGuideDone(this)) return
         startActivity(Intent(this, NtfyGuideActivity::class.java))
     }
@@ -132,8 +136,15 @@ class NtfyActivity : AppCompatActivity() {
         swMode.setOnCheckedChangeListener { _, on ->
             Prefs.setNtfyEnabled(this, on)
             NtfyPollScheduler.reschedule(this)
-            if (on && Prefs.ntfyTopic(this).isBlank()) etTopic.requestFocus()
+            if (on && Prefs.ntfyTopics(this).isEmpty()) showTopicDialog(null)
             renderStatus()
+        }
+        btnAddTopic.setOnClickListener {
+            if (Prefs.ntfyTopics(this).size >= NtfyTopicCodec.MAX_TOPICS) {
+                toast("最多 ${NtfyTopicCodec.MAX_TOPICS} 个主题")
+            } else {
+                showTopicDialog(null)
+            }
         }
 
         findViewById<Button>(R.id.btnMessageLog).setOnClickListener {
@@ -282,25 +293,122 @@ class NtfyActivity : AppCompatActivity() {
 
     private fun renderStatus() {
         val on = Prefs.ntfyEnabled(this)
-        val topic = Prefs.ntfyTopic(this)
+        val topics = Prefs.ntfyTopics(this)
         val server = Prefs.ntfyServer(this)
         val host = runCatching { java.net.URI(server).host }.getOrNull() ?: server
         val lastAt = Prefs.lastCatchUpAt(this)
         val lastSummary = Prefs.lastCatchUpSummary(this)
+        val where = when {
+            topics.isEmpty() -> host
+            topics.size == 1 -> "$host · ${topics.first().display()}"
+            else -> "$host · ${topics.size} 个主题"
+        }
 
         tvStatus.text = when {
             !on -> "已关闭：不联网、不拉取。上面「一句话 / 截图 / 分享」照常可用。"
-            topic.isBlank() -> "已开启，但还没填主题：填完保存才会开始拉取。"
-            lastAt <= 0 -> "已开启 · $host · $topic\n还没拉过，点「立即补查」试一次。"
+            topics.isEmpty() -> "已开启，但还没加主题：加一条才会开始拉取。"
+            lastAt <= 0 -> "已开启 · $where\n还没拉过，点「立即补查」试一次。"
             else -> {
                 val brief = lastSummary.removePrefix("补查：").ifBlank { "没有结果" }
-                "已开启 · $host · $topic\n上次：$brief（${TimeFormat.compact(lastAt)}）"
+                "已开启 · $where\n上次：$brief（${TimeFormat.compact(lastAt)}）"
             }
         }
 
-        val ready = on && topic.isNotBlank()
+        val ready = on && topics.isNotEmpty()
         btnCatchUp.isEnabled = ready
         btnSendTest.isEnabled = ready
+    }
+
+    // ---------------- 多主题列表 ----------------
+
+    private fun renderTopics() {
+        topicList.removeAllViews()
+        val topics = Prefs.ntfyTopics(this)
+        if (topics.isEmpty()) {
+            val empty = TextView(this).apply {
+                text = "还没加主题。加一条之后，这里会显示「备注名 · 主题」。"
+                setTextColor(themeAttrColor(R.attr.bnTextSecondary))
+                textSize = 13f
+                setPadding(0, 8, 0, 8)
+            }
+            topicList.addView(empty)
+        }
+        for (t in topics) {
+            topicList.addView(buildTopicRow(t))
+        }
+        btnAddTopic.isEnabled = topics.size < NtfyTopicCodec.MAX_TOPICS
+    }
+
+    /** 按主题属性取颜色，不依赖 Material 库。 */
+    private fun themeAttrColor(attr: Int): Int {
+        val tv = android.util.TypedValue()
+        return if (theme.resolveAttribute(attr, tv, true) && tv.resourceId != 0) {
+            androidx.core.content.ContextCompat.getColor(this, tv.resourceId)
+        } else {
+            tv.data
+        }
+    }
+
+    private fun buildTopicRow(t: NtfyTopic): View {
+        val row = layoutInflater.inflate(R.layout.item_ntfy_topic, topicList, false)
+        row.findViewById<TextView>(R.id.tvTopicLabel).text = t.label.ifBlank { "未命名" }
+        row.findViewById<TextView>(R.id.tvTopicName).text = t.topic
+        row.findViewById<View>(R.id.btnTopicEdit).setOnClickListener { showTopicDialog(t) }
+        row.findViewById<View>(R.id.btnTopicDelete).setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("删掉这条主题？")
+                .setMessage("只会停止从「${t.display()}」收待办，已经写进日历的不动。")
+                .setPositiveButton("删掉") { _, _ ->
+                    Prefs.setNtfyTopics(this, Prefs.ntfyTopics(this).filter { it.topic != t.topic })
+                    NtfyPollScheduler.reschedule(this)
+                    renderTopics()
+                    renderStatus()
+                }
+                .setNegativeButton("取消", null)
+                .show()
+        }
+        return row
+    }
+
+    private fun showTopicDialog(existing: NtfyTopic?) {
+        val view = layoutInflater.inflate(R.layout.dialog_ntfy_topic, null)
+        val etLabel = view.findViewById<EditText>(R.id.etTopicLabel)
+        val etTopic = view.findViewById<EditText>(R.id.etTopicName)
+        if (existing != null) {
+            etLabel.setText(existing.label)
+            etTopic.setText(existing.topic)
+        }
+        AlertDialog.Builder(this)
+            .setTitle(if (existing == null) "加一个主题" else "改这条主题")
+            .setView(view)
+            .setPositiveButton("保存") { _, _ ->
+                val topic = etTopic.text.toString().trim()
+                if (topic.isBlank()) {
+                    toast("主题不能为空")
+                    return@setPositiveButton
+                }
+                if (topic.contains(' ') || topic.contains('/')) {
+                    toast("主题里不能有空格或斜杠")
+                    return@setPositiveButton
+                }
+                val label = etLabel.text.toString().trim()
+                val incoming = NtfyTopic(topic = topic, label = label)
+                val next = if (existing == null) {
+                    NtfyTopicCodec.upsert(Prefs.ntfyTopics(this), incoming)
+                } else {
+                    // 允许改主题名：把老那条去掉再插新的
+                    NtfyTopicCodec.upsert(
+                        Prefs.ntfyTopics(this).filter { it.topic != existing.topic },
+                        incoming
+                    )
+                }
+                Prefs.setNtfyTopics(this, next)
+                NtfyPollScheduler.reschedule(this)
+                renderTopics()
+                renderStatus()
+            }
+            .setNegativeButton("取消", null)
+            .show()
     }
 
     private fun renderLogEntry() {
@@ -334,14 +442,14 @@ class NtfyActivity : AppCompatActivity() {
     }
 
     private fun persist(check: NtfyEndpoint.Check) {
-        val topic = etTopic.text.toString().trim()
         val serverChanged = check.normalized != Prefs.ntfyServer(this)
-        val topicChanged = topic != Prefs.ntfyTopic(this)
-        if (serverChanged || topicChanged) {
-            // 换服务器 / 换主题后，旧的 since 属于另一条通道，不能拿来当起点
-            Prefs.setNtfySince(this, 0L)
+        if (serverChanged) {
+            // 换服务器后，旧的 since 属于另一条通道，不能拿来当起点
+            Prefs.setNtfyTopics(
+                this,
+                Prefs.ntfyTopics(this).map { it.copy(since = 0L) }
+            )
         }
-        Prefs.setNtfyTopic(this, topic)
         Prefs.setNtfyServer(this, check.normalized)
         Prefs.setAutoImport(this, cbAutoImport.isChecked)
         Prefs.setStrictParse(this, cbStrictParse.isChecked)
@@ -350,7 +458,6 @@ class NtfyActivity : AppCompatActivity() {
 
     /** 返回键/切走时保存：地址不合法就不动服务器，别把能用的配置写坏。 */
     private fun persistLenient() {
-        Prefs.setNtfyTopic(this, etTopic.text.toString())
         Prefs.setAutoImport(this, cbAutoImport.isChecked)
         Prefs.setStrictParse(this, cbStrictParse.isChecked)
         validateServerQuiet()?.let { Prefs.setNtfyServer(this, it.normalized) }
@@ -373,7 +480,7 @@ class NtfyActivity : AppCompatActivity() {
             toast("先打开 ntfy 模式")
             return
         }
-        if (Prefs.ntfyTopic(this).isBlank()) {
+        if (Prefs.ntfyTopics(this).isEmpty()) {
             toast("先填主题（例如 todo-xxxx），再点补查")
             return
         }
@@ -398,7 +505,7 @@ class NtfyActivity : AppCompatActivity() {
             toast("先打开 ntfy 模式")
             return
         }
-        if (Prefs.ntfyTopic(this).isBlank()) {
+        if (Prefs.ntfyTopics(this).isEmpty()) {
             toast("先填主题（例如 todo-xxxx）")
             return
         }

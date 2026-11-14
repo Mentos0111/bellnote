@@ -40,6 +40,9 @@ object Prefs {
 
     private const val KEY_IGNORED = "ignored_notices"
     private const val KEY_NTFY_TOPIC = "ntfy_topic"
+
+    /** 多主题配置（一行一条，见 [NtfyTopicCodec]）；没有这个键时回退到老的单主题键。 */
+    private const val KEY_NTFY_TOPICS = "ntfy_topics"
     private const val KEY_NTFY_SERVER = "ntfy_server"
     private const val KEY_NTFY_ENABLED = "ntfy_enabled"
     private const val KEY_NTFY_SETUP_PROMPTED = "ntfy_setup_prompted"
@@ -237,13 +240,60 @@ object Prefs {
     // ---------------- ntfy 补查 ----------------
 
     /**
-     * ntfy 主题。填了才开启补查：App 起来 / 定时对账时直接拉服务器缓存，
+     * ntfy 主题（可能有多条）。填了才开启补查：App 起来 / 定时任务时直接拉服务器缓存，
      * 不再只靠「ntfy App 会不会弹通知」这一条命脉。留空 = 保持旧行为。
+     *
+     * 兼容：老版本只存了单条 [KEY_NTFY_TOPIC] + 一个 [KEY_NTFY_SINCE]，
+     * 读的时候自动迁移成一条列表项，不丢配置。
      */
-    fun ntfyTopic(context: Context): String = sp(context).getString(KEY_NTFY_TOPIC, "").orEmpty().trim()
+    fun ntfyTopics(context: Context): List<NtfyTopic> {
+        val p = sp(context)
+        val encoded = p.getString(KEY_NTFY_TOPICS, "").orEmpty()
+        val list = NtfyTopicCodec.decode(encoded)
+        if (list.isNotEmpty()) return list
+        // 老数据迁移：单主题 + 单游标 → 一条列表项
+        val legacy = p.getString(KEY_NTFY_TOPIC, "").orEmpty().trim()
+        if (legacy.isBlank()) return emptyList()
+        return listOf(NtfyTopic(topic = legacy, since = p.getLong(KEY_NTFY_SINCE, 0L)))
+    }
 
+    fun setNtfyTopics(context: Context, topics: List<NtfyTopic>) {
+        val cleaned = topics.filter { it.topic.isNotBlank() }
+            .distinctBy { it.topic }
+            .take(NtfyTopicCodec.MAX_TOPICS)
+        sp(context).edit()
+            .putString(KEY_NTFY_TOPICS, NtfyTopicCodec.encode(cleaned))
+            // 老字段同步成第一条，老代码和配置码还能读到
+            .putString(KEY_NTFY_TOPIC, cleaned.firstOrNull()?.topic.orEmpty())
+            .putLong(KEY_NTFY_SINCE, cleaned.firstOrNull()?.since ?: 0L)
+            .apply()
+    }
+
+    /** 第一条主题（老代码 / 配置码 / 测试推送用）。 */
+    fun ntfyTopic(context: Context): String = ntfyTopics(context).firstOrNull()?.topic.orEmpty()
+
+    /** 兼容老调用：写第一条主题（保留它原来的 since 和备注名）。 */
     fun setNtfyTopic(context: Context, topic: String) {
-        sp(context).edit().putString(KEY_NTFY_TOPIC, topic.trim()).apply()
+        val trimmed = topic.trim()
+        val current = ntfyTopics(context)
+        if (trimmed.isBlank()) {
+            setNtfyTopics(context, emptyList())
+            return
+        }
+        val head = current.firstOrNull()
+        val merged = when {
+            head == null -> listOf(NtfyTopic(trimmed))
+            else -> listOf(head.copy(topic = trimmed)) + current.drop(1)
+        }
+        setNtfyTopics(context, merged)
+    }
+
+    /** 某条主题补查完，单独推进它自己的游标。 */
+    fun setNtfySinceFor(context: Context, topic: String, seconds: Long) {
+        val list = ntfyTopics(context).map {
+            if (it.topic == topic) it.copy(since = seconds) else it
+        }
+        setNtfyTopics(context, list)
     }
 
     /**

@@ -91,11 +91,14 @@ class NtfyReceiveService : Service() {
         var flags = PendingIntent.FLAG_UPDATE_CURRENT
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) flags = flags or PendingIntent.FLAG_IMMUTABLE
         val pending = PendingIntent.getActivity(this, 0, intent, flags)
-        val topic = Prefs.ntfyTopic(this).ifBlank { "（还没填主题）" }
+        val topicCount = Prefs.ntfyTopics(this).size
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher)
-            .setContentTitle("Bellnote 正在接收待办")
-            .setContentText("主题 $topic · 每分钟检查一次")
+            .setContentTitle("Bellnote 在后台收待办")
+            .setContentText(
+                if (topicCount > 1) "每分钟检查 $topicCount 个来源，收到就记进日历"
+                else "每分钟检查一次，收到就记进日历"
+            )
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .setOngoing(true)
             .setShowWhen(false)
