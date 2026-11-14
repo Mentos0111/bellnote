@@ -245,7 +245,19 @@ class TodoAdapter(
             val veil = StatusColors.attr(context, R.attr.bnWindowBg)
             holder.progressFill.backgroundTintList =
                 android.content.res.ColorStateList.valueOf(veil)
-            holder.progressFill.alpha = if (night) 0.55f else 0.60f
+            holder.progressFill.alpha = if (night) 0.55f else 0.68f
+        }
+
+        // 浅色模式下卡片底子稍微带一点主题色：全白卡上那层「页面底色」几乎看不出边界，
+        // 稍微着色之后进度线才读得出来（老师 2026-11-14 提）。深色模式原样不动。
+        holder.itemView.backgroundTintList = if (night) {
+            null
+        } else {
+            val card = StatusColors.attr(context, R.attr.bnCard)
+            val primary = StatusColors.attr(context, R.attr.bnPrimary)
+            android.content.res.ColorStateList.valueOf(
+                androidx.core.graphics.ColorUtils.blendARGB(card, primary, 0.07f)
+            )
         }
         // 文字：没做完的永远满对比、时间用主题色；
         // 已结束的**时间一律去掉主题色**（两种模式都去掉，不然那串彩色时间最扎眼）；
