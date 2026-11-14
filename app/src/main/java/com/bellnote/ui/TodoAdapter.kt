@@ -196,14 +196,32 @@ class TodoAdapter(
             holder.note.visibility = View.VISIBLE
             holder.note.text = note
         }
+        val ended = System.currentTimeMillis() >= item.startMillis + item.durationMinutes * 60_000L
         styleProgressFill(holder)
-        styleCardShadow(holder)
+        styleCardShadow(holder, ended)
+        styleEmphasis(holder, ended)
         bindProgress(holder, item)
         holder.itemView.setOnClickListener { onClick(item) }
         holder.itemView.setOnLongClickListener {
             onLongClick(item)
             true
         }
+    }
+
+    /**
+     * 已结束的待办要**淡下去**：文字降到次要/更弱一级，主题色光晕也收掉。
+     * 没结束的保持原来的对比度（标题正文色、时间用主色）。
+     */
+    private fun styleEmphasis(holder: ItemHolder, ended: Boolean) {
+        val context = holder.title.context
+        val primary = StatusColors.attr(context, R.attr.bnTextPrimary)
+        val secondary = StatusColors.attr(context, R.attr.bnTextSecondary)
+        val muted = StatusColors.attr(context, R.attr.bnMuted)
+        val accent = StatusColors.attr(context, R.attr.bnPrimary)
+        holder.title.setTextColor(if (ended) secondary else primary)
+        holder.time.setTextColor(if (ended) muted else accent)
+        holder.duration.setTextColor(if (ended) muted else secondary)
+        holder.note.setTextColor(if (ended) muted else secondary)
     }
 
     /** 进度底色：浅色模式用主题色淡淡铺一层，深色模式用白色铺一层。 */
@@ -218,19 +236,23 @@ class TodoAdapter(
     /**
      * 卡片阴影：不用系统那层发灰的黑影，改成带主题色的柔和投影
      * （Android 9+ 才能单独指定投影颜色，低版本退回系统默认）。
+     * 已结束的卡片不给主题色光晕——不然做完的事反而比没做的更扎眼。
      */
-    private fun styleCardShadow(holder: ItemHolder) {
+    private fun styleCardShadow(holder: ItemHolder, ended: Boolean) {
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.P) return
         val context = holder.itemView.context
         val tint = StatusColors.attr(context, R.attr.bnPrimary)
-        holder.itemView.outlineSpotShadowColor =
+        holder.itemView.outlineSpotShadowColor = if (ended) {
+            android.graphics.Color.TRANSPARENT
+        } else {
             androidx.core.graphics.ColorUtils.setAlphaComponent(tint, 120)
+        }
         holder.itemView.outlineAmbientShadowColor = android.graphics.Color.TRANSPARENT
     }
 
     /**
      * 时间进度：开始前 2 小时内，卡片从左边开始逐渐涂上一块底色，越接近开始涂得越满；
-     * 进行中整张涂满并显示剩余时间；已经结束的也整张涂满（做完的样子）。
+     * 进行中整张涂满并显示剩余时间；已经结束的不涂（做完的事不该更抢眼）。
      */
     private fun bindProgress(holder: ItemHolder, item: TodoItem) {
         val now = System.currentTimeMillis()
@@ -239,11 +261,7 @@ class TodoAdapter(
         val window = 2 * 60 * 60 * 1000L
 
         when {
-            // 已经结束：整张涂满，不再显示剩余时间
-            now >= end -> {
-                holder.progressFill.scaleX = 1f
-                holder.progressLabel.visibility = View.GONE
-            }
+            now >= end -> hideProgress(holder)
 
             now >= start -> {
                 holder.progressFill.scaleX = 1f
