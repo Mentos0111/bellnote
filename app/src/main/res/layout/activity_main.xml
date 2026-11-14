@@ -205,14 +205,43 @@
             android:textColor="?attr/bnTextSecondary"
             android:textSize="14sp" />
 
+    <!-- 列表 + 最左侧的「今日总进度」竖条：只有今天有事件时才显示 -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="match_parent"
             android:clipToPadding="false"
+            android:paddingStart="9dp"
             android:paddingTop="0dp"
             android:paddingBottom="16dp" />
+
+        <FrameLayout
+            android:id="@+id/dayProgress"
+            android:layout_width="3dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="20dp"
+            android:visibility="gone">
+
+            <View
+                android:id="@+id/dayProgressTrack"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_day_progress" />
+
+            <View
+                android:id="@+id/dayProgressFill"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_day_progress" />
+        </FrameLayout>
+    </FrameLayout>
     </LinearLayout>
 
     <!-- 侧边抽屉：7 个入口 + 图标块，靠细线分组 -->
