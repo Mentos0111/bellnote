@@ -39,8 +39,9 @@ object DayGroups {
     }
 
     /**
-     * 这一组收没收起：用户自己点过的优先，没点过的一律展开。
-     * `expanded` 目前恒等于「没在 collapsed 里」，留着是为了兼容老数据（曾经记过显式展开）。
+     * 这一组收没收起：用户自己点过的优先，没点过的按默认——
+     * 「已过期」默认收起（过期的事不用天天看），其余全展开。
+     * `expanded` 留着是为了兼容老数据（曾经记过显式展开）。
      */
     fun isCollapsed(
         label: String,
@@ -49,6 +50,6 @@ object DayGroups {
     ): Boolean = when {
         collapsed.contains(label) -> true
         expanded.contains(label) -> false
-        else -> false // 默认全展开
+        else -> label == EXPIRED
     }
 }

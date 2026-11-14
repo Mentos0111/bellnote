@@ -58,7 +58,7 @@ object Prefs {
     private const val KEY_HEALTH_AT = "health_cached_at"
     private const val KEY_COLLAPSED_GROUPS = "list_collapsed_groups"
     private const val KEY_EXPANDED_GROUPS = "list_expanded_groups"
-    private const val KEY_GROUP_DEFAULT_V2 = "list_group_default_v3"
+    private const val KEY_GROUP_DEFAULT_V2 = "list_group_default_v4"
 
     /**
      * 识别方式：auto（联网走云端、断网用本地）/ local（只用本地）/ cloud（只用云端）。
