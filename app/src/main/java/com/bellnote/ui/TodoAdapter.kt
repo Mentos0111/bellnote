@@ -111,6 +111,9 @@ class TodoAdapter(
     class HeaderHolder(view: View) : RecyclerView.ViewHolder(view) {
         val text: TextView = view.findViewById(R.id.headerText)
         val arrow: ImageView = view.findViewById(R.id.headerArrow)
+        val progress: View = view.findViewById(R.id.headerProgress)
+        val progressTrack: View = view.findViewById(R.id.headerProgressTrack)
+        val progressFill: View = view.findViewById(R.id.headerProgressFill)
     }
 
     override fun getItemCount(): Int = rows.size
@@ -164,6 +167,46 @@ class TodoAdapter(
             it.performHapticFeedback(android.view.HapticFeedbackConstants.CONTEXT_CLICK)
             toggleGroup(row.label)
         }
+        bindHeaderProgress(holder, row)
+    }
+
+    /**
+     * 「今天」那一行标题右边的横向进度条：今天已结束条数 / 今天总条数。
+     * 其它分组不显示，收起/展开都不影响（口径只看数据）。
+     */
+    private fun bindHeaderProgress(holder: HeaderHolder, row: Row.Header) {
+        val context = holder.itemView.context
+        val todayLabel = com.bellnote.data.DayGroups.label(System.currentTimeMillis())
+        if (row.label != todayLabel) {
+            holder.progress.visibility = View.GONE
+            return
+        }
+        val now = System.currentTimeMillis()
+        var total = 0
+        var done = 0
+        for (r in rows) {
+            if (r !is Row.Entry) continue
+            if (com.bellnote.data.DayGroups.label(r.todo.startMillis) != todayLabel) continue
+            total++
+            if (now >= r.todo.startMillis + r.todo.durationMinutes * 60_000L) done++
+        }
+        if (total <= 0) {
+            holder.progress.visibility = View.GONE
+            return
+        }
+        holder.progress.visibility = View.VISIBLE
+        holder.progressTrack.backgroundTintList =
+            android.content.res.ColorStateList.valueOf(StatusColors.attr(context, R.attr.bnDivider))
+        // 明暗两套：浅色用主题色，深色用白色（和卡片上的进度铺色一致）；跑完也是主题色，不转灰
+        val night = StatusColors.isNight(context)
+        val fillColor = if (night) {
+            android.graphics.Color.WHITE
+        } else {
+            StatusColors.attr(context, R.attr.bnPrimary)
+        }
+        holder.progressFill.backgroundTintList =
+            android.content.res.ColorStateList.valueOf(fillColor)
+        holder.progressFill.scaleX = (done.toFloat() / total).coerceIn(0f, 1f)
     }
 
     /** 收起/展开：把用户这次的选择记进对应的集合，再交给 DiffUtil 重算。 */
@@ -257,6 +300,15 @@ class TodoAdapter(
     fun refreshStyles() {
         if (rows.isEmpty()) return
         notifyItemRangeChanged(0, rows.size)
+    }
+
+    /** 迷你地图用：第 position 行属于哪一天的组（表头直接是它自己的标签）。 */
+    fun dayLabelAt(position: Int): String? {
+        val row = rows.getOrNull(position) ?: return null
+        return when (row) {
+            is Row.Header -> row.label
+            is Row.Entry -> com.bellnote.data.DayGroups.label(row.todo.startMillis)
+        }
     }
 
     /** 迷你地图用：一共有几条事件（不含分组标题）。 */
