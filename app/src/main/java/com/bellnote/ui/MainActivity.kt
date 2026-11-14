@@ -56,9 +56,13 @@ class MainActivity : AppCompatActivity() {
         override fun run() {
             // 只更新「还剩多久」那一层，整表别重绑，不然每分钟会抖一下
             adapter.tickProgress()
+            // 左侧今日总进度也跟着往前走一格
+            renderDayProgress(lastItems)
             ticker.postDelayed(this, 60_000L)
         }
     }
+    /** 上一次读到的待办（分钟级的进度刷新要用，避免每分钟重查日历）。 */
+    private var lastItems: List<TodoItem> = emptyList()
     private lateinit var emptyView: TextView
     private lateinit var drawer: DrawerLayout
     private lateinit var etQuick: EditText
@@ -651,11 +655,45 @@ class MainActivity : AppCompatActivity() {
         Thread {
             val items = repository.queryOwnEvents()
             runOnUiThread {
+                lastItems = items
                 adapter.submit(items)
                 emptyView.text = getString(R.string.main_empty)
                 showEmptyView(items.isEmpty())
+                renderDayProgress(items)
             }
         }.start()
+    }
+
+    /**
+     * 最左侧那根「今日总进度」竖条：今天的事件里已结束的比例（进行中不算完成）。
+     * 口径与分组收展无关——收起只是不显示卡片，进度条照样按数据走。
+     */
+    private fun renderDayProgress(items: List<TodoItem>) {
+        val progress = com.bellnote.data.DayProgressCalc.compute(items, System.currentTimeMillis())
+        val container = findViewById<View>(R.id.dayProgress)
+        if (!progress.visible) {
+            container.visibility = View.GONE
+            return
+        }
+        container.visibility = View.VISIBLE
+        val track = findViewById<View>(R.id.dayProgressTrack)
+        val fill = findViewById<View>(R.id.dayProgressFill)
+        val trackColor = StatusColors.attr(this, R.attr.bnDivider)
+        track.backgroundTintList = android.content.res.ColorStateList.valueOf(trackColor)
+        // 全做完了换成弱色，免得一直抢眼
+        val fillColor = if (progress.allDone) {
+            StatusColors.attr(this, R.attr.bnMuted)
+        } else {
+            StatusColors.attr(this, R.attr.bnPrimary)
+        }
+        fill.backgroundTintList = android.content.res.ColorStateList.valueOf(fillColor)
+        fill.pivotY = 0f
+        fill.animate().cancel()
+        fill.animate()
+            .scaleY(progress.ratio)
+            .setDuration(320L)
+            .setInterpolator(android.view.animation.DecelerateInterpolator())
+            .start()
     }
 
     /** 空列表的提示淡入淡出，别在一堆卡片中间硬切出来。 */
