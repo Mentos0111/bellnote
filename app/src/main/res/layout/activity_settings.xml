@@ -509,7 +509,7 @@
 
             <TextView
                 style="@style/FormLabel"
-                android:text="已结束的待办" />
+                android:text="进度条" />
 
             <Spinner
                 android:id="@+id/spEndedStyle"
@@ -521,7 +521,7 @@
 
             <TextView
                 style="@style/HintText"
-                android:text="整卡读满后淡出：进度铺满整张卡，结束后整张卡隐去；只淡文字：卡片保持原样，标题和时间变浅。" />
+                android:text="整卡铺色：用不显眼的灰色从左往右铺满整张卡，涂满后卡片自然变暗；条状进度条：卡片底边一条细线。没结束的事都用主题色，所以更醒目。" />
         </LinearLayout>
 
         <!-- ================= 诊断与帮助 ================= -->

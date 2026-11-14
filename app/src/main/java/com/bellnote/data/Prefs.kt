@@ -473,16 +473,16 @@ object Prefs {
         return raw.split('\u0001').filter { it.isNotBlank() }.toSet()
     }
 
-    // ---------------- 已结束的待办长什么样（外观 → 已结束的待办） ----------------
+    // ---------------- 进度条长什么样（外观 → 进度条） ----------------
 
-    /** 整卡读完再淡出：进度铺满后整张卡降低不透明度。 */
-    const val ENDED_STYLE_FADE = "fade"
+    /** 整卡铺色：用不显眼的中性色铺满整张卡，涂满以后卡片自己就退下去了。 */
+    const val ENDED_STYLE_WASH = "wash"
 
-    /** 只淡文字：卡片保持不透明，标题/时间/备注降到弱色。 */
-    const val ENDED_STYLE_DIM = "dim"
+    /** 条状：卡片底边一条 3dp 的进度条。 */
+    const val ENDED_STYLE_BAR = "bar"
 
     fun endedStyle(context: Context): String =
-        sp(context).getString(KEY_ENDED_STYLE, ENDED_STYLE_FADE) ?: ENDED_STYLE_FADE
+        sp(context).getString(KEY_ENDED_STYLE, ENDED_STYLE_WASH) ?: ENDED_STYLE_WASH
 
     fun setEndedStyle(context: Context, style: String) {
         sp(context).edit().putString(KEY_ENDED_STYLE, style).apply()
