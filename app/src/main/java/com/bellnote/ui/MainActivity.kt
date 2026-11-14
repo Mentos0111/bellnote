@@ -132,6 +132,12 @@ class MainActivity : AppCompatActivity() {
         recycler.adapter = adapter
         // 条目动效统一在 ListMotion（只调那一个常量，别在各处写死时长）
         com.bellnote.util.ListMotion.apply(recycler)
+        // 滚动时更新左侧迷你地图的「你看到哪一段」
+        recycler.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
+                updateDayProgressViewport()
+            }
+        })
 
         setupQuickAdd()
         setupDrawer()
@@ -665,35 +671,81 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * 最左侧那根「今日总进度」竖条：今天的事件里已结束的比例（进行中不算完成）。
-     * 口径与分组收展无关——收起只是不显示卡片，进度条照样按数据走。
+     * 最左侧那根竖条＝整份日程的迷你地图：
+     * 每条事件等分一段，已结束/进行中/未开始三种颜色；「今天」开头一条刻度；
+     * 右侧 1.5dp 亮线跟着滚动指示「你现在看到哪一段」。
      */
     private fun renderDayProgress(items: List<TodoItem>) {
-        val progress = com.bellnote.data.DayProgressCalc.compute(items, System.currentTimeMillis())
-        val container = findViewById<View>(R.id.dayProgress)
-        if (!progress.visible) {
-            container.visibility = View.GONE
+        val bar = findViewById<View>(R.id.dayProgress)
+        val now = System.currentTimeMillis()
+        val segments = com.bellnote.data.DayProgressCalc.segments(items, now)
+        if (segments.isEmpty()) {
+            bar.visibility = View.GONE
             return
         }
-        container.visibility = View.VISIBLE
-        val track = findViewById<View>(R.id.dayProgressTrack)
-        val fill = findViewById<View>(R.id.dayProgressFill)
-        val trackColor = StatusColors.attr(this, R.attr.bnDivider)
-        track.backgroundTintList = android.content.res.ColorStateList.valueOf(trackColor)
-        // 全做完了换成弱色，免得一直抢眼
-        val fillColor = if (progress.allDone) {
-            StatusColors.attr(this, R.attr.bnMuted)
-        } else {
-            StatusColors.attr(this, R.attr.bnPrimary)
+        bar.visibility = View.VISIBLE
+
+        val doneColor = StatusColors.attr(this, R.attr.bnMuted)
+        val runningColor = StatusColors.attr(this, R.attr.bnPrimary)
+        val futureColor = StatusColors.attr(this, R.attr.bnDivider)
+
+        val container = findViewById<android.widget.LinearLayout>(R.id.dayProgressSegments)
+        container.removeAllViews()
+        segments.forEach { segment ->
+            val color = when (segment) {
+                com.bellnote.data.DayProgressCalc.Segment.DONE -> doneColor
+                com.bellnote.data.DayProgressCalc.Segment.RUNNING -> runningColor
+                com.bellnote.data.DayProgressCalc.Segment.FUTURE -> futureColor
+            }
+            container.addView(View(this).apply {
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f
+                )
+                setBackgroundResource(R.drawable.bg_day_segment)
+                backgroundTintList = android.content.res.ColorStateList.valueOf(color)
+            })
         }
-        fill.backgroundTintList = android.content.res.ColorStateList.valueOf(fillColor)
-        fill.pivotY = 0f
-        fill.animate().cancel()
-        fill.animate()
-            .scaleY(progress.ratio)
-            .setDuration(320L)
-            .setInterpolator(android.view.animation.DecelerateInterpolator())
-            .start()
+
+        // 「今天」刻度
+        val anchor = com.bellnote.data.DayProgressCalc.todayAnchor(items, now)
+        val tick = findViewById<View>(R.id.dayProgressTodayTick)
+        if (anchor == null) {
+            tick.visibility = View.GONE
+        } else {
+            tick.visibility = View.VISIBLE
+            tick.backgroundTintList =
+                android.content.res.ColorStateList.valueOf(StatusColors.attr(this, R.attr.bnTextSecondary))
+            tick.post { tick.translationY = anchor * bar.height }
+        }
+
+        val viewport = findViewById<View>(R.id.dayProgressViewport)
+        viewport.backgroundTintList =
+            android.content.res.ColorStateList.valueOf(StatusColors.attr(this, R.attr.bnTextPrimary))
+        updateDayProgressViewport()
+    }
+
+    /** 滚动时更新右侧那根「你看到哪一段」的亮线。 */
+    private fun updateDayProgressViewport() {
+        val viewport = findViewById<View>(R.id.dayProgressViewport) ?: return
+        val bar = findViewById<View>(R.id.dayProgress) ?: return
+        if (bar.visibility != View.VISIBLE || bar.height <= 0) return
+        val recycler = findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.recycler)
+        val lm = recycler.layoutManager as? LinearLayoutManager ?: return
+        val first = lm.findFirstVisibleItemPosition()
+        val last = lm.findLastVisibleItemPosition()
+        val total = adapter.eventCount()
+        if (total <= 0 || first < 0) {
+            viewport.visibility = View.GONE
+            return
+        }
+        val startEvent = adapter.eventIndexAt(first) ?: 0
+        val endEvent = adapter.eventIndexAt(last) ?: (total - 1)
+        val span = (endEvent - startEvent + 1).coerceIn(1, total)
+        viewport.visibility = View.VISIBLE
+        viewport.layoutParams = (viewport.layoutParams).apply {
+            height = (bar.height * span / total).coerceAtLeast(4)
+        }
+        viewport.translationY = bar.height.toFloat() * startEvent / total
     }
 
     /** 空列表的提示淡入淡出，别在一堆卡片中间硬切出来。 */

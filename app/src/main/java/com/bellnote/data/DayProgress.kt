@@ -43,4 +43,37 @@ object DayProgressCalc {
         }
         return DayProgress(total, done)
     }
+
+    /** 迷你地图里一段的状态。 */
+    enum class Segment { DONE, RUNNING, FUTURE }
+
+    /**
+     * 整份日程的迷你地图：按列表顺序（开始时间升序）给每条事件一段，等分高度。
+     * 返回空表示没有事件（整条隐藏）。
+     */
+    fun segments(items: List<TodoItem>, now: Long): List<Segment> =
+        items.sortedBy { it.startMillis }.map { item ->
+            val end = item.startMillis + item.durationMinutes * 60_000L
+            when {
+                now >= end -> Segment.DONE
+                now >= item.startMillis -> Segment.RUNNING
+                else -> Segment.FUTURE
+            }
+        }
+
+    /** 「今天」在迷你地图上的位置（0f..1f，按事件序号等分）；今天没有事件返回 null。 */
+    fun todayAnchor(
+        items: List<TodoItem>,
+        now: Long,
+        zone: ZoneId = ZoneId.systemDefault()
+    ): Float? {
+        val sorted = items.sortedBy { it.startMillis }
+        if (sorted.isEmpty()) return null
+        val today = LocalDate.now(zone)
+        val index = sorted.indexOfFirst {
+            Instant.ofEpochMilli(it.startMillis).atZone(zone).toLocalDate() == today
+        }
+        if (index < 0) return null
+        return index.toFloat() / sorted.size
+    }
 }
