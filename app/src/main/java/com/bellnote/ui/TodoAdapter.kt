@@ -104,6 +104,7 @@ class TodoAdapter(
         val duration: TextView = view.findViewById(R.id.itemDuration)
         val note: TextView = view.findViewById(R.id.itemNote)
         val progressFill: View = view.findViewById(R.id.itemProgressFill)
+        val progressBar: View = view.findViewById(R.id.itemProgressBar)
         val progressLabel: TextView = view.findViewById(R.id.itemProgressLabel)
     }
 
@@ -198,9 +199,8 @@ class TodoAdapter(
             holder.note.text = note
         }
         val ended = System.currentTimeMillis() >= item.startMillis + item.durationMinutes * 60_000L
-        styleProgressFill(holder)
+        styleProgressLook(holder, ended)
         styleCardShadow(holder, ended)
-        styleEndedLook(holder, ended)
         bindProgress(holder, item)
         holder.itemView.setOnClickListener { onClick(item) }
         holder.itemView.setOnLongClickListener {
@@ -210,43 +210,47 @@ class TodoAdapter(
     }
 
     /**
-     * 已结束的卡怎么表现，两种风格（设置 → 外观 → 已结束的待办，可切换）：
+     * 进度的两种形态（设置 → 外观 → 进度条）：
      *
-     * - **fade（默认，老师要的那种）**：进度铺满整卡后，整张卡降低不透明度，慢慢隐去；
-     *   文字颜色不动，靠整体透明度说话。
-     * - **dim**：卡片保持不透明，只把标题/时间/备注降到弱色，靠文字层级说话。
+     * - **wash（默认）**：整张卡从左往右铺一层**不显眼的中性色**。它能表示「走到哪了」，
+     *   又不会抢走没做完的事；铺满时整张卡被压暗一档，自己就退下去了——不需要再额外加
+     *   透明度或改文字颜色。深色模式也铺黑（深底铺白会把卡片点亮，反而更显眼）。
+     * - **bar**：卡片底边一条 3dp 进度条。进行中使用主题色（面积小，可以亮）；结束后转成
+     *   弱色，避免整条亮线跳出来。
      *
-     * 两种都不给主题色光晕；没结束的卡始终是满对比、有光晕。
+     * 注意用 `View.backgroundTintList`，别用 `drawable.setTint`：后者改的是所有卡片
+     * 共用的 ConstantState，会串色（2026-11-14 踩过）。
      */
-    private fun styleEndedLook(holder: ItemHolder, ended: Boolean) {
+    private fun styleProgressLook(holder: ItemHolder, ended: Boolean) {
         val context = holder.itemView.context
         val night = StatusColors.isNight(context)
-        val fade = Prefs.endedStyle(context) != Prefs.ENDED_STYLE_DIM
+        val bar = Prefs.endedStyle(context) == Prefs.ENDED_STYLE_BAR
 
-        // 先把颜色恢复成「未结束」的样子，避免回收的视图带着上一张的状态
+        holder.progressFill.visibility = if (bar) View.GONE else View.VISIBLE
+        holder.progressBar.visibility = if (bar) View.VISIBLE else View.GONE
+
+        if (bar) {
+            val tint = when {
+                ended -> StatusColors.attr(context, R.attr.bnMuted)
+                night -> android.graphics.Color.WHITE
+                else -> StatusColors.attr(context, R.attr.bnPrimary)
+            }
+            holder.progressBar.backgroundTintList =
+                android.content.res.ColorStateList.valueOf(tint)
+            holder.progressBar.alpha = if (ended) 0.55f else 0.95f
+        } else {
+            // 盖在文字上面的一层中性灰：扫过的部分（连同文字）被压暗一档，边界看得见。
+            // 深色模式的黑更重一些——深底吃层次，颜色太淡就完全看不出进度走到哪了。
+            holder.progressFill.backgroundTintList =
+                android.content.res.ColorStateList.valueOf(android.graphics.Color.BLACK)
+            holder.progressFill.alpha = if (night) 0.26f else 0.06f
+        }
+        // 文字颜色两种形态都不动：靠进度本身表达状态，没做完的永远是满对比
         holder.title.setTextColor(StatusColors.attr(context, R.attr.bnTextPrimary))
         holder.time.setTextColor(StatusColors.attr(context, R.attr.bnPrimary))
         holder.duration.setTextColor(StatusColors.attr(context, R.attr.bnTextSecondary))
         holder.note.setTextColor(StatusColors.attr(context, R.attr.bnTextSecondary))
         holder.progressLabel.setTextColor(StatusColors.attr(context, R.attr.bnTextSecondary))
-
-        if (!ended) {
-            holder.itemView.alpha = 1f
-            return
-        }
-        if (fade) {
-            holder.itemView.alpha = if (night) 0.45f else 0.52f
-            return
-        }
-        // dim：卡片不透明，文字降级
-        holder.itemView.alpha = 1f
-        val secondary = StatusColors.attr(context, R.attr.bnTextSecondary)
-        val muted = StatusColors.attr(context, R.attr.bnMuted)
-        holder.title.setTextColor(secondary)
-        holder.time.setTextColor(muted)
-        holder.duration.setTextColor(muted)
-        holder.note.setTextColor(muted)
-        holder.progressLabel.setTextColor(muted)
     }
 
     /** 换了「已结束的样子」以后，把列表整体重绑一遍（数据没变，Diff 不会动）。 */
@@ -256,10 +260,8 @@ class TodoAdapter(
     }
 
     /**
-     * 进度底色：从左往右把整张卡铺一层（浅色用主题色，深色用浅色）。
-     *
-     * 注意用 `View.backgroundTintList`，别用 `drawable.setTint`：后者改的是所有卡片
-     * 共用的 ConstantState，一张卡设了颜色会串到别的卡上（2026-11-14 踩过）。
+     * 进度底色：内部把「整卡铺色」和「条状」两种形态的进度都按同一个比例画出来，
+     * 具体显示哪个由 styleProgressLook 决定。
      */
     private fun styleProgressFill(holder: ItemHolder) {
         val context = holder.progressFill.context
@@ -299,30 +301,29 @@ class TodoAdapter(
         val start = item.startMillis
         val end = start + item.durationMinutes * 60_000L
         val total = (end - start).coerceAtLeast(1L)
+        val barStyle = Prefs.endedStyle(holder.itemView.context) == Prefs.ENDED_STYLE_BAR
 
         when {
             now >= end -> {
-                holder.progressFill.scaleX = 1f
-                // fade 风格靠整卡淡出表达「结束」，不再多加一行字；dim 风格需要这行
-                val fade = Prefs.endedStyle(holder.itemView.context) != Prefs.ENDED_STYLE_DIM
-                if (fade) {
-                    holder.progressLabel.visibility = View.GONE
-                } else {
+                setProgressFraction(holder, 1f)
+                // 整卡铺色靠「被压暗的卡」表达结束；条状只靠一条线，需要文字补一句
+                if (barStyle) {
                     holder.progressLabel.visibility = View.VISIBLE
                     holder.progressLabel.text = "已结束"
+                } else {
+                    holder.progressLabel.visibility = View.GONE
                 }
             }
 
             now >= start -> {
-                val fraction = ((now - start).toFloat() / total).coerceIn(0f, 1f)
-                holder.progressFill.scaleX = fraction
+                setProgressFraction(holder, ((now - start).toFloat() / total).coerceIn(0f, 1f))
                 holder.progressLabel.visibility = View.VISIBLE
                 holder.progressLabel.text = "进行中 · 还剩 ${humanize(end - now)}"
             }
 
             else -> {
                 // 还没开始：进度就是 0；两个小时内给一句「还有多久」，方便安排
-                holder.progressFill.scaleX = 0f
+                setProgressFraction(holder, 0f)
                 val remain = start - now
                 if (remain <= 2 * 60 * 60 * 1000L) {
                     holder.progressLabel.visibility = View.VISIBLE
@@ -332,6 +333,11 @@ class TodoAdapter(
                 }
             }
         }
+    }
+
+    private fun setProgressFraction(holder: ItemHolder, fraction: Float) {
+        holder.progressFill.scaleX = fraction
+        holder.progressBar.scaleX = fraction
     }
 
     private fun humanize(millis: Long): String {

@@ -329,14 +329,14 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     /**
-     * 已结束的待办怎么表现：整卡读满后淡出 / 只淡文字。
+     * 进度条形态：整卡铺色 / 条状。
      * 首页在 onResume 会重新绑定，所以选完返回就生效。
      */
     private fun setupEndedStyleSpinner() {
         val spinner = findViewById<Spinner>(R.id.spEndedStyle)
         val styles = listOf(
-            Prefs.ENDED_STYLE_FADE to "整卡读满后淡出",
-            Prefs.ENDED_STYLE_DIM to "只淡文字（卡片保持原样）"
+            Prefs.ENDED_STYLE_WASH to "整卡铺色（涂满后整张卡变暗）",
+            Prefs.ENDED_STYLE_BAR to "条状进度条"
         )
         spinner.adapter = ArrayAdapter(
             this,
