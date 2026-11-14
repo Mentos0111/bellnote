@@ -25,13 +25,18 @@ data class DayProgress(val total: Int, val done: Int) {
 
 object DayProgressCalc {
 
-    /** 纯函数，方便单测。 */
+    /**
+     * 纯函数，方便单测。
+     *
+     * [today] 必须能注入：默认取「当前时区的今天」，但**单测一定要显式传**，
+     * 否则用例写死了日期，跨零点（或 CI 跑在别的时区）就必挂——2026-11-15 凌晨真踩过。
+     */
     fun compute(
         items: List<TodoItem>,
         now: Long,
-        zone: ZoneId = ZoneId.systemDefault()
+        zone: ZoneId = ZoneId.systemDefault(),
+        today: LocalDate = LocalDate.now(zone)
     ): DayProgress {
-        val today = LocalDate.now(zone)
         var total = 0
         var done = 0
         for (item in items) {
