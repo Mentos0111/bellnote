@@ -148,6 +148,11 @@ class TodoAdapter(
             bindProgress(holder, row.todo)
             return
         }
+        // 「今天」那行标题的进度条也要跟着事件结束随时走，不然要等下次整表刷新才动
+        if (payloads.contains(PAYLOAD_PROGRESS) && holder is HeaderHolder && row is Row.Header) {
+            bindHeaderProgress(holder, row)
+            return
+        }
         super.onBindViewHolder(holder, position, payloads)
     }
 
