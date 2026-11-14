@@ -220,4 +220,29 @@
 
     <string name="help_rules_title">推送怎么处理</string>
     <string name="help_rules_body">自动把推送写进日历：关掉后只记录，不写日历。\n\n只收带时间的待办（推荐）：不开的话，认不出「标题 / 时间」的推送也会按「当前时间 + 1 小时」塞进日历，很容易堆一堆没用的条目。</string>
+
+    <!-- ntfy 页面：分组标题 -->
+    <string name="ntfy_group_connect">① 连接</string>
+    <string name="ntfy_group_background">② 后台接收</string>
+    <string name="ntfy_group_receive">③ 收到后怎么处理</string>
+    <string name="ntfy_group_diag">④ 诊断</string>
+
+    <!-- ntfy 页面：后台接收 -->
+    <string name="ntfy_bg_title">后台接收</string>
+    <string name="ntfy_bg_off">关：只在打开 App 时收</string>
+    <string name="ntfy_bg_alarm">十分钟：省电，靠闹钟唤醒</string>
+    <string name="ntfy_bg_service">秒级：前台服务常驻，通知栏会有一条</string>
+    <string name="ntfy_bg_hint_off">最省电，但只有你打开 Bellnote 的那一刻才会去服务器看有没有新待办。</string>
+    <string name="ntfy_bg_hint_alarm">每 10 分钟唤醒一次去拉消息，通常 10 分钟内进日历。需要「闹钟与提醒」权限，否则会自动退回 15 分钟的系统任务。</string>
+    <string name="ntfy_bg_hint_service">收到最快（约 1 分钟），代价是通知栏常驻一条「Bellnote 正在接收待办」，可随时切回别的模式。</string>
+    <string name="ntfy_bg_perm_exact">开「闹钟与提醒」权限</string>
+    <string name="ntfy_bg_perm_battery">允许后台运行（电池白名单）</string>
+    <string name="ntfy_bg_perm_notify">打开通知权限</string>
+    <string name="ntfy_bg_status_prefix">当前状态：</string>
+
+    <!-- ntfy 引导 -->
+    <string name="ntfy_guide_title">用 ntfy 收待办</string>
+    <string name="ntfy_guide_next">下一步</string>
+    <string name="ntfy_guide_done">开始用</string>
+    <string name="ntfy_guide_skip">以后再说</string>
 </resources>

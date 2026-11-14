@@ -14,8 +14,10 @@ class ReconcileReceiver : BroadcastReceiver() {
         when (intent?.action) {
             Intent.ACTION_BOOT_COMPLETED,
             Intent.ACTION_MY_PACKAGE_REPLACED -> {
-                Log.i(TAG, "开机/升级后重排定时对账，并补查一次 ntfy")
+                Log.i(TAG, "开机/升级后重排定时对账、恢复 ntfy 后台接收，并补查一次 ntfy")
                 ReconcileScheduler.sync(app)
+                // 闹钟和前台服务在重启/升级后都会丢，按当前模式重新拉起
+                NtfyBackground.sync(app)
                 // 关机/升级期间 ntfy 的通知可能压根没弹过，开机先补一次
                 NtfyFetcher.catchUpInBackground(app)
             }

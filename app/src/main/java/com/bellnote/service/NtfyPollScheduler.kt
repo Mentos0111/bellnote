@@ -1,45 +1,22 @@
 package com.bellnote.service
 
-import android.app.job.JobInfo
-import android.app.job.JobScheduler
-import android.content.ComponentName
 import android.content.Context
-import android.util.Log
-import com.bellnote.data.Prefs
 
 /**
- * 给「定时拉 ntfy」排班：填了主题就每 15 分钟拉一次（系统允许的最短周期），
- * 没填就取消，保证不配 ntfy 的人完全不联网。
+ * 兼容层：以前所有调用点都走这里排「15 分钟 JobScheduler」。
+ *
+ * 现在后台接收有三种模式（[com.bellnote.data.Prefs.ntfyBackgroundMode]），真正的
+ * 调度逻辑挪到了 [NtfyBackground]；这里保留同样的入口，免得把老调用点全改一遍。
  */
 object NtfyPollScheduler {
 
-    private const val TAG = "NtfyPollScheduler"
-    private const val JOB_ID = 4201
-    private const val INTERVAL_MS = 15 * 60 * 1000L
-
+    /** 按当前模式把后台接收对齐（App 启动、改设置、开机后都调）。 */
     fun sync(context: Context) {
-        val app = context.applicationContext
-        val scheduler = app.getSystemService(JobScheduler::class.java) ?: return
-
-        if (!Prefs.ntfyEnabled(app) || Prefs.ntfyTopic(app).isBlank()) {
-            scheduler.cancel(JOB_ID)
-            return
-        }
-        if (scheduler.getPendingJob(JOB_ID) != null) return
-
-        val job = JobInfo.Builder(JOB_ID, ComponentName(app, NtfyPollJob::class.java))
-            .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-            .setPeriodic(INTERVAL_MS)
-            .setPersisted(true)
-            .build()
-        val result = scheduler.schedule(job)
-        Log.i(TAG, if (result == JobScheduler.RESULT_SUCCESS) "定时补查已排班" else "定时补查排班失败：$result")
+        NtfyBackground.sync(context)
     }
 
-    /** 改了主题 / 关掉 ntfy 时立刻生效。 */
+    /** 改了主题 / 开关后立刻生效。 */
     fun reschedule(context: Context) {
-        val app = context.applicationContext
-        app.getSystemService(JobScheduler::class.java)?.cancel(JOB_ID)
-        sync(app)
+        NtfyBackground.reschedule(context)
     }
 }

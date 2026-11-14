@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -116,7 +116,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="日历用来写待办，相册用来识别截图。"
+                    android:text="日历用来写待办，相册用来识别截图，通知让提醒能弹出来。"
                     android:textColor="?attr/bnTextSecondary"
                     android:textSize="14sp" />
 
@@ -172,6 +172,22 @@
                             android:text="截屏服务（无障碍）" />
                         <TextView
                             android:id="@+id/permA11yState"
+                            style="@style/AboutValue" />
+                    </LinearLayout>
+
+                    <View style="@style/AboutDivider" />
+
+                    <LinearLayout
+                        android:id="@+id/permNotify"
+                        style="@style/AboutRow"
+                        android:background="@drawable/bg_ripple_row"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView
+                            style="@style/AboutKey"
+                            android:text="通知" />
+                        <TextView
+                            android:id="@+id/permNotifyState"
                             style="@style/AboutValue" />
                     </LinearLayout>
 
