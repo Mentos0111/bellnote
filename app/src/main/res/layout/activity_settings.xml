@@ -506,6 +506,22 @@
                 android:background="@drawable/bg_input"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp" />
+
+            <TextView
+                style="@style/FormLabel"
+                android:text="已结束的待办" />
+
+            <Spinner
+                android:id="@+id/spEndedStyle"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_input"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp" />
+
+            <TextView
+                style="@style/HintText"
+                android:text="整卡读满后淡出：进度铺满整张卡，结束后整张卡隐去；只淡文字：卡片保持原样，标题和时间变浅。" />
         </LinearLayout>
 
         <!-- ================= 诊断与帮助 ================= -->

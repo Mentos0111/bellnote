@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bellnote.R
 import com.bellnote.data.DayGroups
+import com.bellnote.data.Prefs
 import com.bellnote.data.RepeatRule
 import com.bellnote.data.TodoItem
 import com.bellnote.util.StatusColors
@@ -197,9 +198,9 @@ class TodoAdapter(
             holder.note.text = note
         }
         val ended = System.currentTimeMillis() >= item.startMillis + item.durationMinutes * 60_000L
-        styleProgressFill(holder, ended)
+        styleProgressFill(holder)
         styleCardShadow(holder, ended)
-        styleEmphasis(holder, ended)
+        styleEndedLook(holder, ended)
         bindProgress(holder, item)
         holder.itemView.setOnClickListener { onClick(item) }
         holder.itemView.setOnLongClickListener {
@@ -209,51 +210,63 @@ class TodoAdapter(
     }
 
     /**
-     * 已结束的待办要**淡下去**：文字降到次要/更弱一级，主题色光晕也收掉。
-     * 没结束的保持原来的对比度（标题正文色、时间用主色）。
+     * 已结束的卡怎么表现，两种风格（设置 → 外观 → 已结束的待办，可切换）：
      *
-     * 明暗要分开调：深色底上「更弱一级」很快就糊成一片，所以底纹（进度底色）在深色里
-     * 用稍强一点的白（0.065 对浅色的 0.045），文字则统一按层级降——标题降一级、时间降到
-     * 最弱，别让时间的亮度压过标题。
+     * - **fade（默认，老师要的那种）**：进度铺满整卡后，整张卡降低不透明度，慢慢隐去；
+     *   文字颜色不动，靠整体透明度说话。
+     * - **dim**：卡片保持不透明，只把标题/时间/备注降到弱色，靠文字层级说话。
+     *
+     * 两种都不给主题色光晕；没结束的卡始终是满对比、有光晕。
      */
-    private fun styleEmphasis(holder: ItemHolder, ended: Boolean) {
-        val context = holder.title.context
-        val primary = StatusColors.attr(context, R.attr.bnTextPrimary)
+    private fun styleEndedLook(holder: ItemHolder, ended: Boolean) {
+        val context = holder.itemView.context
+        val night = StatusColors.isNight(context)
+        val fade = Prefs.endedStyle(context) != Prefs.ENDED_STYLE_DIM
+
+        // 先把颜色恢复成「未结束」的样子，避免回收的视图带着上一张的状态
+        holder.title.setTextColor(StatusColors.attr(context, R.attr.bnTextPrimary))
+        holder.time.setTextColor(StatusColors.attr(context, R.attr.bnPrimary))
+        holder.duration.setTextColor(StatusColors.attr(context, R.attr.bnTextSecondary))
+        holder.note.setTextColor(StatusColors.attr(context, R.attr.bnTextSecondary))
+        holder.progressLabel.setTextColor(StatusColors.attr(context, R.attr.bnTextSecondary))
+
+        if (!ended) {
+            holder.itemView.alpha = 1f
+            return
+        }
+        if (fade) {
+            holder.itemView.alpha = if (night) 0.45f else 0.52f
+            return
+        }
+        // dim：卡片不透明，文字降级
+        holder.itemView.alpha = 1f
         val secondary = StatusColors.attr(context, R.attr.bnTextSecondary)
         val muted = StatusColors.attr(context, R.attr.bnMuted)
-        val accent = StatusColors.attr(context, R.attr.bnPrimary)
-        holder.title.setTextColor(if (ended) secondary else primary)
-        holder.time.setTextColor(if (ended) muted else accent)
-        holder.duration.setTextColor(if (ended) muted else secondary)
-        holder.note.setTextColor(if (ended) muted else secondary)
-        holder.progressLabel.setTextColor(if (ended) muted else secondary)
+        holder.title.setTextColor(secondary)
+        holder.time.setTextColor(muted)
+        holder.duration.setTextColor(muted)
+        holder.note.setTextColor(muted)
+        holder.progressLabel.setTextColor(muted)
+    }
+
+    /** 换了「已结束的样子」以后，把列表整体重绑一遍（数据没变，Diff 不会动）。 */
+    fun refreshStyles() {
+        if (rows.isEmpty()) return
+        notifyItemRangeChanged(0, rows.size)
     }
 
     /**
-     * 进度底纹。
+     * 进度底色：从左往右把整张卡铺一层（浅色用主题色，深色用浅色）。
      *
-     * 1. **必须用 View 的 `backgroundTintList`，不能用 `background.setTint`**——后者改的是
-     *    drawable 的 ConstantState，所有卡片共用一份，一张卡设了颜色会串到别的卡上
-     *    （2026-11-14 就是这里出过 bug：已结束的灰把进行中的卡片也染成灰的）。
-     * 2. 「已结束」的淡出方向明暗相反：
-     *    - 浅色：铺一层黑（灰洗感，卡片往下沉）
-     *    - 深色：**不能铺白**——深底上铺白等于把卡片点亮，已完成反而更抢眼，所以要铺黑让它退后
+     * 注意用 `View.backgroundTintList`，别用 `drawable.setTint`：后者改的是所有卡片
+     * 共用的 ConstantState，一张卡设了颜色会串到别的卡上（2026-11-14 踩过）。
      */
-    private fun styleProgressFill(holder: ItemHolder, ended: Boolean) {
+    private fun styleProgressFill(holder: ItemHolder) {
         val context = holder.progressFill.context
         val night = StatusColors.isNight(context)
-        val tint = when {
-            // 已结束：两种模式都往暗里压
-            ended -> android.graphics.Color.BLACK
-            night -> android.graphics.Color.WHITE
-            else -> StatusColors.attr(context, R.attr.bnPrimary)
-        }
+        val tint = if (night) android.graphics.Color.WHITE else StatusColors.attr(context, R.attr.bnPrimary)
         holder.progressFill.backgroundTintList = android.content.res.ColorStateList.valueOf(tint)
-        holder.progressFill.alpha = when {
-            ended -> if (night) 0.14f else 0.06f
-            night -> 0.10f
-            else -> 0.14f
-        }
+        holder.progressFill.alpha = if (night) 0.10f else 0.14f
     }
 
     /**
@@ -290,8 +303,14 @@ class TodoAdapter(
         when {
             now >= end -> {
                 holder.progressFill.scaleX = 1f
-                holder.progressLabel.visibility = View.VISIBLE
-                holder.progressLabel.text = "已结束"
+                // fade 风格靠整卡淡出表达「结束」，不再多加一行字；dim 风格需要这行
+                val fade = Prefs.endedStyle(holder.itemView.context) != Prefs.ENDED_STYLE_DIM
+                if (fade) {
+                    holder.progressLabel.visibility = View.GONE
+                } else {
+                    holder.progressLabel.visibility = View.VISIBLE
+                    holder.progressLabel.text = "已结束"
+                }
             }
 
             now >= start -> {
