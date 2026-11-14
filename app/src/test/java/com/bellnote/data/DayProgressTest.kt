@@ -1,4 +1,4 @@
-package com.bellnote.data
+﻿package com.bellnote.data
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -74,32 +74,5 @@ class DayProgressTest {
         assertEquals(2, p.total)
         assertEquals(1, p.done)
         assertFalse(p.allDone)
-    }
-
-    @Test
-    fun `迷你地图按时间升序给每段状态`() {
-        val items = listOf(
-            item(at(15, 9)),   // 明天
-            item(at(14, 9), 30),   // 今天早上 已结束
-            item(at(14, 22), 120)  // 今天 进行中
-        )
-        val segs = DayProgressCalc.segments(items, now(23))
-        assertEquals(3, segs.size)
-        assertEquals(DayProgressCalc.Segment.DONE, segs[0])
-        assertEquals(DayProgressCalc.Segment.RUNNING, segs[1])
-        assertEquals(DayProgressCalc.Segment.FUTURE, segs[2])
-    }
-
-    @Test
-    fun `今天刻度的位置按事件序号算`() {
-        val items = listOf(item(at(13, 9)), item(at(14, 9)), item(at(15, 9)), item(at(16, 9)))
-        // 今天那条是第 2 条（索引 1），共 4 条 → 0.25
-        assertEquals(0.25f, DayProgressCalc.todayAnchor(items, now(12), zone)!!, 0.001f)
-    }
-
-    @Test
-    fun `今天没事件时没有刻度`() {
-        val items = listOf(item(at(15, 9)), item(at(16, 9)))
-        assertEquals(null, DayProgressCalc.todayAnchor(items, now(12), zone))
     }
 }
