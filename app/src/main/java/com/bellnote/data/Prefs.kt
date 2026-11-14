@@ -423,7 +423,7 @@ object Prefs {
 
     /** 配色主题 id：teal / indigo / sand / ink（默认青绿）。 */
     fun theme(context: Context): String =
-        sp(context).getString(KEY_THEME, "teal").orEmpty().ifBlank { "teal" }
+        sp(context).getString(KEY_THEME, "ink").orEmpty().ifBlank { "ink" }
 
     fun setTheme(context: Context, id: String) {
         sp(context).edit().putString(KEY_THEME, id).apply()

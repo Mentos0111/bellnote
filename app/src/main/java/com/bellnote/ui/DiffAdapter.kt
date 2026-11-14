@@ -47,7 +47,7 @@ class DiffAdapter : RecyclerView.Adapter<DiffAdapter.Holder>() {
     private fun colorFor(kind: DiffKind): Int = when (kind) {
         DiffKind.MISSING -> Color.parseColor("#D93025")
         DiffKind.EXTRA -> Color.parseColor("#EF8F32")
-        DiffKind.CHANGED -> Color.parseColor("#156B5A")
+        DiffKind.CHANGED -> Color.parseColor("#1F2321")
         DiffKind.REMOVED -> Color.parseColor("#8A8A8A")
     }
 }

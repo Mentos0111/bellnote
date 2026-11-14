@@ -1,4 +1,4 @@
-package com.bellnote.util
+﻿package com.bellnote.util
 
 import android.app.Activity
 import android.content.ComponentName
@@ -19,10 +19,10 @@ object ThemeManager {
     data class Palette(val id: String, val label: String)
 
     val palettes = listOf(
-        Palette("teal", "青绿（默认）"),
+        Palette("ink", "墨黑（默认）"),
         Palette("indigo", "靛蓝"),
+        Palette("teal", "青绿"),
         Palette("sand", "暖沙"),
-        Palette("ink", "墨黑"),
         Palette("pink", "胭脂"),
         Palette("sakura", "樱粉")
     )
@@ -109,7 +109,7 @@ object ThemeManager {
         "ink" -> R.style.ThemeOverlay_Bellnote_Ink
         "pink" -> R.style.ThemeOverlay_Bellnote_Pink
         "sakura" -> R.style.ThemeOverlay_Bellnote_Sakura
-        else -> R.style.ThemeOverlay_Bellnote_Teal
+        else -> R.style.ThemeOverlay_Bellnote_Ink
     }
 
     private val applied = java.util.WeakHashMap<Activity, String>()
