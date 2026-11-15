@@ -125,7 +125,9 @@ object NtfyFetcher {
             var failedTopics = 0
             var lastError: String? = null
 
+            var topicIndex = 0
             for (t in topics) {
+                topicIndex++
                 val stored = t.since
                 val since = if (stored in (floor + 1)..nowSeconds) stored else floor
                 val messages = try {
@@ -133,10 +135,10 @@ object NtfyFetcher {
                 } catch (e: Exception) {
                     failedTopics++
                     lastError = e.message ?: e.javaClass.simpleName
-                    Log.w(TAG, "补查失败 topic=${t.topic}", e)
+                    Log.w(TAG, "补查失败（第 $topicIndex 个主题）", e)
                     continue
                 }
-                Log.i(TAG, "补查 topic=${t.topic} since=$since 拉到 ${messages.size} 条")
+                Log.i(TAG, "补查（第 $topicIndex 个主题）拉到 ${messages.size} 条")
 
                 // 只处理比上次更晚的（服务器 since 是闭区间的，边界那条会重复回来）
                 val fresh = messages
@@ -209,6 +211,7 @@ object NtfyFetcher {
         val endpoint = NtfyEndpoint.check(server)
         if (!endpoint.ok) throw IllegalStateException(endpoint.reason ?: "服务器地址不对")
         val url = "${endpoint.normalized}/${topic.trim('/')}/json?poll=1&since=$sinceSeconds"
+        com.bellnote.util.VerboseLog.append(context, "拉", "url=$url")
         var connection: HttpURLConnection? = null
         try {
             connection = (URL(url).openConnection() as HttpURLConnection).apply {

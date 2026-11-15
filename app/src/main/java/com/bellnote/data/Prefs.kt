@@ -70,6 +70,9 @@ object Prefs {
      * 识别方式：auto（联网走云端、断网用本地）/ local（只用本地）/ cloud（只用云端）。
      * 空串 = 用户还没选过，首次引导里问一次。
      */
+    /** 按需详细日志：>0 表示开启时刻（24h 后自动失效）。 */
+    private const val KEY_VERBOSE_SINCE = "verbose_log_since"
+
     private const val KEY_OCR_ENGINE = "ocr_engine"
 
     /**
@@ -591,6 +594,12 @@ object Prefs {
     }
 
     fun ocrEngineChosen(context: Context): Boolean = ocrEngine(context).isNotBlank()
+
+    fun verboseLogSince(context: Context): Long = sp(context).getLong(KEY_VERBOSE_SINCE, 0L)
+
+    fun setVerboseLogSince(context: Context, at: Long) {
+        sp(context).edit().putLong(KEY_VERBOSE_SINCE, at).apply()
+    }
 
     // ---------------- 通知档位 ----------------
 

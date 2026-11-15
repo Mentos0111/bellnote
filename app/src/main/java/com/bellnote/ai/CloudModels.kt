@@ -25,7 +25,12 @@ object CloudModels {
     /** 读模型列表。网络操作，必须在后台线程调用。 */
     fun list(baseUrl: String, apiKey: String): Result {
         if (apiKey.isBlank()) return Result(false, error = "还没填 API Key")
-        val url = modelsEndpoint(baseUrl)
+        // 发请求前再校验一次地址：配置里可能存着历史坏地址，光靠保存页拦不住
+        val endpoint = CloudEndpoint.check(baseUrl)
+        if (!endpoint.ok) {
+            return Result(false, error = endpoint.reason ?: "云服务地址不合法")
+        }
+        val url = modelsEndpoint(endpoint.normalized)
         var connection: HttpURLConnection? = null
         return try {
             val conn = (URL(url).openConnection() as HttpURLConnection).apply {
@@ -60,7 +65,7 @@ object CloudModels {
     }
 
     internal fun modelsEndpoint(baseUrl: String): String {
-        val base = baseUrl.trim().trimEnd('/').ifBlank { VisionExtractor.DEFAULT_BASE_URL }
+        val base = CloudEndpoint.normalize(baseUrl)
         return if (base.endsWith("/models")) base else "$base/models"
     }
 

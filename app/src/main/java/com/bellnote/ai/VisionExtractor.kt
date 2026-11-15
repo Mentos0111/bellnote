@@ -1,4 +1,4 @@
-package com.bellnote.ai
+﻿package com.bellnote.ai
 
 import com.bellnote.data.DEFAULT_DURATION_MINUTES
 import com.bellnote.data.PARSED_DEFAULT_DURATION_MINUTES
@@ -103,6 +103,9 @@ object VisionExtractor {
     /** 网络抖动 / 5xx 重试一次，避免用户白等两分钟。 */
     private const val MAX_ATTEMPTS = 2
 
+    /** 地址不合法时的返回码：不开连接、不重试。 */
+    internal const val INVALID_URL_CODE = -2
+
     fun extract(
         apiKey: String,
         model: String,
@@ -111,9 +114,13 @@ object VisionExtractor {
         baseUrl: String = DEFAULT_BASE_URL
     ): Outcome {
         if (apiKey.isBlank()) return Outcome(null, "还没配置云端 API Key")
+        // 发请求前校验地址：公网只允许 https，绝不让明文把 Key 和截图带出去
+        val endpoint = precheck(baseUrl)
+        if (!endpoint.ok) return Outcome(null, endpoint.reason ?: "云服务地址不合法")
+        val safeBaseUrl = endpoint.normalized
 
         var usedModel = model
-        var response = postWithRetry(apiKey, buildPayload(model, jpegBase64, now), baseUrl)
+        var response = postWithRetry(apiKey, buildPayload(model, jpegBase64, now), safeBaseUrl)
         var note = ""
 
         // 模型名被平台拒绝时（400 + supported API model names），自动换一个平台支持的模型重试一次
@@ -122,7 +129,7 @@ object VisionExtractor {
             val alternative = pickAlternative(supported, model)
             if (alternative != null) {
                 usedModel = alternative
-                val retry = postWithRetry(apiKey, buildPayload(alternative, jpegBase64, now), baseUrl)
+                val retry = postWithRetry(apiKey, buildPayload(alternative, jpegBase64, now), safeBaseUrl)
                 response = retry
                 note = "（模型名 $model 不被支持，已自动改用 $alternative）"
             }
@@ -274,9 +281,14 @@ object VisionExtractor {
     }
 
     private fun post(apiKey: String, payload: String, baseUrl: String): Response {
+        // 最后一道闸：地址不合法就不开连接（返回 -2，调用方不重试）
+        val endpoint = CloudEndpoint.check(baseUrl)
+        if (!endpoint.ok) {
+            return Response(INVALID_URL_CODE, endpoint.reason ?: "云服务地址不合法")
+        }
         var connection: HttpURLConnection? = null
         return try {
-            val conn = (URL(chatEndpoint(baseUrl)).openConnection() as HttpURLConnection).apply {
+            val conn = (URL(chatEndpoint(endpoint.normalized)).openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
                 connectTimeout = 20_000
                 readTimeout = 120_000
@@ -296,12 +308,14 @@ object VisionExtractor {
         }
     }
 
+    /** 发请求前的地址闸门（单测直接调它，保证拦截逻辑可测）。 */
+    internal fun precheck(baseUrl: String): CloudEndpoint.Check = CloudEndpoint.check(baseUrl)
+
     /** 网络断 / 超时 / 5xx 自动重试一次；4xx（Key 错、参数错）不重试，重试也没用。 */
     private fun postWithRetry(apiKey: String, payload: String, baseUrl: String): Response {
         var response = post(apiKey, payload, baseUrl)
         var attempt = 1
-        while (attempt < MAX_ATTEMPTS && (response.code == -1 || response.code >= 500)) {
-            Thread.sleep(1_000L * attempt)
+        while (attempt < MAX_ATTEMPTS && (response.code == -1 || response.code >= 500)) {            Thread.sleep(1_000L * attempt)
             response = post(apiKey, payload, baseUrl)
             attempt++
         }
@@ -310,7 +324,7 @@ object VisionExtractor {
 
     /** 只接受 OpenAI 兼容写法：{base}/chat/completions。 */
     internal fun chatEndpoint(baseUrl: String): String {
-        val base = baseUrl.trim().trimEnd('/').ifBlank { DEFAULT_BASE_URL }
+        val base = CloudEndpoint.normalize(baseUrl)
         return if (base.endsWith("/chat/completions")) base else "$base/chat/completions"
     }
 

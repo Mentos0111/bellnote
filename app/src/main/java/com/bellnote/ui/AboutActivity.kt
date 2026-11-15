@@ -17,7 +17,7 @@ import com.bellnote.util.ThemeManager
 class AboutActivity : AppCompatActivity() {
 
     private val developer = "Mentos"
-    private val email = "1904656703@qq.com"
+    private val feedbackUrl = "https://github.com/Mentos0111/bellnote/issues"
     private val repo = "https://github.com/Mentos0111/bellnote"
     private val license = "MIT License"
 
@@ -31,8 +31,14 @@ class AboutActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.tvAboutVersion).text = "版本 $fullVersion"
         findViewById<TextView>(R.id.rowVersion).text = fullVersion
         findViewById<TextView>(R.id.rowDeveloper).text = developer
-        findViewById<TextView>(R.id.rowEmail).text = email
+        findViewById<TextView>(R.id.rowEmail).text = feedbackUrl
         findViewById<TextView>(R.id.rowRepo).text = "github.com/Mentos0111/bellnote"
+        findViewById<TextView>(R.id.rowRepo).maxLines = 1
+        findViewById<TextView>(R.id.rowRepo).ellipsize = android.text.TextUtils.TruncateAt.MIDDLE
+        findViewById<TextView>(R.id.rowRepo).gravity = android.view.Gravity.END
+        findViewById<TextView>(R.id.rowEmail).maxLines = 1
+        findViewById<TextView>(R.id.rowEmail).ellipsize = android.text.TextUtils.TruncateAt.MIDDLE
+        findViewById<TextView>(R.id.rowEmail).gravity = android.view.Gravity.END
         findViewById<TextView>(R.id.rowLicense).text = license
         findViewById<TextView>(R.id.tvCopyright).text =
             "© ${java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)} $developer · 保留所有权利"
@@ -62,20 +68,12 @@ class AboutActivity : AppCompatActivity() {
         }.getOrDefault(0L)
 
     private fun mailDeveloper() {
-        val intent = Intent(Intent.ACTION_SENDTO).apply {
-            data = Uri.parse("mailto:$email")
-            putExtra(Intent.EXTRA_SUBJECT, "Bellnote 反馈（v$versionName）")
-            putExtra(
-                Intent.EXTRA_TEXT,
-                "\n\n——\n版本 $versionName ($versionCode)\n" +
-                    "${com.bellnote.util.DeviceVendor.current().label} · Android ${android.os.Build.VERSION.RELEASE}\n" +
-                    "主题：${ThemeManager.labelOf(Prefs.theme(this@AboutActivity))}"
-            )
-        }
+        // 公开版不放个人邮箱：直接把仓库的 Issue 页面打开
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(feedbackUrl))
         try {
             startActivity(intent)
         } catch (e: Exception) {
-            copyEmail()
+            copyFeedbackLink()
         }
     }
 
@@ -87,12 +85,12 @@ class AboutActivity : AppCompatActivity() {
         }
     }
 
-    private fun copyEmail() {
+    private fun copyFeedbackLink() {
         val clipboard = getSystemService(android.content.ClipboardManager::class.java)
-        clipboard?.setPrimaryClip(android.content.ClipData.newPlainText("email", email))
+        clipboard?.setPrimaryClip(android.content.ClipData.newPlainText("feedback", feedbackUrl))
         android.widget.Toast.makeText(
             this,
-            "没装邮件 App，地址已复制：$email",
+            "没装浏览器，链接已复制：$feedbackUrl",
             android.widget.Toast.LENGTH_LONG
         ).show()
     }

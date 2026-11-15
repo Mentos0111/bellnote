@@ -75,6 +75,8 @@ object TodoIngestor {
         now: Long
     ): Outcome {
         val app = context.applicationContext
+        // 按需详细日志（默认关）：只在本机私有目录留 24 小时
+        com.bellnote.util.VerboseLog.append(app, "收", "title=$title | text=$text")
         if (!Permissions.hasCalendar(app)) {
             Prefs.addIgnoredNotice(app, "缺少日历权限", text)
             Log.i(TAG, "缺少日历权限，跳过")
@@ -369,14 +371,26 @@ object TodoIngestor {
         val failed = notice.contains("失败") || notice.contains("没能")
         return when {
             failed -> MessageLog.RESULT_FAILED
+            // 删除指令成功：别显示成「已进日历」
+            outcome.isDelete && outcome.dropped == 0 -> MessageLog.RESULT_DELETED
             outcome.wrote > 0 || outcome.updated > 0 -> MessageLog.RESULT_OK
             outcome.dropped > 0 -> MessageLog.RESULT_DROPPED
             else -> MessageLog.RESULT_INFO
         }
     }
 
-    private fun detailOf(outcome: Outcome): String =
-        listOfNotNull(outcome.noticeTitle, outcome.noticeBody).joinToString("\n")
+    /** 存进消息记录的是**原因码**，不带自由文本；成功（含删除成功）一律不记原因。 */
+    private fun detailOf(outcome: Outcome): String {
+        // 只要没有任何丢弃/失败，就是成功路径：不加原因码
+        val success = outcome.dropped == 0 &&
+            (outcome.wrote > 0 || outcome.updated > 0 || outcome.isDelete)
+        if (success) return ""
+        if (outcome.noticeTitle == null && outcome.noticeBody == null) return ""
+        val reason = com.bellnote.data.ReasonCode.classify(
+            listOfNotNull(outcome.noticeTitle, outcome.noticeBody).joinToString(" ")
+        )
+        return reason?.code.orEmpty()
+    }
 
     private fun preview(text: String): String {
         val oneLine = text.replace('\n', ' ').trim()

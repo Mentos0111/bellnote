@@ -1,4 +1,4 @@
-﻿name: release
+name: release
 
 # 打 tag 就自动构建，并把 APK 挂到对应 Release 上。
 # 也可以在 Actions 页面手动 Run workflow，指定已有 tag（用于补发/重发）。
@@ -129,29 +129,53 @@ jobs:
           yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
           echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
 
-      - name: Prepare release keystore
-        # 4 个 secrets：KEYSTORE_BASE64 / KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD
-        # 没配就退回仓库里的 debug key，并在 Summary 里显式告警（不静默）。
+      - name: Verify release signing secrets
+        # 公开分发只允许正式 keystore：4 个 secrets 缺任何一个都直接失败。
+        # 这里只报「缺哪几项」，不打印任何密码或 keystore 内容。
+        # 本仓库不再创建、也不使用 keystore/debug.keystore；没有任何「警告后继续发布」的分支。
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          if [ -z "${KEYSTORE_BASE64:-}" ]; then
-            echo "::warning::没有配置 KEYSTORE_BASE64，本次 release 包用 debug key 签名。"
-            echo "### ⚠️ 本次用 debug key 签名（未配置正式 keystore secrets）" >> "$GITHUB_STEP_SUMMARY"
-            exit 0
+          set -euo pipefail
+          missing=""
+          [ -n "${KEYSTORE_BASE64:-}" ] || missing="$missing KEYSTORE_BASE64"
+          [ -n "${KEYSTORE_PASSWORD:-}" ] || missing="$missing KEYSTORE_PASSWORD"
+          [ -n "${KEY_ALIAS:-}" ] || missing="$missing KEY_ALIAS"
+          [ -n "${KEY_PASSWORD:-}" ] || missing="$missing KEY_PASSWORD"
+          if [ -n "$missing" ]; then
+            echo "::error::发布被拒绝：缺少签名配置 →$missing"
+            echo "### ❌ 发布被拒绝：缺少签名配置 →$missing" >> "$GITHUB_STEP_SUMMARY"
+            echo "公开 Release 必须用正式 keystore 签名，不会退回 debug key。" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
           fi
+          echo "签名配置齐全（4 项），继续构建。"
+
+      - name: Prepare release keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
           KEYSTORE_PATH="$RUNNER_TEMP/bellnote-release.jks"
-          echo "$KEYSTORE_BASE64" | base64 -d > "$KEYSTORE_PATH"
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$KEYSTORE_PATH"
+          if [ ! -s "$KEYSTORE_PATH" ]; then
+            echo "::error::KEYSTORE_BASE64 解出来的 keystore 是空的"
+            exit 1
+          fi
           {
             echo "BELLNOTE_KEYSTORE=$KEYSTORE_PATH"
             echo "BELLNOTE_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD"
             echo "BELLNOTE_KEY_ALIAS=$KEY_ALIAS"
             echo "BELLNOTE_KEY_PASSWORD=$KEY_PASSWORD"
+            # 严格模式：Gradle 里再兜一道，缺正式签名就 throw，不会静默退回 debug key
+            echo "BELLNOTE_STRICT_SIGNING=true"
           } >> "$GITHUB_ENV"
-          echo "### ✅ 本次用正式 keystore 签名" >> "$GITHUB_STEP_SUMMARY"
+          echo "### ✅ 本次用正式 keystore 签名（严格模式）" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build release APK
         env:

@@ -1,4 +1,4 @@
-﻿plugins {
+plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
@@ -15,7 +15,7 @@
 // 不代表发布版本。改这个默认值不影响发布——发布永远以 tag 为准。
 // versionCode 由 versionName 推导：major*10000 + minor*100 + patch（3.12 → 31200），
 // 单调递增、可读、能从号反推版本，不用人肉 +1。
-val bellnoteDefaultVersionName = "3.20.0"
+val bellnoteDefaultVersionName = "3.21.0"
 
 fun bellnoteNormalizeVersion(raw: String): String {
     val cleaned = raw.trim().removePrefix("v")
@@ -47,12 +47,26 @@ val bellnoteSeedNtfyTopic = bellnoteSeed("seedNtfyTopic", "BELLNOTE_SEED_NTFY_TO
 val bellnoteSeedApiKeyB64 = bellnoteSeed("seedApiKeyB64", "BELLNOTE_SEED_API_KEY_B64")
 
 // 正式签名：优先读环境变量 BELLNOTE_KEYSTORE（CI 里从 secrets 解出来的 jks 路径）。
-// 没配就退回仓库里的 debug key——本地能装、能验，但不能当正式发布用。
+// 本地开发没配就退回仓库里的 debug key——能装、能验，但不能当公开产物发出去。
+// CI 发布时 workflow 会设 BELLNOTE_STRICT_SIGNING=true：这时缺任何一项签名配置都直接失败，
+// 绝不允许「警告一下，然后拿 debug key 发出去」。
 val bellnoteReleaseKeyStore = System.getenv("BELLNOTE_KEYSTORE")
     ?.takeIf { it.isNotBlank() }
     ?.let { file(it) }
     ?.takeIf { it.exists() }
 val bellnoteBuildingRelease = gradle.startParameter.taskNames.any { it.contains("Release", ignoreCase = true) }
+val bellnoteStrictSigning = System.getenv("BELLNOTE_STRICT_SIGNING") == "true"
+
+/** 严格模式缺什么就说缺什么（只说变量名，绝不打印值）。 */
+fun bellnoteMissingSigningEnv(): List<String> {
+    val names = listOf(
+        "BELLNOTE_KEYSTORE",
+        "BELLNOTE_KEYSTORE_PASSWORD",
+        "BELLNOTE_KEY_ALIAS",
+        "BELLNOTE_KEY_PASSWORD"
+    )
+    return names.filter { System.getenv(it).isNullOrBlank() }
+}
 
 android {
     namespace = "com.bellnote"
@@ -113,13 +127,21 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // 正式签名优先；没配置时退回 debug key，保证本地仍可直接装机验证。
-            signingConfig = signingConfigs.findByName("release")
+            // 正式签名优先；本地没配置时退回 debug key，保证可以直接装机验证。
+            // 严格模式（CI 发布）下没有正式签名就直接失败，不会产出「debug 签名的正式包」。
+            val releaseSigning = signingConfigs.findByName("release")
+            if (releaseSigning == null && bellnoteStrictSigning) {
+                throw GradleException(
+                    "拒绝构建 release：缺少正式签名配置（${bellnoteMissingSigningEnv().joinToString("、")}）。" +
+                        "公开分发必须用正式 keystore；本地开发请去掉 BELLNOTE_STRICT_SIGNING 再构建。"
+                )
+            }
+            signingConfig = releaseSigning
                 ?: signingConfigs.getByName("debug").also {
-                    if (bellnoteBuildingRelease) {
+                    if (bellnoteBuildingRelease && !bellnoteStrictSigning) {
                         logger.warn(
-                            "bellnote: 未设置 BELLNOTE_KEYSTORE，release 包退回 debug key 签名。" +
-                                "本地验证可以，正式发布请配置正式 keystore。"
+                            "bellnote: 本地构建未设置 BELLNOTE_KEYSTORE，release 包用 debug key 签名。" +
+                                "这只用于本地验证，不要公开分发。"
                         )
                     }
                 }

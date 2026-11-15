@@ -69,7 +69,7 @@ class MessageLogAdapter(
             title.text = entry.title.ifBlank { "（无标题）" }
             body.text = entry.body.trim()
             body.visibility = if (entry.body.isBlank()) View.GONE else View.VISIBLE
-            detail.text = entry.detail.trim()
+            detail.text = com.bellnote.data.ReasonCode.labelOf(entry.detail)
             detail.visibility = if (entry.detail.isBlank()) View.GONE else View.VISIBLE
 
             retry.visibility = if (entry.canRetry) View.VISIBLE else View.GONE
