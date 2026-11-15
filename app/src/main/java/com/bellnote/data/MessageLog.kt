@@ -23,6 +23,8 @@ object MessageLog {
     const val RESULT_DROPPED = "dropped"
     const val RESULT_FAILED = "failed"
     const val RESULT_SENT = "sent"
+    /** 删除指令成功执行（不要显示成「已进日历」）。 */
+    const val RESULT_DELETED = "deleted"
     const val RESULT_INFO = "info"
 
     /** 只留最近这么多条；日志是排查用的，不是档案。 */
@@ -63,6 +65,7 @@ object MessageLog {
         RESULT_DROPPED -> "没写进日历"
         RESULT_FAILED -> "失败"
         RESULT_SENT -> "已发出"
+        RESULT_DELETED -> "已删除"
         else -> "已处理"
     }
 

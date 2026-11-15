@@ -9,6 +9,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
 import com.bellnote.R
+import com.bellnote.ai.CloudEndpoint
 import com.bellnote.ai.CloudModels
 import com.bellnote.data.Prefs
 import com.bellnote.util.ThemeManager
@@ -62,7 +63,31 @@ class CloudModelActivity : AppCompatActivity() {
     }
 
     private fun save() {
-        Prefs.setCloudBaseUrl(this, etBaseUrl.text.toString())
+        val endpoint = CloudEndpoint.check(etBaseUrl.text.toString())
+        if (!endpoint.ok) {
+            toast(endpoint.reason ?: "地址不合法")
+            etBaseUrl.requestFocus()
+            return
+        }
+        if (endpoint.cleartext) {
+            // 局域网明文：允许，但必须让用户知道 Key 和截图是明文出门的
+            AlertDialog.Builder(this)
+                .setTitle("这个地址是明文 http")
+                .setMessage(
+                    "你填的是局域网地址，会用 http 明文传输：API Key 和截图在局域网里可能被别人看到。\n\n" +
+                        "只在家里/自己的网络里用没问题；能用 https 就换成 https。"
+                )
+                .setPositiveButton("知道了，保存") { _, _ -> persist(endpoint.normalized) }
+                .setNegativeButton("取消", null)
+                .show()
+            return
+        }
+        persist(endpoint.normalized)
+    }
+
+    private fun persist(baseUrl: String) {
+        etBaseUrl.setText(baseUrl)
+        Prefs.setCloudBaseUrl(this, baseUrl)
         Prefs.setApiKey(this, etApiKey.text.toString())
         Prefs.setModel(this, etModel.text.toString())
         toast("已保存")

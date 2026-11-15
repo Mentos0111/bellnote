@@ -1,11 +1,11 @@
-﻿# Bellnote
+# Bellnote
 
 **Turn ntfy notifications into calendar events — automatically, on-device.**
 
-Bellnote is a tiny Android app (no Google services required) that listens to notifications from the
-[ntfy](https://ntfy.sh) client (`io.heckel.ntfy`), parses the message text, and writes it into your
-system calendar with two reminders. You can also create, edit, and delete todos from a local UI, or
-import them from a screenshot with a vision model.
+Bellnote is a tiny Android app (no Google services required) that **pulls messages straight from your
+[ntfy](https://ntfy.sh) topic over HTTP** — no ntfy client app, no notification listener — parses the
+text, and writes it into your system calendar with two reminders. You can also create, edit, and
+delete todos from a local UI, or import them from a screenshot with a vision model.
 
 [中文说明](#中文说明) · [LICENSE: MIT](LICENSE)
 
@@ -21,8 +21,12 @@ works on ROMs without Google Play Services (tested on realme UI 6).
 
 ## Features
 
-- **Notification → calendar**: listens to `io.heckel.ntfy`, parses the body, writes a
-  `CalendarContract.Events` row plus reminders (default: 1 day and 1 hour before).
+- **Topic → calendar**: add one or more ntfy topics in Settings; the app polls
+  `https://<server>/<topic>/json` and writes each message into a `CalendarContract.Events` row plus
+  reminders (default: 1 day and 1 hour before). No ntfy client and no notification access needed.
+- **Three background modes** for receiving (“后台接收”): *off* (only when you open the app),
+  *10 minutes* (exact `AlarmManager` wake-ups, falls back to a 15-minute job if the exact-alarm
+  permission is missing) and *second-level* (a foreground service polling about once a minute).
 - **One notification, many todos**: JSON array, `{"todos":[…]}` wrapper, or blank-line separated blocks.
 - **Remote delete**: send `{"action":"delete","title":"…"}` and the matching event is removed.
 - **Screenshot-first**: the home screen leads with one big “截图建待办” button — pick a chat screenshot,
@@ -102,7 +106,10 @@ status text — is ignored instead of being dumped an hour from now. Turn this o
 
 | Piece | What it does |
 | --- | --- |
-| `service/NtfyNotificationListener` | `NotificationListenerService` filtered to `io.heckel.ntfy` |
+| `service/NtfyFetcher` | polls each configured topic over HTTP (`poll=1&since=…`), keeps a per-topic cursor, feeds the ingestor |
+| `service/NtfyBackground` | picks the receive mode (off / 10-minute exact alarms / foreground service) and keeps alarms, jobs and service in sync |
+| `service/NtfyReceiveService` | foreground service used by the “second-level” mode |
+| `util/NtfyEndpoint` / `ai/CloudEndpoint` | URL rules: public hosts must be HTTPS, cleartext allowed only on local/private addresses |
 | `parser/TodoParser` | JSON + key-value parsing, `parseAll` for multiple todos, `parseCommand` for delete |
 | `parser/MiniJson` | ~200-line JSON reader (so parsing is unit-testable on the JVM) |
 | `data/CalendarRepository` | insert / update / delete events and reminders, marker-based query |
@@ -131,14 +138,19 @@ APK output: `app/build/outputs/apk/debug/app-debug.apk` (debug-signed; sideload 
 ### Signing
 
 `keystore/bellnote-debug.keystore` is the standard Android **debug** key, committed on purpose so
-that every build — locally or on GitHub Actions — carries the same signature and existing users can
-upgrade in place. It is not a secret and has no value outside this app.
+that local builds are directly installable. It is not a secret and has no value outside this app —
+but it must never be used for a public release.
 
-Release builds prefer a real key when one is configured: set the environment variables
+Release builds use a real key when one is configured: set the environment variables
 `BELLNOTE_KEYSTORE` (path to the keystore), `BELLNOTE_KEYSTORE_PASSWORD`, `BELLNOTE_KEY_ALIAS` and
-`BELLNOTE_KEY_PASSWORD`. Without them the release build falls back to the debug key and prints a
-warning, so local testing still works. If you fork this and ship to other people, generate your own
-release key instead of reusing either of these.
+`BELLNOTE_KEY_PASSWORD`. Locally, without them, the release build falls back to the debug key and
+prints a warning so you can still test on a device.
+
+**Public releases are strict.** The GitHub workflow checks all four secrets *before* building and
+fails if any is missing, and it exports `BELLNOTE_STRICT_SIGNING=true`; in that mode Gradle throws
+instead of falling back to the debug key. The workflow never creates or uses
+`keystore/debug.keystore`. If you fork this and ship to other people, generate your own release key
+instead of reusing either of these.
 
 > Switching to a new key means already-installed builds (debug-signed) can no longer upgrade in
 > place — signature mismatch requires uninstall + reinstall.
@@ -172,24 +184,46 @@ unit tests, builds the release APK (`assembleRelease` with R8 enabled), re-reads
 
 1. Install the APK (allow “install unknown apps”).
 2. Grant **calendar** permission on first save.
-3. Enable **notification access**: Settings → Apps → Special app access → Notification access.
-   If the listener never connects, open the app once and toggle the permission off/on — some ROMs
-   only bind the service when the app process is alive.
-4. Pick a target calendar in Settings (create a local one with the button if the list is empty).
-5. Optional: set an API key for screenshot import.
-6. Optional: tune scheduled reconcile (on by default, every 30 minutes) in Settings.
+3. Allow **notifications** (normal runtime permission) so write results, reconcile diffs and the
+   optional ntfy foreground-service notice can be shown. This is *not* “notification access” —
+   Bellnote does not read other apps’ notifications and never asks for that special access.
+4. If you want the ntfy receive mode to survive in the background, open Settings → ntfy 模式 →
+   后台接收 and pick a mode; the ntfy guide will offer the extra permissions it needs
+   (“alarms & reminders”, battery whitelist). The 10-minute mode needs the exact-alarm permission;
+   without it the app falls back to a 15-minute job instead of failing silently.
+5. Pick a target calendar in Settings (create a local one with the button if the list is empty).
+6. Optional: set an API key for screenshot import (public endpoints must be HTTPS).
+7. Optional — only for the “Bellnote 截屏记” sidebar entry: grant **accessibility** access so the app
+   can take a screenshot in other apps. Everything else works without it.
+8. Optional: tune scheduled reconcile (on by default, every 30 minutes) in Settings.
 
 ### realme / ColorOS notes
 
 - No built-in “new local calendar” entry — use the app’s **Create local calendar** button.
-- Add the app (and the ntfy client) to battery whitelist / auto-start so the listener survives.
+- Add the app to the battery whitelist / auto-start list if you use the background receive modes;
+  otherwise the ROM may freeze it and messages wait until you open the app.
 - The desktop calendar card shows *today’s timeline* only, not all upcoming todos.
 
 ## Privacy
 
 - No analytics, no ads, no telemetry. Everything stays on the device.
-- The only network call is the optional screenshot import to the endpoint you configure.
-- Your API key is stored in the app’s private SharedPreferences.
+- Network is used in exactly these cases: cloud screenshot recognition (when you tap 识别), reading
+  the cloud model list (when you tap 读模型列表), ntfy polling (after you enable ntfy mode, driven by
+  the receive mode you picked), sending a test message to your topic (when you tap 发一条测试推送),
+  and downloading a local model from ModelScope (when you tap 下载模型).
+- Cloud endpoints and ntfy must use HTTPS on public hosts; only local/private addresses may use
+  cleartext HTTP, and the UI warns you when they do. The check runs again right before each request.
+- Your API key is stored **as plain text** in the app’s private SharedPreferences (no extra
+  encryption layer). It never goes to us or any third party, but cloud recognition necessarily sends
+  it as an `Authorization` header to **the cloud endpoint you configured** (DeepSeek by default) so
+  that provider can authenticate the request.
+- The in-app diagnostics bundle (Settings → Feedback) never contains todo titles, bodies or free-form
+  notes, and no longer collects logcat at all. Crash records keep only exception class names and
+  stack frames. The API key and ntfy topics are reported as “configured, N chars” with no
+  characters at all. Share it only with someone you trust.
+- Android auto-backup and device-to-device transfer are **disabled** (`allowBackup="false"` plus a
+  fully-excluding `data_extraction_rules.xml`), so the key cannot leave the phone through a system
+  backup or a phone migration. Use the in-app exports if you want to carry data over.
 
 ## Limitations
 
@@ -201,7 +235,8 @@ unit tests, builds the release APK (`assembleRelease` with R8 enabled), re-reads
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE). Third-party components, models and their licenses are listed in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ---
 
@@ -212,6 +247,11 @@ MIT — see [LICENSE](LICENSE).
 > 2.9 起定位改成「**截图建待办为主**」：首页第一个大按钮就是截图识别，ntfy 只是其中一种输入源。
 > 3.0 起推送链路加固：正文换行被压平也能解析；解析不出/写失败会在设置页留痕；**可以从 ntfy 服务器补查**
 > （设置里填主题即可，不再只靠 ntfy App 弹通知）；删除指令的时间匹配收窄到 ±30 分钟。
+> 3.17 起**不再监听其它 App 的通知**：直接向 ntfy 服务器拉取（`poll=1&since=…`），每条主题各存游标，
+> 不再依赖 ntfy 客户端是否存在；支持填自建服务器（公网必须 https，局域网才允许 http）。
+> 3.20 起「后台接收」三档：关 / 十分钟（精确闹钟，缺权限自动退回 15 分钟任务）/ 秒级（前台服务约 1 分钟一轮），
+> 并给 ntfy 模式单独做了一份引导。
+> 3.21 起：可以同时收多个主题（每条带备注名、各自游标）；通知不再显示主题名。
 > 3.1 起：监听重连会补收通知栏里还没处理的通知；同一条待办内容改了会更新；支持**改期**指令；
 > 设置页能自己发测试推送、导出 .ics / 账本备份；崩溃会留一份本地日志。
 > 3.2 起：首页一句话记一条（本地解析，不联网）；**「Bellnote 截屏记」可以放进系统侧边栏**，
@@ -230,7 +270,8 @@ MIT — see [LICENSE](LICENSE).
   或者截完图自动弹「识别这张截图？」（需要一次相册读取权限）
 - **全部日程**：列出手机所有可写日历里的事件（别的 App 建的、手建的都算），按天分组；
   点开可编辑 / 删除 / 「纳入 Bellnote 管理」，纳入后就进入对账范围
-- 监听 `io.heckel.ntfy` 的通知，解析正文后写入 `CalendarContract`，自动加两条提醒（默认提前 1 天 + 1 小时）
+- 直接向 ntfy 服务器拉取消息（可多条主题），解析正文后写入 `CalendarContract`，自动加两条提醒（默认提前 1 天 + 1 小时）；
+  不需要 ntfy 客户端，也不需要「通知使用权」
 - 一条通知可以写多条待办（JSON 数组 / `{"todos":[…]}` / 空行分段）
 - 发 `{"action":"delete","title":"…"}` 或「删除：标题」即可远程删待办（只删本 App 写的）
 - 截图识别（可选）：截图 → 压缩 → 视觉模型 → 编辑页确认后入日历，需要自己的 API Key
@@ -273,6 +314,6 @@ MIT — see [LICENSE](LICENSE).
 单测 → `assembleRelease`（已开 R8）→ 用 aapt2 复核包里的真实版本号 → 把 `bellnote-<版本>.apk`
 和 CHANGELOG 里对应小节一起挂到 Release 上。
 
-隐私：不收集任何数据；唯一联网是可选截图识别。
+隐私：不收集任何数据。诊断包（反馈用）不含待办标题、正文与自由文本，也不再收集 logcat，崩溃记录只留异常类名与堆栈帧；API Key 与 ntfy 主题只报「已配置、多少位」；这个包只发给可信的人。联网只有五处：你主动点的云端截图识别、读云端模型列表、发一条 ntfy 测试消息、下载本地模型，以及开启 ntfy 模式后的后台拉取。API Key 以明文存在本机私有目录，云端识别时会作为认证信息发给你自己配置的云服务。系统自动备份与换机迁移已关闭。完整说明见 `app/src/main/java/com/bellnote/util/PrivacyText.kt`。
 
-协议：MIT。
+协议：MIT。第三方组件、模型与字体许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。

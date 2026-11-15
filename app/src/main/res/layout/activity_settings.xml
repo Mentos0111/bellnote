@@ -568,6 +568,18 @@
                 android:layout_marginTop="6dp"
                 android:text="@string/feedback_entry_hint" />
 
+            <CheckBox
+                android:id="@+id/cbVerboseLog"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="记录详细日志（24 小时）" />
+
+            <TextView
+                android:id="@+id/tvVerboseHint"
+                style="@style/HintText"
+                android:text="默认关闭。打开后会记录消息标题、正文和请求 URL，只存本机应用私有目录，24 小时后自动清除；关掉开关立即删除。" />
+
             <Button
                 android:id="@+id/btnPrivacy"
                 style="@style/BtnTonal"

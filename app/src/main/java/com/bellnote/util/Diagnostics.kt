@@ -9,40 +9,40 @@ import java.util.TimeZone
  * 反馈包的「内容」部分：只做纯文本拼装，不碰 Android API，方便单测。
  *
  * 分成两层：
- *  - 这里：Report（纯数据）→ render（纯文本）；
- *  - FeedbackBundle：从手机里把 Report 采出来、写成 zip、交给分享面板。
+ *  - 这里：Report（纯数据）→ render / [bundleTexts]（纯文本）；
+ *  - FeedbackBundle：从手机里把 Report 采出来、按 [bundleTexts] 写入 zip。
  *
- * 排查时最缺的是「这台机器上到底是什么状态」，所以版本 / 机型 / 权限 / 设置快照
- * 一律放在最前面，日志在后。默认带原文（标题、推送正文），只有开发者会收到；
- * API Key、主题这类凭据一律打码。
+ * **脱敏红线（3.21.0 起）**：
+ *  - API Key、ntfy 主题只报「有没有配、多少位」，任何字符都不进包；
+ *  - 待办/推送的标题和正文不进包，只保留时间、方向、来源、结果这类结构化信息；
+ *  - 崩溃记录只保留异常类名与堆栈帧（异常消息丢弃），并统一过 [redact]；
+ *    **完全不采集 logcat**，也不收集任何消息正文/说明。
+ *
+ * 这个包默认只给可信接收方；不要直接贴到公开 Issue。
  */
 object Diagnostics {
 
     /** 消息记录最多带这么多条。 */
     const val MAX_MESSAGES = 200
 
-    /** 单条正文最多留这么多字，避免一条巨长的推送把整包撑爆。 */
-    const val MAX_BODY_CHARS = 1_200
-
-    /** logcat 只留本 App 最近的这些字。 */
-    const val MAX_LOGCAT_CHARS = 20_000
+    /** 说明字段最多留这么多字（本身已脱敏）。 */
+    const val MAX_BODY_CHARS = 400
 
     /** 页面预览只显示前面这些字，完整内容在 zip 里。 */
     const val PREVIEW_CHARS = 6_000
 
-    /** 消息记录里的一条（direction / result 已由调用方翻成中文）。 */
+    /** 消息记录里的一条（3.21.0 起不再携带标题与正文）。 */
     data class Message(
         val at: Long,
         val direction: String,
         val source: String,
-        val title: String,
-        val body: String,
         val result: String,
-        val detail: String
+        /** 原因码（MISSING_TIME 等），不带自由文本；成功时为空。 */
+        val reason: String = ""
     )
 
-    /** 「最近没写进日历的推送」旧摘要。 */
-    data class Notice(val at: Long, val reason: String, val text: String)
+    /** 「最近没写进日历的推送」：只留时间与原因。 */
+    data class Notice(val at: Long, val reason: String)
 
     data class Report(
         val generatedAt: Long,
@@ -60,18 +60,94 @@ object Diagnostics {
         val messages: List<Message> = emptyList(),
         val notices: List<Notice> = emptyList(),
         val crash: String? = null,
-        val logcat: String? = null
+        /** 需要从自由文本里抹掉的真实值（Key、主题等），不会出现在输出里。 */
+        val secrets: List<String> = emptyList()
     )
 
     /**
-     * 凭据打码：留首尾各 4 位，中间用省略号。太短的一律不露。
-     * 空值写明「未填」，排查时「没配」本身也是有效信息。
+     * 凭据打码：**不保留任何字符**，只说明「有没有配、多少位」。
+     * 以前的「前 4 + 后 4」会把密钥的可辨认片段带出去，3.21.0 起不再这么做。
      */
     fun maskSecret(raw: String): String {
         val value = raw.trim()
         if (value.isEmpty()) return "（未填）"
-        if (value.length <= 8) return "••••（共 ${value.length} 位）"
-        return value.take(4) + "…" + value.takeLast(4) + "（共 ${value.length} 位）"
+        return "（已配置，共 ${value.length} 位，内容不记录）"
+    }
+
+    /**
+     * 自由文本脱敏：用于崩溃堆栈。
+     *
+     * 处理顺序有讲究——**先砍 URL**（只留协议+主机），否则后面用「（已隐藏）」替换主题时
+     * 会把 URL 切断，残留的 `?since=…` 等参数反而漏出去；再抹真实值与常见模式串。
+     */
+    fun redact(text: String, secrets: List<String> = emptyList()): String {
+        if (text.isBlank()) return text
+        var out = text
+        // URL：只保留协议 + 主机，路径与查询参数一律省略
+        out = Regex("(?i)\\bhttps?://[^\\s\"'）)\\]，。]+").replace(out) { match ->
+            val url = match.value
+            val schemeEnd = url.indexOf("://")
+            val afterScheme = if (schemeEnd >= 0) url.substring(schemeEnd + 3) else url
+            val host = afterScheme.substringBefore('/').substringBefore('?')
+            val scheme = if (schemeEnd >= 0) url.substring(0, schemeEnd + 3) else ""
+            "$scheme$host/（路径与参数已省略）"
+        }
+        for (secret in secrets) {
+            val value = secret.trim()
+            if (value.length >= 6) out = out.replace(value, "（已隐藏）")
+        }
+        // 常见密钥形态
+        out = Regex("(?i)bearer\\s+[A-Za-z0-9._\\-]{8,}").replace(out, "Bearer （已隐藏）")
+        out = Regex("\\bsk-[A-Za-z0-9._\\-]{6,}").replace(out, "sk-（已隐藏）")
+        // ntfy 主题样式：todo-xxxxxxx / 长十六进制串
+        out = Regex("(?i)\\btodo-[A-Za-z0-9_\\-]{4,}").replace(out, "todo-（已隐藏）")
+        out = Regex("\\b[0-9a-f]{20,}\\b").replace(out, "（已隐藏）")
+        // topic=xxx、key=xxx 这类查询参数（如果 URL 已经处理掉，这里兜底纯文本形式）
+        out = Regex("(?i)\\b(topic|key|token|password|secret)=[^\\s&\"'）)]+")
+            .replace(out, "$1=（已隐藏）")
+        return out
+    }
+
+    /**
+     * 单独落盘的附件（crash.txt）统一走这里：
+     * 与 diagnostics.txt 用同一套脱敏规则，避免「主文件干净、附件漏词」的缝。
+     */
+    fun fileText(report: Report, raw: String): String = redact(raw, report.secrets)
+
+    /**
+     * **zip 里真正要写入的文本**：FeedbackBundle 直接消费这个结果落盘，
+     * 所以对它做 canary 单测＝证明 zip 里每个文本附件的内容。
+     *
+     * 返回顺序固定：diagnostics.txt → crash.txt（没有崩溃记录时只有前者）。
+     */
+    fun bundleTexts(report: Report): List<Pair<String, String>> = buildList {
+        add("diagnostics.txt" to render(report))
+        report.crash?.takeIf { it.isNotBlank() }
+            ?.let { add("crash.txt" to crashText(report, it)) }
+    }
+
+    /**
+     * 崩溃附件只保留**结构化堆栈**：异常类名 + `at …` 帧 + `Caused by: 类名`。
+     * 异常消息（冒号后面那段）可能是解析失败时的用户原文，一律丢掉；
+     * 最后再走一遍 [redact] 兜底 URL/凭据。
+     */
+    fun crashText(report: Report, raw: String): String {
+        val kept = raw.lineSequence().mapNotNull { line ->
+            val t = line.trimStart()
+            when {
+                t.startsWith("at ") || t.startsWith("... ") -> line
+                t.startsWith("Caused by:") || t.startsWith("Suppressed:") -> {
+                    val prefix = t.substringBefore(':') + ":"
+                    val cls = t.substringAfter(':').trim().substringBefore(':').trim()
+                    "    $prefix ${cls.takeWhile { it.isLetterOrDigit() || it == '.' || it == '$' }}"
+                }
+                else -> {
+                    val cls = t.substringBefore(':').trim()
+                    if (cls.contains("Exception") || cls.contains("Error")) "    $cls" else null
+                }
+            }
+        }
+        return redact(kept.joinToString("\n"), report.secrets)
     }
 
     fun stamp(at: Long): String =
@@ -80,6 +156,7 @@ object Diagnostics {
     fun render(report: Report): String = buildString {
         appendLine("Bellnote 反馈包")
         appendLine("生成时间：${stamp(report.generatedAt)}（${report.timezone}）")
+        appendLine("说明：本包不含待办标题与正文；API Key 与 ntfy 主题只报配置状态；URL 已去掉路径与参数。")
         appendLine()
         appendLine("【应用】")
         appendLine("名称：${report.appName}")
@@ -98,21 +175,14 @@ object Diagnostics {
         if (report.messages.isEmpty()) {
             appendLine("（没有记录）")
         } else {
-            appendLine("共 ${report.messages.size} 条，最新的在前：")
+            appendLine("共 ${report.messages.size} 条，最新的在前（只保留结构与结果，不含标题/正文）：")
             report.messages.take(MAX_MESSAGES).forEach { message ->
-                appendLine()
                 appendLine(
                     "${stamp(message.at)} · ${message.direction} · " +
                         "${message.source.ifBlank { "-" }} · ${message.result}"
                 )
-                if (message.title.isNotBlank()) {
-                    appendLine("    标题：${clip(message.title, MAX_BODY_CHARS, indent = "          ")}")
-                }
-                if (message.body.isNotBlank()) {
-                    appendLine("    正文：${clip(message.body, MAX_BODY_CHARS, indent = "          ")}")
-                }
-                if (message.detail.isNotBlank()) {
-                    appendLine("    说明：${clip(message.detail, MAX_BODY_CHARS, indent = "          ")}")
+                if (message.reason.isNotBlank()) {
+                    appendLine("    原因：${com.bellnote.data.ReasonCode.display(message.reason)}")
                 }
             }
         }
@@ -123,23 +193,22 @@ object Diagnostics {
             appendLine("（没有）")
         } else {
             report.notices.forEach { notice ->
-                appendLine("${stamp(notice.at)} · ${notice.reason} · ${clip(notice.text, 300)}")
+                appendLine("${stamp(notice.at)} · ${notice.reason}（内容不记录）")
             }
         }
 
         appendLine()
         appendLine("【崩溃记录】")
         val crash = report.crash?.trim()
-        if (crash.isNullOrEmpty()) appendLine("（没有崩溃记录）") else appendLine(clip(crash, 18_000))
+        if (crash.isNullOrEmpty()) {
+            appendLine("（没有崩溃记录）")
+        } else {
+            appendLine(clip(crashText(report, crash), 18_000))
+        }
 
         appendLine()
-        appendLine("【logcat（仅本 App 能读到的部分）】")
-        val logcat = report.logcat?.trim()
-        if (logcat.isNullOrEmpty()) {
-            appendLine("（系统不允许 App 读 logcat，或没有内容）")
-        } else {
-            appendLine(clip(logcat, MAX_LOGCAT_CHARS))
-        }
+        appendLine("【日志】")
+        appendLine("（本包不收集 logcat；需要日志时请用 adb 或让开发者远程排查）")
     }
 
     /** 交给界面预览：太长就截断，别让 TextView 撑爆。 */

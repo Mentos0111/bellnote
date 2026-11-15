@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  明确关掉系统备份与设备迁移：本应用把 API Key 以明文存在应用私有目里（SharedPreferences），
+  一旦被 Auto Backup / 换机迁移带走，Key 就离开了这台手机，和「本地优先」的定位冲突。
+
+  想带走数据请用应用内的「导出 .ics」「备份账本」，那是用户主动、看得见的操作。
+  改这里之前先想清楚：放开任何一条 include，就等于让 Key 或待办随备份离开设备。
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" path="." />
+        <exclude domain="file" path="." />
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="external" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" path="." />
+        <exclude domain="file" path="." />
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="external" path="." />
+    </device-transfer>
+</data-extraction-rules>

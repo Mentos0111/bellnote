@@ -128,6 +128,41 @@ class SettingsActivity : AppCompatActivity() {
             startActivity(Intent(this, FeedbackActivity::class.java))
         }
 
+        // 按需详细日志：默认关，打开前二次确认，关闭即删
+        val cbVerbose = findViewById<android.widget.CheckBox>(R.id.cbVerboseLog)
+        val tvVerbose = findViewById<TextView>(R.id.tvVerboseHint)
+        fun renderVerbose() {
+            val on = com.bellnote.util.VerboseLog.isEnabled(this)
+            cbVerbose.isChecked = on
+            tvVerbose.text = if (on) {
+                val mins = com.bellnote.util.VerboseLog.remainingMs(this) / 60000
+                "正在记录，约 ${mins} 分钟后自动清除；关掉开关会立刻删除。"
+            } else {
+                "默认关闭。打开后会记录消息标题、正文和请求 URL，只存本机应用私有目录，24 小时后自动清除；关掉开关立即删除。"
+            }
+        }
+        renderVerbose()
+        cbVerbose.setOnCheckedChangeListener { _, checked ->
+            if (checked) {
+                cbVerbose.isChecked = false
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("打开详细日志？")
+                    .setMessage(
+                        "会记录最近 24 小时的消息标题、正文和请求 URL，只写在本机应用私有目录，24 小时后自动清除。\n\n" +
+                            "打包诊断时默认仍然不含它，需要你另外勾选。"
+                    )
+                    .setPositiveButton("打开") { _, _ ->
+                        com.bellnote.util.VerboseLog.enable(this)
+                        renderVerbose()
+                    }
+                    .setNegativeButton("取消", null)
+                    .show()
+            } else {
+                com.bellnote.util.VerboseLog.disable(this)
+                renderVerbose()
+            }
+        }
+
         // 离线大模型：下载 / 取消 / 试跑，按钮在「识别方式」选中本地模型时出现
         findViewById<Button>(R.id.btnPrivacy).setOnClickListener {
             com.bellnote.util.PrivacyGate.openFullText(this)

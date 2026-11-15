@@ -2,10 +2,13 @@ package com.bellnote.ui
 
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.bellnote.R
 import com.bellnote.util.Diagnostics
@@ -29,6 +32,8 @@ class FeedbackActivity : AppCompatActivity() {
     private var cachedZip: java.io.File? = null
     private var pendingSave: java.io.File? = null
     private var busy = false
+    private var includeVerbose = false
+    private var cbVerbose: android.widget.CheckBox? = null
 
     private val saveDocument = registerForActivityResult(
         ActivityResultContracts.CreateDocument("application/zip")
@@ -65,6 +70,29 @@ class FeedbackActivity : AppCompatActivity() {
             findViewById(R.id.btnCopy)
         )
 
+        cbVerbose = findViewById(R.id.cbVerbose)
+        cbVerbose?.isChecked = false
+        cbVerbose?.setOnCheckedChangeListener { _, checked ->
+            if (checked) {
+                AlertDialog.Builder(this)
+                    .setTitle("这份 ZIP 会包含消息内容")
+                    .setMessage(
+                        "verbose.log 里有最近 24 小时的消息标题、正文和请求 URL，只存在本机。\n\n" +
+                            "确认只发给可信的人再包含；点「取消」就不会带上。"
+                    )
+                    .setPositiveButton("包含") { _, _ -> includeVerbose = true; invalidateCache() }
+                    .setNegativeButton("取消") { _, _ ->
+                        includeVerbose = false
+                        cbVerbose?.isChecked = false
+                    }
+                    .setCancelable(false)
+                    .show()
+            } else {
+                includeVerbose = false
+                invalidateCache()
+            }
+        }
+
         loadPreview()
 
         findViewById<Button>(R.id.btnSend).setOnClickListener {
@@ -77,12 +105,12 @@ class FeedbackActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btnMail).setOnClickListener {
-            ensureBundle { bundle ->
-                val subject = getString(R.string.feedback_subject, versionName())
-                val address = getString(R.string.dev_mail)
-                if (!FeedbackBundle.mail(this, bundle.file, subject, address)) {
-                    toast(getString(R.string.feedback_send_failed))
-                }
+            // 公开入口只负责打开项目 Issues：不复制诊断包、不引导上传附件
+            toast(getString(R.string.feedback_issue_opened))
+            try {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.dev_mail))))
+            } catch (e: Exception) {
+                toast(getString(R.string.feedback_send_failed))
             }
         }
 
@@ -121,6 +149,12 @@ class FeedbackActivity : AppCompatActivity() {
         }.start()
     }
 
+    private fun invalidateCache() {
+        cachedZip?.delete()
+        cachedZip = null
+        cachedText = null
+    }
+
     private fun ensureBundle(onReady: (FeedbackBundle.BundleFile) -> Unit) {
         val zip = cachedZip
         val text = cachedText
@@ -133,7 +167,7 @@ class FeedbackActivity : AppCompatActivity() {
         setBusy(true)
 
         Thread {
-            val result = runCatching { FeedbackBundle.build(applicationContext) }.getOrNull()
+            val result = runCatching { FeedbackBundle.build(applicationContext, includeVerbose) }.getOrNull()
             runOnUiThread {
                 busy = false
                 setBusy(false)

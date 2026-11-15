@@ -25,7 +25,7 @@ import java.util.zip.ZipOutputStream
 /**
  * 「一键导出日志并发送」：
  *
- * 1. 把版本 / 机型 / 权限 / 设置 / 消息记录 / 崩溃 / logcat 采集出来（纯文本）；
+ * 1. 把版本 / 机型 / 权限 / 设置 / 消息记录 / 崩溃 采集出来（纯文本，不采集 logcat）；
  * 2. 打成 zip 放进 cacheDir/feedback；
  * 3. 用系统分享面板发出去（微信、QQ、邮件都行），不绑定某一个 App。
  *
@@ -43,21 +43,21 @@ object FeedbackBundle {
     fun preview(context: Context): String = Diagnostics.render(collect(context))
 
     /** 生成 zip。会清掉更早的包，只留最近几个，别把缓存目录堆满。 */
-    fun build(context: Context): BundleFile {
-        // 采集只做一次：logcat 要起进程，采两遍既慢又可能两次内容不一样
+    fun build(context: Context, includeVerbose: Boolean = false): BundleFile {
+        // 采集只做一次：崩溃记录读盘，采两遍既慢又可能两次内容不一样
         val report = collect(context)
-        val text = Diagnostics.render(report)
         val dir = directory(context)
         prune(dir)
         val stamp = SimpleDateFormat("yyyyMMdd-HHmm", Locale.CHINA).format(Date())
         val file = File(dir, "bellnote-feedback-$stamp.zip")
+        // 文本附件的唯一来源：Diagnostics.bundleTexts（脱敏逻辑在那里，可被单测用 canary 覆盖）
+        val verbose = if (includeVerbose) VerboseLog.read(context) else null
+        val texts = zipEntries(report, includeVerbose, verbose)
         ZipOutputStream(BufferedOutputStream(FileOutputStream(file))).use { zip ->
-            put(zip, "diagnostics.txt", text)
-            put(zip, "README.txt", readme(context))
-            report.crash?.takeIf { it.isNotBlank() }?.let { put(zip, "crash.txt", it) }
-            report.logcat?.takeIf { it.isNotBlank() }?.let { put(zip, "logcat.txt", it) }
+            texts.forEach { (name, body) -> put(zip, name, body) }
+            put(zip, "README.txt", readme(context, includeVerbose))
         }
-        return BundleFile(file, text)
+        return BundleFile(file, texts.first { it.first == "diagnostics.txt" }.second)
     }
 
     /** 分享面板：zip 直接丢给微信 / QQ / 邮件。 */
@@ -126,19 +126,23 @@ object FeedbackBundle {
             }
         } ?: 0L
 
+        // 3.21.0 起诊断包不再收集标题与正文；只留结构化信息 + 已脱敏的说明
         val messages = MessageLog.recent(app).map {
             Diagnostics.Message(
                 at = it.at,
                 direction = if (it.fromUser) "收到" else "发出",
                 source = it.source,
-                title = it.title,
-                body = it.body,
                 result = MessageLog.resultLabel(it.result),
-                detail = it.detail
+                reason = it.detail
             )
         }
         val notices = Prefs.ignoredNotices(app).map {
-            Diagnostics.Notice(at = it.at, reason = it.reason, text = it.text)
+            Diagnostics.Notice(at = it.at, reason = it.reason)
+        }
+        // 需要在自由文本里抹掉的真实值：API Key + 所有 ntfy 主题
+        val secrets = buildList {
+            Prefs.apiKey(app).takeIf { it.isNotBlank() }?.let { add(it) }
+            Prefs.ntfyTopics(app).map { it.topic }.filter { it.isNotBlank() }.forEach { add(it) }
         }
 
         return Diagnostics.Report(
@@ -158,7 +162,7 @@ object FeedbackBundle {
             messages = messages,
             notices = notices,
             crash = CrashLog.read(app),
-            logcat = readLogcat()
+            secrets = secrets
         )
     }
 
@@ -226,22 +230,22 @@ object FeedbackBundle {
         false
     }
 
-    /**
-     * 读自己的 logcat。Android 4.1 起 App 只能看到自己进程的日志，
-     * 部分 ROM 还会直接拒绝——读不到就返回 null，不影响其它内容。
-     */
-    private fun readLogcat(): String? = try {
-        val process = ProcessBuilder("logcat", "-d", "-t", "800", "-v", "time")
-            .redirectErrorStream(true)
-            .start()
-        val text = process.inputStream.bufferedReader().use { it.readText() }
-        process.destroy()
-        text.trim().ifBlank { null }?.take(Diagnostics.MAX_LOGCAT_CHARS)
-    } catch (e: Exception) {
-        null
-    }
-
     // ---------------- 工具 ----------------
+
+    /**
+     * zip 里的文本条目（不含 README）：纯函数，便于单测「勾选才带 verbose.log」。
+     * includeVerbose=true 且详细日志非空时才追加 verbose.log；其余条目始终来自 Diagnostics。
+     */
+    internal fun zipEntries(
+        report: Diagnostics.Report,
+        includeVerbose: Boolean,
+        verboseText: String?
+    ): List<Pair<String, String>> {
+        val base = Diagnostics.bundleTexts(report)
+        if (!includeVerbose) return base
+        val verbose = verboseText?.takeIf { it.isNotBlank() } ?: return base
+        return base + ("verbose.log" to verbose)
+    }
 
     private fun put(zip: ZipOutputStream, name: String, text: String) {
         zip.putNextEntry(ZipEntry(name))
@@ -249,14 +253,18 @@ object FeedbackBundle {
         zip.closeEntry()
     }
 
-    private fun readme(context: Context): String = buildString {
+    private fun readme(context: Context, includeVerbose: Boolean = false): String = buildString {
         appendLine("Bellnote 反馈包")
         appendLine()
-        appendLine("diagnostics.txt  版本 / 机型 / 权限 / 设置 / 消息记录 / 崩溃 / logcat（人看的）")
-        appendLine("crash.txt        最近一次崩溃的原始堆栈（如果有）")
-        appendLine("logcat.txt       本 App 的日志（系统允许时才有）")
+        appendLine("diagnostics.txt  版本 / 机型 / 权限 / 设置 / 消息记录 / 崩溃（人看的）")
+        appendLine("crash.txt        最近一次崩溃的结构化堆栈（异常类名 + at 帧，不含异常消息）")
         appendLine()
-        appendLine("包里不含图片、不含日历内容全文；API Key 与 ntfy 主题已打码。")
+        appendLine("包里不含图片、不含待办标题与正文；API Key 与 ntfy 主题只报「有没有配、多少位」，内容不记录。")
+        appendLine("URL 只保留协议与主机；崩溃堆栈和日志里的密钥、主题已抹除。")
+        appendLine("这个包默认只给可信接收方，不要直接贴到公开 Issue。")
+        if (includeVerbose) {
+            appendLine("verbose.log      本次手动勾选包含的详细日志（含消息标题/正文/URL），仅本机保留 24 小时")
+        }
         appendLine("问题描述请直接写在消息里，配合这份日志就够了。")
     }
 

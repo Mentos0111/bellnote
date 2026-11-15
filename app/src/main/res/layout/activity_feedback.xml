@@ -66,6 +66,17 @@
             </ScrollView>
         </LinearLayout>
 
+        <CheckBox
+            android:id="@+id/cbVerbose"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="包含详细日志（含消息内容）" />
+
+        <TextView
+            style="@style/HintText"
+            android:text="默认不含。勾选后 ZIP 会多一个 verbose.log，里面有最近 24 小时的消息标题/正文/URL，只建议发给可信的人。" />
+
         <Button
             android:id="@+id/btnSend"
             style="@style/BtnPrimary"
