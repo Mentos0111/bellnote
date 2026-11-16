@@ -32,8 +32,11 @@ import com.bellnote.util.ScreenshotRules
 object ScreenshotWatcher {
 
     private const val TAG = "ScreenshotWatcher"
-    private const val CHANNEL_ID = "screenshot_watch"
+    // 通道建好后重要性改不了，所以「默认弹窗」只能用新 id 重建：v1 是 IMPORTANCE_DEFAULT（不弹）
+    private const val CHANNEL_ID = "screenshot_watch_v2"
+    private const val LEGACY_CHANNEL_ID = "screenshot_watch"
     private const val NOTIFY_ID = 4101
+    private const val REQ_OPEN = 4102
     private const val FRESH_WINDOW_MS = 15 * 60_000L
 
     private var registered = false
@@ -124,12 +127,15 @@ object ScreenshotWatcher {
         }
     }
 
+    /** 进程启动时先把通道建好（高重要性 + 清掉旧的），不用等第一张截图。 */
+    fun prepareChannel(context: Context) = ensureChannel(context.applicationContext)
+
     private fun notify(context: Context, shot: Shot) {
         if (!Permissions.hasPostNotifications(context)) return
         ensureChannel(context)
         val open = PendingIntent.getActivity(
             context,
-            NOTIFY_ID,
+            REQ_OPEN,
             ImportActivity.intentForScreenshot(context, shot.uri, auto = true),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -138,9 +144,13 @@ object ScreenshotWatcher {
             .setContentTitle("识别这张截图？")
             .setContentText("点一下，把截图里的安排变成日历待办")
             .setStyle(NotificationCompat.BigTextStyle().bigText("点一下，把截图里的安排变成日历待办（${shot.name}）"))
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            // 弹窗提醒：高优先级 + 提醒类，系统才会把它做成悬浮横幅
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setAutoCancel(true)
             .setContentIntent(open)
+            // 快捷入口：不用点通知本体，直接按这个按钮进截图识别
+            .addAction(R.drawable.ic_notif_recognize, "识别这张", open)
             .build()
         try {
             NotificationManagerCompat.from(context).notify(NOTIFY_ID, notification)
@@ -151,13 +161,17 @@ object ScreenshotWatcher {
 
     private fun ensureChannel(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val nm = context.getSystemService(NotificationManager::class.java) ?: return
+        // 旧通道是默认重要性（不弹窗），建好后改不了，只能弃用；顺手删掉，免得设置里出现两个同名通道
+        nm.deleteNotificationChannel(LEGACY_CHANNEL_ID)
         val channel = NotificationChannel(
             CHANNEL_ID,
             "截图建待办",
-            NotificationManager.IMPORTANCE_DEFAULT
+            NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = "截完图后提醒你把它识别成待办"
+            description = "截完图后弹窗提醒你把它识别成待办"
+            enableVibration(true)
         }
-        context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        nm.createNotificationChannel(channel)
     }
 }

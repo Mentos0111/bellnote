@@ -46,6 +46,7 @@ class App : Application() {
         // 每次进程起来重排一次定时对账；闹钟跑完会自己续下一次
         ReconcileScheduler.sync(this)
         // 有相册权限就顺手挂上截图监听（没权限时它在内部直接返回）
+        ScreenshotWatcher.prepareChannel(this)
         ScreenshotWatcher.ensureStarted(this)
         // 顺手补查一次 ntfy：ntfy App 没弹通知/被系统冻结时，消息还能从这里补回来
         NtfyFetcher.catchUpInBackground(this)
