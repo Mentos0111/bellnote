@@ -87,7 +87,8 @@ object HealthInspector {
             if (Permissions.hasPostNotifications(app)) {
                 HealthCheck.Item(
                     "notify", "通知权限", HealthCheck.Status.OK,
-                    "能发提醒通知", HealthCheck.Action.SETTINGS
+                    "能发提醒通知；要弹窗还得在系统里开「横幅通知 / 重要程度」",
+                    HealthCheck.Action.SETTINGS
                 )
             } else {
                 HealthCheck.Item(

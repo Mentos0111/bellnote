@@ -195,12 +195,19 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
         findViewById<Button>(R.id.btnNotifPerm).setOnClickListener {
-            if (Permissions.hasPostNotifications(this)) {
-                toast("通知权限已经有了")
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                requestNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+            if (!Permissions.hasPostNotifications(this)) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    requestNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+                } else {
+                    toast("这个系统版本不用单独授权通知")
+                }
             } else {
-                toast("这个系统版本不用单独授权通知")
+                // 通知权限有了不代表会弹窗：横幅是用户侧的开关，App 改不了，只能一键送过去
+                if (com.bellnote.util.NotificationSettings.openAppNotificationSettings(this)) {
+                    toast(getString(R.string.notif_banner_tip))
+                } else {
+                    toast("打不开系统通知设置，请手动到 设置 → 通知 → Bellnote")
+                }
             }
         }
         findViewById<Button>(R.id.btnBatteryPerm).setOnClickListener {
@@ -489,6 +496,8 @@ class SettingsActivity : AppCompatActivity() {
             "· 通知栏：下拉通知栏点「记一条」，直接回首页并聚焦输入框。")
 
         help(R.id.btnHelpA11y, "系统权限", "· 截屏服务（无障碍）：只用来截当前屏幕，不读输入内容；不开就不能从侧边栏点一下截屏。\n" +
+            "· 通知：光有「允许通知」还不够，系统里还得开「横幅通知」（或把重要程度调高），截图提醒、待办回执才会弹窗。\n" +
+            "  这个开关 App 自己改不了，点上面的「通知权限」按钮会直接跳到系统通知页。\n" +
             "· 推送不需要任何系统权限：Bellnote 自己定时去 ntfy 服务器拉。")
 
         help(R.id.btnHelpReconcile, "对账", "定时把本地的待办清单和系统日历对一遍，" +
