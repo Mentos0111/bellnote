@@ -79,6 +79,10 @@ object DeviceVendor {
     fun openAccessibility(context: Context): Boolean =
         SystemPages.start(context, Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
 
+    /** 系统设置首页（侧边栏编辑页第三方打不开时的兜底落脚点）。 */
+    fun openSettingsHome(context: Context): Boolean =
+        SystemPages.start(context, Intent(Settings.ACTION_SETTINGS))
+
     /**
      * 智能侧边栏的设置页（在里面把 App 加进侧边栏）。
      *

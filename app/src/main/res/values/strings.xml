@@ -156,7 +156,8 @@
     <string name="onboarding_next">下一步</string>
     <string name="onboarding_start">开始使用</string>
     <string name="sidebar_entry_title">侧边栏入口</string>
-    <string name="sidebar_entry_hint">系统侧边栏只能从「全部」列表里手动添加 App。点下面的「加入侧边栏」会先显示出「Bellnote 截屏记」并打开侧边栏设置，在「全部」里把它拖进去；加好后回到这里点「隐藏桌面入口」，桌面就不多图标，侧边栏里那个入口照常能用。</string>
+    <string name="sidebar_entry_hint">系统侧边栏只能从「全部」列表里手动添加 App。点「加入侧边栏」会先显示出「Bellnote 截屏记」（桌面会多一个图标），再到 设置 → 特色功能 → 智能侧边栏 里把它加进去；加好后回来点「隐藏桌面入口」，桌面就不多图标，侧边栏里那个入口照常能用。</string>
+    <string name="sidebar_entry_ready">已显示「Bellnote 截屏记」（桌面会多一个图标）。系统不允许 App 直接打开侧边栏的编辑页，得你自己点两下：</string>
     <string name="sidebar_toast_open">在「全部」里找到「Bellnote 截屏记」拖进侧边栏</string>
     <string name="sidebar_toast_show_and_open">已显示「Bellnote 截屏记」，在「全部」里拖进侧边栏</string>
     <string name="sidebar_entry_show">显示桌面入口</string>

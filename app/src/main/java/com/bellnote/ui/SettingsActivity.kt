@@ -244,10 +244,15 @@ class SettingsActivity : AppCompatActivity() {
                     )
                 )
             } else {
+                // realme 实测：侧边栏设置页要求 oppo.permission.OPPO_COMPONENT_SAFE，第三方根本起不来，
+                // 只能弹说明 + 把用户送到系统设置首页，别假装能一键跳过去。
                 androidx.appcompat.app.AlertDialog.Builder(this)
                     .setTitle(getString(R.string.sidebar_howto_title))
-                    .setMessage(DeviceVendor.sidebarGuide())
-                    .setPositiveButton("知道了", null)
+                    .setMessage(getString(R.string.sidebar_entry_ready) + "\n\n" + DeviceVendor.sidebarGuide())
+                    .setPositiveButton("去系统设置") { _, _ ->
+                        if (!DeviceVendor.openSettingsHome(this)) toast("打不开系统设置，请手动打开")
+                    }
+                    .setNegativeButton("知道了", null)
                     .show()
             }
         }

@@ -37,6 +37,9 @@ object ScreenshotWatcher {
     private const val LEGACY_CHANNEL_ID = "screenshot_watch"
     private const val NOTIFY_ID = 4101
     private const val REQ_OPEN = 4102
+    // 单独成组、只让子通知自己弹：否则 App 里有别的通知时，系统会弹「1 条通知」的组摘要，
+    // 看不到「识别这张截图？」和按钮（2026-11-17 真机实测）。
+    private const val GROUP_SCREENSHOT = "bellnote_screenshot"
     private const val FRESH_WINDOW_MS = 15 * 60_000L
 
     private var registered = false
@@ -147,6 +150,9 @@ object ScreenshotWatcher {
             // 弹窗提醒：高优先级 + 提醒类，系统才会把它做成悬浮横幅
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setGroup(GROUP_SCREENSHOT)
+            .setGroupSummary(false)
+            .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
             .setAutoCancel(true)
             .setContentIntent(open)
             // 快捷入口：不用点通知本体，直接按这个按钮进截图识别
