@@ -1,0 +1,21 @@
+version: 2
+updates:
+  # 只自动更 GitHub Actions 用的那几个工具（checkout / setup-java / gradle actions）。
+  # 这些是"打包环境"的零件，单独升级风险低，坏了 CI 会立刻红，一眼能看出来。
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Shanghai"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "dependencies"
+
+  # ⚠️ 故意不给 gradle 开自动更新。
+  # AGP / Kotlin / Gradle 插件之间是版本联锁的，Dependabot 单独升一个大概率直接编译失败，
+  # 每周会堆一堆红 PR。代码依赖（app/build.gradle.kts 里的 implementation）一律手动升级：
+  # 改版本号 -> 本地跑 assembleRelease + testDebugUnitTest -> 装机确认，再提交。
