@@ -80,6 +80,49 @@ object DeviceVendor {
         SystemPages.start(context, Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
 
     /**
+     * 智能侧边栏的设置页（在里面把 App 加进侧边栏）。
+     *
+     * realme / OPPO 有公开的 action `oplus.intent.action.EDGEPANEL`，不用猜组件名；
+     * 老 ColorOS 只认组件名，下面几个都试一遍。其它厂家没有稳定入口就返回 false，
+     * 由调用方退回「按厂家写路径」的说明弹窗。
+     */
+    fun openSidebar(context: Context): Boolean {
+        for (intent in sidebarIntents(current())) {
+            if (SystemPages.start(context, intent)) return true
+        }
+        return false
+    }
+
+    private fun sidebarIntents(vendor: Vendor): List<Intent> = when (vendor) {
+        Vendor.REALME, Vendor.OPPO, Vendor.ONEPLUS -> listOf(
+            Intent("oplus.intent.action.EDGEPANEL"),
+            Intent().setComponent(
+                ComponentName("com.coloros.smartsidebar", "com.oplus.smartsidebar.settings.EdgePanelSettingsActivity")
+            ),
+            Intent().setComponent(
+                ComponentName("com.coloros.smartsidebar", "com.oplus.edgepanel.settings.EdgePanelSettingsActivity")
+            )
+        )
+        Vendor.XIAOMI, Vendor.REDMI -> listOf(
+            Intent("miui.intent.action.SIDEBAR_SETTINGS"),
+            Intent().setComponent(
+                ComponentName("com.miui.securitycenter", "com.miui.sidebar.activity.SidebarSettingsActivity")
+            )
+        )
+        Vendor.VIVO -> listOf(
+            Intent().setComponent(
+                ComponentName("com.vivo.smartsidebar", "com.vivo.smartsidebar.ui.SettingsActivity")
+            )
+        )
+        Vendor.SAMSUNG -> listOf(
+            Intent().setComponent(
+                ComponentName("com.samsung.android.app.appsedge", "com.samsung.android.app.appsedge.settings.SettingsActivity")
+            )
+        )
+        else -> emptyList()
+    }
+
+    /**
      * 「怎么把 Bellnote 加进系统侧边栏」——系统侧边栏没有公开接口，只能告诉用户在哪儿点。
      * 路径按厂家写；不确定的给通用说法。
      */

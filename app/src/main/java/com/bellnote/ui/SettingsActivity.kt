@@ -1,4 +1,4 @@
-﻿package com.bellnote.ui
+package com.bellnote.ui
 
 import android.Manifest
 import android.content.Intent
@@ -224,11 +224,25 @@ class SettingsActivity : AppCompatActivity() {
         renderSidebarEntry()
 
         findViewById<Button>(R.id.btnSidebarGuide).setOnClickListener {
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle(getString(R.string.sidebar_howto_title))
-                .setMessage(DeviceVendor.sidebarGuide())
-                .setPositiveButton("知道了", null)
-                .show()
+            // 侧边栏只认「有桌面图标的应用」，所以先把入口显示出来，再直接送到侧边栏设置页，
+            // 让用户在「全部」里把「Bellnote 截屏记」拖进去（不用自己去翻系统设置）。
+            val alreadyShown = SidebarEntry.isEnabled(this)
+            if (!alreadyShown) SidebarEntry.setEnabled(this, true)
+            renderSidebarEntry()
+            if (DeviceVendor.openSidebar(this)) {
+                toast(
+                    getString(
+                        if (alreadyShown) R.string.sidebar_toast_open
+                        else R.string.sidebar_toast_show_and_open
+                    )
+                )
+            } else {
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle(getString(R.string.sidebar_howto_title))
+                    .setMessage(DeviceVendor.sidebarGuide())
+                    .setPositiveButton("知道了", null)
+                    .show()
+            }
         }
         findViewById<Button>(R.id.btnTileGuide).setOnClickListener {
             androidx.appcompat.app.AlertDialog.Builder(this)
@@ -470,8 +484,8 @@ class SettingsActivity : AppCompatActivity() {
     /** 每个分组的问号：把原来铺在页面上的长说明收进弹窗。 */
     private fun setupHelp() {
         help(R.id.btnHelpEntry, "其他入口", "除了首页输入框，还有两条更快的路：\n\n" +
-            "· 侧边栏：系统侧边栏添加 App 时只认带桌面图标的，所以要先临时显示「Bellnote 截屏记」这个桌面入口，" +
-            "加进侧边栏后再把它隐藏——它只是添加时的临时副产物，不用长期放在桌面上。已经加进侧边栏的入口不受影响。\n" +
+            "· 侧边栏：系统侧边栏只能手动添加 App，而且只认「有桌面图标的应用」。点「加入侧边栏」会先显示出「Bellnote 截屏记」" +
+            "并打开侧边栏设置，在「全部」里把它拖进去；加好后回来点「隐藏桌面入口」，桌面就不多图标，侧边栏那个入口照常能用。\n" +
             "· 通知栏：下拉通知栏点「记一条」，直接回首页并聚焦输入框。")
 
         help(R.id.btnHelpA11y, "系统权限", "· 截屏服务（无障碍）：只用来截当前屏幕，不读输入内容；不开就不能从侧边栏点一下截屏。\n" +

@@ -506,7 +506,9 @@ class MainActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle(getString(R.string.sidebar_howto_title))
             .setMessage(
-                DeviceVendor.sidebarGuide() + "\n\n" +
+                "最快：设置 → 其他入口 → 点「加入侧边栏」，会直接跳到侧边栏设置，" +
+                    "在「全部」列表里把「Bellnote 截屏记」拖进侧边栏。\n\n" +
+                    "手动找入口：\n" + DeviceVendor.sidebarGuide() + "\n\n" +
                     "加好后：在任何 App 页面划出侧边栏 → 点「Bellnote 截屏记」→ 自动截屏并识别。\n" +
                     "前提是开过「截屏服务」（无障碍），没开的话会提示你去开。"
             )
