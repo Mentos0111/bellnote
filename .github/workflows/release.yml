@@ -238,12 +238,18 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ref || github.ref }}
 
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: bellnote-apk
+          path: dist
+
       - name: Check CHANGELOG and extract release notes
         env:
           VERSION: ${{ needs.meta.outputs.version }}
         run: |
           python3 - <<'PY'
-          import os, re, sys
+          import glob, hashlib, os, re, sys
 
           version = os.environ["VERSION"]
           with open("CHANGELOG.md", encoding="utf-8") as f:
@@ -261,16 +267,36 @@ jobs:
                   "发版前先把这版改了什么写进去。"
               )
 
-          with open("release-notes.md", "w", encoding="utf-8") as f:
-              f.write(body + "\n")
-          print(body)
-          PY
+          # 固定抬头（安装要求 / 校验 / 升级提示 / 反馈），每次发版自动带上。
+          # 文件不存在时跳过，方便老 tag 重跑。
+          preamble = ""
+          if os.path.exists(".github/release-preamble.md"):
+              with open(".github/release-preamble.md", encoding="utf-8") as f:
+                  preamble = f.read().strip()
 
-      - name: Download APK artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: bellnote-apk
-          path: dist
+          # APK 的 SHA-256 自动写进说明，省得手动核。
+          sha = ""
+          apks = sorted(glob.glob("dist/bellnote-*.apk"))
+          if apks:
+              h = hashlib.sha256()
+              with open(apks[0], "rb") as f:
+                  for chunk in iter(lambda: f.read(1 << 20), b""):
+                      h.update(chunk)
+              sha = h.hexdigest()
+
+          if preamble:
+              preamble = preamble.replace("{version}", version).replace("{sha256}", sha or "（见附件）")
+
+          parts = []
+          if preamble:
+              parts.append(preamble)
+          parts.append(body)
+          notes = "\n\n---\n\n".join(parts) + "\n"
+
+          with open("release-notes.md", "w", encoding="utf-8") as f:
+              f.write(notes)
+          print(notes)
+          PY
 
       - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2
