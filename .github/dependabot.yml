@@ -15,7 +15,24 @@ updates:
     labels:
       - "dependencies"
 
-  # ⚠️ 故意不给 gradle 开自动更新。
+  # ⚠️ 故意不给 gradle 开「普通版本更新」。
   # AGP / Kotlin / Gradle 插件之间是版本联锁的，Dependabot 单独升一个大概率直接编译失败，
   # 每周会堆一堆红 PR。代码依赖（app/build.gradle.kts 里的 implementation）一律手动升级：
   # 改版本号 -> 本地跑 assembleRelease + testDebugUnitTest -> 装机确认，再提交。
+  #
+  # 但「安全更新」要开着：open-pull-requests-limit=0 只关普通版本更新，
+  # 库被披露漏洞时 Dependabot 仍会开一个安全升级 PR（同样要人看、要跑测试）。
+  # 前提是仓库 Settings → Code security 里 Dependabot alerts / security updates 是打开的。
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Shanghai"
+    open-pull-requests-limit: 0
+    commit-message:
+      prefix: "deps-security"
+    labels:
+      - "dependencies"
+      - "security"

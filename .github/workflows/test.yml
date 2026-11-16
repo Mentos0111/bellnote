@@ -1,4 +1,4 @@
-﻿name: test
+name: test
 
 # 平时推代码就跑单测，别等到打 tag 才发现挂。
 concurrency:
@@ -46,3 +46,18 @@ jobs:
           name: unit-test-report
           path: app/build/reports/tests/testDebugUnitTest
           if-no-files-found: ignore
+
+  # PR 里如果新增/升级了依赖，先核对有没有已知漏洞、许可证是否可用。
+  # 只在 PR 上跑（push main 时没有"变更了哪些依赖"可对比）。
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: never

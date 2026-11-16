@@ -307,3 +307,61 @@ jobs:
           prerelease: ${{ needs.meta.outputs.prerelease == 'true' }}
           files: dist/bellnote-*.apk
           fail_on_unmatched_files: true
+
+  # 发布之后自己再核对一遍：Release 不是草稿、附件在、大小正常、SHA-256 有、
+  # 说明里带本版版本号。少了任何一项就红，不靠人去看。
+  verify:
+    needs: [meta, publish]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify published release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.meta.outputs.tag }}
+          VERSION: ${{ needs.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          api="https://api.github.com/repos/${GITHUB_REPOSITORY}"
+          curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "$api/releases/tags/$TAG" -o release.json
+          python3 - <<'PY'
+          import json, os, sys
+
+          d = json.load(open("release.json", encoding="utf-8"))
+          version = os.environ["VERSION"]
+          tag = os.environ["TAG"]
+          problems = []
+
+          if d.get("draft"):
+              problems.append("Release 还是草稿，没有真正发布")
+          if d.get("tag_name") != tag:
+              problems.append(f"tag 对不上：{d.get('tag_name')} != {tag}")
+
+          want = f"bellnote-{version}.apk"
+          assets = {a["name"]: a for a in d.get("assets", [])}
+          if want not in assets:
+              problems.append(f"缺附件 {want}（现有：{list(assets) or '无'}）")
+          else:
+              a = assets[want]
+              size = a.get("size", 0)
+              digest = a.get("digest") or ""
+              print(f"附件 {want}: {size} 字节, digest={digest}")
+              if size < 20 * 1024 * 1024:
+                  problems.append(f"APK 只有 {size} 字节，像构建失败")
+              if not digest.startswith("sha256:"):
+                  problems.append("附件没有 SHA-256 摘要，别人没法核验")
+
+          body = d.get("body") or ""
+          if version not in body:
+              problems.append("Release 说明里找不到本版版本号（CHANGELOG 抽取可能失败）")
+
+          if problems:
+              print("发布核验失败：")
+              for p in problems:
+                  print(" -", p)
+              sys.exit(1)
+          print("发布核验通过")
+          PY
+
