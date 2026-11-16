@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
   一条命令发版：从 CHANGELOG 读版本号 -> 改 build.gradle.kts -> 更新 AGENTS.md 状态快照
   -> 提交 -> 打 tag -> 推送。推送后 GitHub Actions 自动跑单测、构建、正式签名、发 Release。
@@ -138,9 +138,14 @@ try {
     # ---- 7. 提交 + 打 tag + 推送 ----
     git add $gradle $agents
     git commit -m "release $version"
+    if ($LASTEXITCODE -ne 0) { throw "git commit 失败（退出码 $LASTEXITCODE）" }
     git tag -a $tag -m "Bellnote $tag"
+    if ($LASTEXITCODE -ne 0) { throw "打 tag 失败（退出码 $LASTEXITCODE）" }
+    # 外部命令失败不会抛异常，必须自己看退出码：以前 ssh 失败也照样打印「已推送」
     git push origin main
+    if ($LASTEXITCODE -ne 0) { throw "推送 main 失败（退出码 $LASTEXITCODE）；tag $tag 只在本地，修好后重跑 git push origin main; git push origin $tag" }
     git push origin $tag
+    if ($LASTEXITCODE -ne 0) { throw "推送 tag $tag 失败（退出码 $LASTEXITCODE）；本地 tag 还在，修好后单独 git push origin $tag" }
 
     Write-Host ''
     Write-Host "已推送 $tag。CI 约 3 分钟内出包：" -ForegroundColor Green
