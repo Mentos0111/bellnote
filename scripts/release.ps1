@@ -1,7 +1,7 @@
 ﻿<#
 .SYNOPSIS
-  一条命令发版：从 CHANGELOG 读版本号 -> 改 build.gradle.kts -> 提交 -> 打 tag -> 推送。
-  推送 tag 后 GitHub Actions 会自动跑单测、构建、正式签名、发 Release、上传 APK。
+  一条命令发版：从 CHANGELOG 读版本号 -> 改 build.gradle.kts -> 更新 AGENTS.md 状态快照
+  -> 提交 -> 打 tag -> 推送。推送后 GitHub Actions 自动跑单测、构建、正式签名、发 Release。
 
 .DESCRIPTION
   发版前你只需要做一件事：在 CHANGELOG.md 顶部写好本版小节，形如
@@ -11,7 +11,7 @@
       ### 修复
       - ...
 
-  版本号、日期、tag、提交都由这个脚本统一处理，避免手抄错。
+  版本号、日期、tag、提交、以及给新会话看的「当前状态」都由这个脚本统一处理。
 
 .PARAMETER DryRun
   只打印将要做什么，不改文件、不提交、不推送。
@@ -84,12 +84,12 @@ try {
     $old = $Matches[1]
     if ($old -eq $version) {
         Write-Host "版本号已经是 $version，跳过改写" -ForegroundColor DarkGray
-    } else {
+    } elseif (-not $DryRun) {
         $g = $g -replace 'bellnoteDefaultVersionName\s*=\s*"[^"]+"', "bellnoteDefaultVersionName = `"$version`""
-        if (-not $DryRun) {
-            [System.IO.File]::WriteAllText((Join-Path $root $gradle), $g, (New-Object System.Text.UTF8Encoding($false)))
-        }
+        [System.IO.File]::WriteAllText((Join-Path $root $gradle), $g, (New-Object System.Text.UTF8Encoding($false)))
         Write-Host "版本号：$old -> $version"
+    } else {
+        Write-Host "版本号：$old -> $version（DryRun 未写入）"
     }
 
     Write-Host ''
@@ -97,6 +97,7 @@ try {
     Write-Host "  提交：release $version"
     Write-Host "  tag ：$tag"
     Write-Host "  推送：origin main + $tag（推送后 CI 自动出包发 Release）"
+    Write-Host '  AGENTS.md：会把「当前状态」表更新成这一版，新会话不用常驻也能接上'
     Write-Host ''
 
     if ($DryRun) {
@@ -104,8 +105,38 @@ try {
         return
     }
 
-    # ---- 6. 提交 + 打 tag + 推送 ----
-    git add $gradle
+    # ---- 6. 更新 AGENTS.md 的「当前状态」快照 ----
+    $agents = 'AGENTS.md'
+    $al = [System.IO.File]::ReadAllLines((Join-Path $root $agents), [System.Text.Encoding]::UTF8)
+    $now = Get-Date -Format 'yyyy-MM-dd HH:mm'
+    $hitCount = 0
+    for ($i = 0; $i -lt $al.Count; $i++) {
+        if ($al[$i] -match '^\| 最新发布 \|') {
+            $al[$i] = "| 最新发布 | ``v$version``（$now 推送；CI 全自动构建发 Release，真机验证后补一句结论） |"
+            $hitCount++
+        }
+        elseif ($al[$i] -match '^\| 本地领先 \|') {
+            $al[$i] = "| 本地领先 | 比 tag 多 0 个提交（刚发版） |"
+            $hitCount++
+        }
+        elseif ($al[$i] -match '^\| 代码默认版本 \|') {
+            $al[$i] = "| 代码默认版本 | ``$version``（和已发布一致） |"
+            $hitCount++
+        }
+        elseif ($al[$i] -match '^\| 下一步 \|') {
+            $al[$i] = "| 下一步 | 等 CI 绿 + 真机验证本次改动；下一版先问本人要版本号 |"
+            $hitCount++
+        }
+    }
+    if ($hitCount -ge 3) {
+        [System.IO.File]::WriteAllLines((Join-Path $root $agents), $al, (New-Object System.Text.UTF8Encoding($false)))
+        Write-Host "已更新 AGENTS.md 的当前状态（$hitCount 行）" -ForegroundColor Green
+    } else {
+        Write-Host '警告：AGENTS.md 的状态表没找到，跳过更新（请检查表格格式）' -ForegroundColor Yellow
+    }
+
+    # ---- 7. 提交 + 打 tag + 推送 ----
+    git add $gradle $agents
     git commit -m "release $version"
     git tag -a $tag -m "Bellnote $tag"
     git push origin main
