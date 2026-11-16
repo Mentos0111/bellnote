@@ -30,6 +30,7 @@ object Prefs {
     /** 截图监听：截完图自动问「要不要识别成待办」。 */
     private const val KEY_SHOT_WATCH = "shot_watch_enabled"
     private const val KEY_LAST_SHOT_ID = "last_shot_id"
+    private const val KEY_NOTIF_BANNER_GUIDED = "notif_banner_guided"
 
     private const val KEY_RECONCILE_ENABLED = "reconcile_enabled"
     private const val KEY_RECONCILE_INTERVAL = "reconcile_interval"
@@ -150,6 +151,13 @@ object Prefs {
     // ---------------- 截图监听 ----------------
 
     fun shotWatchEnabled(context: Context): Boolean = sp(context).getBoolean(KEY_SHOT_WATCH, true)
+
+    /** 「通知横幅」引导只弹一次。 */
+    fun notifBannerGuided(context: Context): Boolean = sp(context).getBoolean(KEY_NOTIF_BANNER_GUIDED, false)
+
+    fun setNotifBannerGuided(context: Context, guided: Boolean) {
+        sp(context).edit().putBoolean(KEY_NOTIF_BANNER_GUIDED, guided).apply()
+    }
 
     fun setShotWatchEnabled(context: Context, on: Boolean) {
         sp(context).edit().putBoolean(KEY_SHOT_WATCH, on).apply()

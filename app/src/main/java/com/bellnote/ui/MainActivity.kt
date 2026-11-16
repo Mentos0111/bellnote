@@ -150,6 +150,31 @@ class MainActivity : AppCompatActivity() {
             }
         }
         maybeAskEngine()
+        maybeGuideNotificationBanner()
+    }
+
+    /**
+     * 一次性引导：Android 里「通知横幅（弹窗）」是用户侧开关，App 自己改不了
+     * （ColorOS 上还多一层 App 级的「重要程度 / 横幅通知」）。只能把用户送到系统通知页打开。
+     */
+    private fun maybeGuideNotificationBanner() {
+        if (Prefs.notifBannerGuided(this)) return
+        if (!Prefs.shotWatchEnabled(this)) return
+        if (!Prefs.onboardingDone(this)) return
+        if (!Permissions.hasPostNotifications(this)) return
+        if (isFinishing || isDestroyed) return
+        Prefs.setNotifBannerGuided(this, true)
+        AlertDialog.Builder(this)
+            .setTitle("让截图提醒弹出来")
+            .setMessage(
+                "系统里 Bellnote 的「横幅通知 / 重要程度」不是高的话，截完图只会静默进通知栏，不会弹窗。\n\n" +
+                    "App 自己改不了这个开关，只能带你过去：进「通知」页把「横幅通知」打开（或把重要程度调高）。"
+            )
+            .setPositiveButton("去打开") { _, _ ->
+                com.bellnote.util.NotificationSettings.openAppNotificationSettings(this)
+            }
+            .setNegativeButton("以后再说", null)
+            .show()
     }
 
     /**

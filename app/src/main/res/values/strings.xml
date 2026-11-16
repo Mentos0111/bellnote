@@ -110,6 +110,7 @@
     <string name="a11y_label">Bellnote 截屏识别</string>
     <string name="a11y_hint">只用来截当前屏幕，不读输入内容。开了之后，从系统侧边栏点「Bellnote 截屏记」就能直接截屏识别。</string>
     <string name="btn_open_a11y">开启截屏服务</string>
+    <string name="notif_banner_tip">把「横幅通知」打开（或重要程度调到高），截图提醒才会弹窗</string>
     <string name="btn_sidebar_guide">加入侧边栏</string>
     <string name="btn_tile_guide">添加通知栏磁贴</string>
     <string name="tile_guide">下拉通知栏 → 点「编辑」（铅笔）→ 找到「记一条」拖上去</string>
