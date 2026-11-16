@@ -518,6 +518,13 @@ object Prefs {
                 context, android.Manifest.permission.WRITE_CALENDAR
             )
 
+    /** 有读权限才能查日历（找不到事件就没法删/改期）。 */
+    fun hasCalendarReadPermission(context: Context): Boolean =
+        android.content.pm.PackageManager.PERMISSION_GRANTED ==
+            androidx.core.content.ContextCompat.checkSelfPermission(
+                context, android.Manifest.permission.READ_CALENDAR
+            )
+
     /** 列表里哪些分组被用户显式收起来了（默认状态由 DayGroups 决定）。 */
     fun collapsedGroups(context: Context): Set<String> =
         readGroupSet(context, KEY_COLLAPSED_GROUPS)

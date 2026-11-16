@@ -9,9 +9,16 @@ import androidx.core.content.ContextCompat
 
 object Permissions {
 
-    fun hasCalendar(context: Context): Boolean =
-        ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED &&
-            ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
+    /** 读写都给：列表、对账、全部日程这些要读日历的功能只在此时可用。 */
+    fun hasCalendar(context: Context): Boolean = hasCalendarRead(context) && hasCalendarWrite(context)
+
+    fun hasCalendarRead(context: Context): Boolean =
+        ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) ==
+            PackageManager.PERMISSION_GRANTED
+
+    fun hasCalendarWrite(context: Context): Boolean =
+        ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_CALENDAR) ==
+            PackageManager.PERMISSION_GRANTED
 
     fun hasNotificationAccess(context: Context): Boolean = try {
         NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)

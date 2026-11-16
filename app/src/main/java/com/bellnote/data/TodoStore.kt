@@ -83,6 +83,43 @@ class TodoStore(context: Context) {
         emptyList()
     }
 
+    /**
+     * 没有日历读取权限时的替身：日历查不了，只能按本地账本找出「要删/要改」的那几条。
+     *
+     * 条件与 CalendarRepository.findOwnEvents 对齐：标题一致（TitleKey.same）+ 30 分钟窗口；
+     * 只返回还有 eventId 的活条目——没 eventId 就没法按 id 去日历里删。
+     */
+    @Synchronized
+    fun findActive(
+        title: String?,
+        targetMillis: Long?,
+        notAfterCreated: Long? = null
+    ): List<LocalTodo> {
+        val wanted = title?.trim().orEmpty()
+        if (wanted.isEmpty() && targetMillis == null) return emptyList()
+        val args = mutableListOf(STATUS_ACTIVE)
+        val sql = StringBuilder("SELECT * FROM $TABLE WHERE $COL_STATUS = ? AND $COL_EVENT_ID > 0")
+        if (targetMillis != null) {
+            val range = DeleteWindow.rangeOf(targetMillis)
+            sql.append(" AND $COL_START >= ? AND $COL_START <= ?")
+            args.add(range.first.toString())
+            args.add(range.last.toString())
+        }
+        if (notAfterCreated != null) {
+            sql.append(" AND $COL_CREATED <= ?")
+            args.add(notAfterCreated.toString())
+        }
+        sql.append(" ORDER BY $COL_START ASC")
+        return try {
+            helper.readableDatabase.rawQuery(sql.toString(), args.toTypedArray()).use { cursor ->
+                collect(cursor).filter { wanted.isEmpty() || TitleKey.same(it.title, wanted) }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "按本地账本查找条目失败", e)
+            emptyList()
+        }
+    }
+
     /** 写日历成功后记一笔；同标题同时间视为同一条，重复推送不会变成两条。 */
     @Synchronized
     fun record(spec: TodoSpec, eventId: Long, source: String) {

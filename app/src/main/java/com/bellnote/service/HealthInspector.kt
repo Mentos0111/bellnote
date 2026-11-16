@@ -35,15 +35,22 @@ object HealthInspector {
         val vendor = DeviceVendor.current()
 
         // 1) 日历权限
-        val hasCalendar = Permissions.hasCalendar(app)
+        val canRead = Permissions.hasCalendarRead(app)
+        val canWrite = Permissions.hasCalendarWrite(app)
+        val hasCalendar = canRead && canWrite
         items.add(
-            if (hasCalendar) {
-                HealthCheck.Item(
+            when {
+                hasCalendar -> HealthCheck.Item(
                     "calendar_permission", "日历权限", HealthCheck.Status.OK,
                     "已授权读写日历", HealthCheck.Action.CALENDAR
                 )
-            } else {
-                HealthCheck.Item(
+                // 只给了写入：推送进来的待办还能写、能按账本删，但查/对账/全部日程用不了
+                canWrite -> HealthCheck.Item(
+                    "calendar_permission", "日历权限", HealthCheck.Status.WARN,
+                    "只有写入权限：写待办、按账本删还行；列表/对账/改期要开「读取日历」",
+                    HealthCheck.Action.CALENDAR
+                )
+                else -> HealthCheck.Item(
                     "calendar_permission", "日历权限", HealthCheck.Status.BAD,
                     "没有日历权限：待办写不进去",
                     HealthCheck.Action.CALENDAR

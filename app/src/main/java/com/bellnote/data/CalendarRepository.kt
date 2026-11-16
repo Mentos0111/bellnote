@@ -63,6 +63,15 @@ class CalendarRepository(private val context: Context) {
 
     /** 设置里选过的日历优先；没选过或已失效就退回主日历 / 第一个可写日历。 */
     fun defaultCalendarId(): Long {
+        // 只给写入权限时查不了日历列表：先用缓存 id，没有就建一本本地日历并把 id 记下来
+        // （不能每次去建，否则每发一条通知就多出一本「待办」日历）
+        if (!Prefs.hasCalendarReadPermission(context)) {
+            val cached = Prefs.calendarId(context)
+            if (cached > 0) return cached
+            val created = createLocalCalendar()
+            if (created > 0) Prefs.setCalendarId(context, created)
+            return created
+        }
         var all = listCalendars()
         if (all.isEmpty()) {
             // 手机上没有任何可写日历（无 GMS / 没建过本地日历）时，自建一本
@@ -410,7 +419,8 @@ class CalendarRepository(private val context: Context) {
     }
 
     private fun eventValues(spec: TodoSpec, calendarId: Long): ContentValues = ContentValues().apply {
-        put(Events.CALENDAR_ID, calendarId)
+        // 只写模式下拿不到（也不想猜）日历 id：不写 CALENDAR_ID，别把事件挪到 id=-1 的日历里
+        if (calendarId > 0) put(Events.CALENDAR_ID, calendarId)
         put(Events.TITLE, spec.title)
         put(Events.DESCRIPTION, buildDescription(spec.note))
         put(Events.DTSTART, spec.startMillis)
