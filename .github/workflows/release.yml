@@ -87,7 +87,7 @@ jobs:
           java-version: '17'
 
       - name: Set up Gradle cache
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Prepare Android SDK
         run: |
@@ -115,7 +115,7 @@ jobs:
           java-version: '17'
 
       - name: Set up Gradle cache
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Prepare Android SDK
         # 不再用 android-actions/setup-android：它内部跑 `sdkmanager tools`，
