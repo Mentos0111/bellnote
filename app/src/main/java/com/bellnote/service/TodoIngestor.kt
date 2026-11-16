@@ -77,11 +77,15 @@ object TodoIngestor {
         val app = context.applicationContext
         // 按需详细日志（默认关）：只在本机私有目录留 24 小时
         com.bellnote.util.VerboseLog.append(app, "收", "title=$title | text=$text")
-        if (!Permissions.hasCalendar(app)) {
-            Prefs.addIgnoredNotice(app, "缺少日历权限", text)
-            Log.i(TAG, "缺少日历权限，跳过")
+        if (!Permissions.hasCalendarWrite(app)) {
+            Prefs.addIgnoredNotice(app, "缺少日历写入权限", text)
+            Log.i(TAG, "缺少日历写入权限，跳过")
             return Outcome("没能写入日历", "缺少日历权限：打开 App 授权后再发一次通知", dropped = 1)
         }
+        // 只给「写入」不给「读取」时，日历查不了：创建靠本地账本判重，删除/改期只能按账本里记的
+        // eventId 直接操作。列表、对账、全部日程这些要读日历的功能仍然只在读写都给时可用。
+        val canRead = Permissions.hasCalendarRead(app)
+        if (!canRead) Log.i(TAG, "只有写入权限：按本地账本处理")
 
         val repository = CalendarRepository(app)
         val store = TodoStore(app)
@@ -91,10 +95,10 @@ object TodoIngestor {
         if (command != null) {
             return when (command.type) {
                 TodoParser.CommandType.DELETE ->
-                    handleDelete(app, repository, store, command, messageTime)
+                    handleDelete(app, repository, store, command, messageTime, canRead)
 
                 TodoParser.CommandType.MOVE ->
-                    handleMove(app, repository, store, command)
+                    handleMove(app, repository, store, command, canRead)
             }
         }
 
@@ -135,8 +139,23 @@ object TodoIngestor {
         for (result in results) {
             val spec = result.spec
             // 同标题同开始时间已经存在：内容没变就跳过，变了就更新（不再一律当重复丢弃）
-            val existing = repository.findOwnEvents(spec.title, spec.startMillis)
-                .firstOrNull { it.startMillis == spec.startMillis }
+            val existing = if (canRead) {
+                repository.findOwnEvents(spec.title, spec.startMillis)
+                    .firstOrNull { it.startMillis == spec.startMillis }
+            } else {
+                // 只写模式：日历查不到，用本地账本冒充「已存在」的那条，避免重复推送写成两条
+                store.findActive(spec.title, spec.startMillis).firstOrNull()?.let {
+                    TodoItem(
+                        id = it.eventId,
+                        title = it.title,
+                        startMillis = it.startMillis,
+                        durationMinutes = it.durationMinutes,
+                        note = it.note,
+                        repeat = it.repeat,
+                        calendarId = Prefs.calendarId(app)
+                    )
+                }
+            }
             if (existing != null) {
                 if (SpecDiff.differs(existing, spec)) {
                     val ok = repository.updateEvent(existing.id, spec, existing.calendarId)
@@ -212,8 +231,10 @@ object TodoIngestor {
         repository: CalendarRepository,
         store: TodoStore,
         command: TodoParser.Command,
-        messageTime: Long
+        messageTime: Long,
+        canRead: Boolean
     ): Outcome {
+        if (!canRead) return handleDeleteFromLedger(context, repository, store, command, messageTime)
         if (command.title.isNullOrBlank() && command.timeMillis == null) {
             return Outcome("删除指令缺内容", "至少给标题，例如：删除：数学作业", isDelete = true)
         }
@@ -301,6 +322,82 @@ object TodoIngestor {
     }
 
     /**
+     * 只写模式下的删除：不查日历，按本地账本里记的 eventId 直接删。
+     *
+     * 限制：账本里没有的事件（在系统日历里手建的、或账本被清过）删不到。这种情况不冒充成功、
+     * 也不把账本标成「已删除」，而是提示去补「读取日历」权限——否则对账会一直以为删掉了。
+     */
+    private fun handleDeleteFromLedger(
+        context: Context,
+        repository: CalendarRepository,
+        store: TodoStore,
+        command: TodoParser.Command,
+        messageTime: Long
+    ): Outcome {
+        val now = System.currentTimeMillis()
+        val isReplay = messageTime < now - REPLAY_GUARD_GAP_MS
+        val candidates = store.findActive(
+            command.title,
+            command.timeMillis,
+            if (isReplay) messageTime else null
+        )
+        Log.i(
+            TAG,
+            "删除（只写模式）title=${command.title} time=${command.timeMillis} 账本匹配 ${candidates.size} 条"
+        )
+        if (candidates.isEmpty()) {
+            val what = buildString {
+                if (!command.title.isNullOrBlank()) append(command.title)
+                if (command.timeMillis != null) {
+                    if (isNotEmpty()) append(" ")
+                    append(TimeFormat.full(command.timeMillis))
+                }
+            }
+            Prefs.addIgnoredNotice(context, "只写模式：账本里没有要删的条目", command.title.orEmpty())
+            return Outcome(
+                noticeTitle = "删除没做成：缺日历读取权限",
+                noticeBody = "现在只有「写入日历」权限，删除只能按本地账本删；账本里没有匹配「$what」的条目。" +
+                    "去系统设置里把「读取日历」也打开，就能按日历里的实际内容删。",
+                isDelete = true
+            )
+        }
+
+        val deleted = mutableListOf<String>()
+        val deletedIds = mutableListOf<Long>()
+        for (todo in candidates) {
+            if (repository.deleteEvent(todo.eventId)) {
+                deleted.add("· ${todo.title}　${TimeFormat.full(todo.startMillis)}")
+                deletedIds.add(todo.eventId)
+            }
+        }
+        if (deletedIds.isNotEmpty()) store.markDeletedByEventIds(deletedIds)
+        if (!command.title.isNullOrBlank()) {
+            store.markDeletedByTitle(
+                command.title,
+                command.timeMillis,
+                if (isReplay) messageTime else null
+            )
+        }
+
+        return if (deleted.isEmpty()) {
+            Prefs.addIgnoredNotice(context, "删除被系统拒绝", command.title.orEmpty())
+            Outcome(
+                noticeTitle = "删除失败",
+                noticeBody = "系统日历拒绝了删除：${candidates.size} 条都没删掉",
+                isDelete = true
+            )
+        } else {
+            Outcome(
+                noticeTitle = "已删除 ${deleted.size} 条待办",
+                noticeBody = deleted.joinToString("\n") +
+                    "\n（只写模式：按本地账本删的，日历里没有记录的事件删不到）",
+                wrote = deleted.size,
+                isDelete = true
+            )
+        }
+    }
+
+    /**
      * 改期：按「标题 + 原时间」找到那一条，把开始时间换掉，其余字段（时长/备注/重复）原样保留。
      * 「周四化学挪到周六」这种一次搞定，不用先删再建（以前删成功、建失败就半残）。
      */
@@ -308,8 +405,18 @@ object TodoIngestor {
         context: Context,
         repository: CalendarRepository,
         store: TodoStore,
-        command: TodoParser.Command
+        command: TodoParser.Command,
+        canRead: Boolean
     ): Outcome {
+        if (!canRead) {
+            // 改期要先读出原事件（时长/备注/重复都要原样保留），只写权限做不到，别糊弄
+            return Outcome(
+                noticeTitle = "改期做不了：缺日历读取权限",
+                noticeBody = "改期要先读出原事件，现在只有「写入日历」权限。" +
+                    "去系统设置里把「读取日历」也打开，再发一次。",
+                isDelete = true
+            )
+        }
         if (command.title.isNullOrBlank()) {
             return Outcome("改期指令缺标题", "至少给标题，例如：改期：化学课 2026-11-12 20:30 到 2026-11-14 20:30")
         }
