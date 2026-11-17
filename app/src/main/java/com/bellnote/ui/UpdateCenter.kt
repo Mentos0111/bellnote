@@ -1,8 +1,15 @@
-﻿package com.bellnote.ui
+package com.bellnote.ui
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ScrollView
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.bellnote.R
 import com.bellnote.data.Prefs
@@ -42,19 +49,23 @@ object UpdateCenter {
         if (last == 0 || current <= last) return
 
         val versionName = UpdateChecker.currentVersionName(activity)
-        val changelog = UpdateChecker.bundledChangelog(activity)
-        var body = UpdateChecker.sectionOf(changelog, versionName)
+        val body = UpdateChecker.prettify(
+            UpdateChecker.sectionOf(UpdateChecker.bundledChangelog(activity), versionName)
+        )
         if (body.isBlank()) return
-        body = prettify(body)
 
         if (activity.isFinishing || dialogShowing) return
         dialogShowing = true
-        AlertDialog.Builder(activity)
-            .setTitle(activity.getString(R.string.version_updated_title, versionName))
-            .setMessage(body)
-            .setPositiveButton(R.string.version_updated_ok, null)
-            .setOnDismissListener { dialogShowing = false }
-            .show()
+        showVersionDialog(
+            activity = activity,
+            title = activity.getString(R.string.version_updated_title, versionName),
+            subtitle = activity.getString(R.string.version_updated_subtitle),
+            body = body,
+            primaryText = activity.getString(R.string.version_updated_ok),
+            primaryAction = { },
+            secondaryText = null,
+            secondaryAction = null,
+        )
     }
 
     private fun maybePromptNewVersion(activity: Activity, info: UpdateChecker.Info) {
@@ -63,28 +74,86 @@ object UpdateCenter {
         if (info.versionCode <= current) return
         if (Prefs.updateDismissedCode(activity) == info.versionCode) return
 
-        val notes = prettify(info.notes).ifBlank {
+        val body = UpdateChecker.prettify(info.notes).ifBlank {
             activity.getString(R.string.version_new_no_notes)
         }
-        val message = activity.getString(
-            R.string.version_new_message,
-            info.versionName,
-            UpdateChecker.currentVersionName(activity),
-            notes,
-        )
         dialogShowing = true
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.version_new_title)
-            .setMessage(message)
-            .setPositiveButton(R.string.version_go_download) { _, _ ->
-                openDownload(activity, info.downloadUrl)
-            }
-            .setNegativeButton(R.string.version_later) { _, _ ->
-                Prefs.setUpdateDismissedCode(activity, info.versionCode)
-            }
-            .setOnDismissListener { dialogShowing = false }
-            .show()
+        showVersionDialog(
+            activity = activity,
+            title = activity.getString(R.string.version_new_title),
+            subtitle = activity.getString(
+                R.string.version_new_subtitle,
+                UpdateChecker.currentVersionName(activity),
+                info.versionName,
+            ),
+            body = body,
+            primaryText = activity.getString(R.string.version_go_download),
+            primaryAction = { openDownload(activity, info.downloadUrl) },
+            secondaryText = activity.getString(R.string.version_later),
+            secondaryAction = { Prefs.setUpdateDismissedCode(activity, info.versionCode) },
+        )
     }
+
+    /**
+     * 版本弹窗的统一外观：圆角卡片、版本号一行、可滚动的改动说明、右下两颗按钮。
+     * 说明太长时正文最高约占屏幕 38%，超出就滚动，弹窗不会顶到屏幕外。
+     */
+    private fun showVersionDialog(
+        activity: Activity,
+        title: String,
+        subtitle: String,
+        body: String,
+        primaryText: String,
+        primaryAction: () -> Unit,
+        secondaryText: String?,
+        secondaryAction: (() -> Unit)?,
+    ) {
+        val view = LayoutInflater.from(activity).inflate(R.layout.dialog_update, null)
+        view.findViewById<TextView>(R.id.tvDialogTitle).text = title
+        view.findViewById<TextView>(R.id.tvDialogSubtitle).text = subtitle
+        view.findViewById<TextView>(R.id.tvDialogBody).text = body
+        val scroll = view.findViewById<ScrollView>(R.id.svDialogBody)
+        val primary = view.findViewById<TextView>(R.id.btnDialogPrimary)
+        val secondary = view.findViewById<TextView>(R.id.btnDialogSecondary)
+
+        primary.text = primaryText
+        if (secondaryText.isNullOrBlank()) {
+            secondary.visibility = View.GONE
+        } else {
+            secondary.text = secondaryText
+            secondary.setOnClickListener {
+                secondaryAction?.invoke()
+                dialogRef?.dismiss()
+            }
+        }
+
+        val dialog = AlertDialog.Builder(activity).setView(view).create()
+        dialogRef = dialog
+        dialog.setOnDismissListener { dialogShowing = false }
+        primary.setOnClickListener {
+            primaryAction()
+            dialog.dismiss()
+        }
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.setOnShowListener {
+            val metrics = activity.resources.displayMetrics
+            dialog.window?.setLayout(
+                (metrics.widthPixels * 0.86f).toInt(),
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+            )
+            val maxBody = (metrics.heightPixels * 0.38f).toInt()
+            scroll.post {
+                if (scroll.height > maxBody) {
+                    val lp = scroll.layoutParams
+                    lp.height = maxBody
+                    scroll.layoutParams = lp
+                }
+            }
+        }
+        dialog.show()
+    }
+
+    private var dialogRef: AlertDialog? = null
 
     /** 设置页里手动点「检查更新」：有结果给一句 toast，没结果也说一声（用户是主动点的，别静默）。 */
     fun manualCheck(activity: Activity, onResult: (String) -> Unit) {
@@ -121,13 +190,11 @@ object UpdateCenter {
     }
 
     private fun openDownload(activity: Activity, url: String) {
-        val target = url.ifBlank { "https://gitee.com/Mentos0111/bellnote/releases/download/latest/bellnote-latest.apk" }
+        val target = url.ifBlank {
+            "https://gitee.com/Mentos0111/bellnote/releases/download/latest/bellnote-latest.apk"
+        }
         runCatching {
             activity.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(target)))
         }
     }
-
-    /** 见 UpdateChecker.prettify：纯字符串逻辑放在那边，方便单测。 */
-    private fun prettify(markdown: String): String = UpdateChecker.prettify(markdown)
 }
-

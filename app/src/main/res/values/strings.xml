@@ -146,6 +146,8 @@
     <string name="version_check_failed">没查到更新信息：可能是网络没通，或服务器暂时没响应。过会儿再试。</string>
     <string name="version_is_latest">已是最新版（%1$s）</string>
     <string name="version_new_title">发现新版本</string>
+    <string name="version_new_subtitle">%1$s  →  %2$s（可以用新版了）</string>
+    <string name="version_updated_subtitle">这一版更新了什么</string>
     <string name="version_new_message">新版本 %1$s（当前 %2$s）\n\n%3$s\n\n点「去下载」会打开浏览器，从国内直链下载安装包。</string>
     <string name="version_new_no_notes">这一版主要是修问题和优化细节。</string>
     <string name="version_go_download">去下载</string>
