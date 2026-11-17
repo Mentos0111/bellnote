@@ -30,6 +30,8 @@ object Prefs {
     /** 截图监听：截完图自动问「要不要识别成待办」。 */
     private const val KEY_SHOT_WATCH = "shot_watch_enabled"
     private const val KEY_LAST_SHOT_ID = "last_shot_id"
+    private const val KEY_LAST_SHOT_AT = "last_shot_at"
+    private const val KEY_LAST_NOTIFY_ID = "last_shot_notify_id"
     private const val KEY_NOTIF_BANNER_GUIDED = "notif_banner_guided"
 
     private const val KEY_RECONCILE_ENABLED = "reconcile_enabled"
@@ -166,8 +168,21 @@ object Prefs {
     /** 已经提醒过的最后一张截图的 MediaStore id，避免同一张反复弹。 */
     fun lastShotId(context: Context): Long = sp(context).getLong(KEY_LAST_SHOT_ID, -1L)
 
-    fun setLastShotId(context: Context, id: Long) {
-        sp(context).edit().putLong(KEY_LAST_SHOT_ID, id).apply()
+    /** 已经提醒过的那张截图的入库时间（毫秒）。MediaStore 的 id 偶尔会被重置，靠它兜底判重。 */
+    fun lastShotAt(context: Context): Long = sp(context).getLong(KEY_LAST_SHOT_AT, -1L)
+
+    fun setLastShot(context: Context, id: Long, addedAt: Long) {
+        sp(context).edit()
+            .putLong(KEY_LAST_SHOT_ID, id)
+            .putLong(KEY_LAST_SHOT_AT, addedAt)
+            .apply()
+    }
+
+    /** 上一条「识别这张截图？」通知的编号：换号重发才会再弹一次横幅。 */
+    fun lastShotNotifyId(context: Context): Int = sp(context).getInt(KEY_LAST_NOTIFY_ID, 0)
+
+    fun setLastShotNotifyId(context: Context, id: Int) {
+        sp(context).edit().putInt(KEY_LAST_NOTIFY_ID, id).apply()
     }
 
     // ---------------- 截图识别现场 ----------------

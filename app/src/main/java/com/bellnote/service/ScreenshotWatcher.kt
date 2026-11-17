@@ -38,7 +38,10 @@ object ScreenshotWatcher {
     // 通道建好后重要性改不了，所以「默认弹窗」只能用新 id 重建：v1 是 IMPORTANCE_DEFAULT（不弹）
     private const val CHANNEL_ID = "screenshot_watch_v2"
     private const val LEGACY_CHANNEL_ID = "screenshot_watch"
-    private const val NOTIFY_ID = 4101
+    // 每条提醒换个通知编号：同一个编号连发两次，系统只更新内容、不会再弹一次横幅
+    //（2026-11-17 真机复现：短时间内连截几张，第一张弹、后面全都不弹）。
+    private const val NOTIFY_ID_BASE = 4101
+    private const val NOTIFY_ID_SPAN = 1000
     private const val REQ_OPEN = 4102
     // 单独成组、只让子通知自己弹：否则 App 里有别的通知时，系统会弹「1 条通知」的组摘要，
     // 看不到「识别这张截图？」和按钮（2026-11-17 真机实测）。
@@ -53,14 +56,38 @@ object ScreenshotWatcher {
      * 原来只翻 8 张，中间夹了几张相机/微信图片就把截图挡在窗口外（2026-11-17 真机复现）。
      */
     const val SCAN_DEPTH = 30
+    /**
+     * 相册回调来了之后再多查几次（毫秒）。
+     * 系统存截图是「先插一条待入库的记录、再补完」，回调常常比记录可查早 1–3 秒；
+     * 只查一次就会偶发漏掉（2026-11-17 真机复现：同样是后台截图，有时 1 秒弹出、有时一直不弹）。
+     */
+    val SETTLE_DELAYS_MS = longArrayOf(0, 800, 2_000, 4_000, 7_000)
 
     private var registered = false
+    private var settleToken = 0
+    // 懒初始化：单元测试在 JVM 上跑，类一加载就摸 Looper 会直接崩
+    private val mainHandler: Handler by lazy { Handler(Looper.getMainLooper()) }
+
+    /** 下一条通知的编号：在上一条基础上 +1，用满一圈后绕回起点。纯函数，已单测。 */
+    fun nextNotifyId(prev: Int): Int {
+        val normalized = if (prev < NOTIFY_ID_BASE) NOTIFY_ID_BASE - 1 else prev
+        return NOTIFY_ID_BASE + ((normalized - NOTIFY_ID_BASE + 1) % NOTIFY_ID_SPAN)
+    }
 
     /** 这张截图该不该弹：比上次提醒过的新，而且在新鲜窗口内。纯函数，已单测。 */
-    fun shouldNotify(id: Long, lastShotId: Long, addedAt: Long, now: Long): Boolean {
-        if (id <= lastShotId) return false
+    fun shouldNotify(
+        id: Long,
+        lastShotId: Long,
+        addedAt: Long,
+        now: Long,
+        lastShotAt: Long = -1L
+    ): Boolean {
         if (addedAt <= 0L || addedAt > now) return false
-        return now - addedAt <= FRESH_WINDOW_MS
+        if (now - addedAt > FRESH_WINDOW_MS) return false
+        if (id > lastShotId) return true
+        // MediaStore 的 id 偶有重置（换机还原、相册库重建），只比 id 会从此再也不弹；
+        // 这时用「入库时间比上一条新」兜底。
+        return addedAt > lastShotAt
     }
 
 
@@ -73,7 +100,8 @@ object ScreenshotWatcher {
         try {
             val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
                 override fun onChange(selfChange: Boolean, uri: Uri?) {
-                    checkLatest(app)
+                    Log.i(TAG, "相册有变化，开始补查：$uri")
+                    scheduleChecks(app)
                 }
             }
             app.contentResolver.registerContentObserver(
@@ -81,21 +109,57 @@ object ScreenshotWatcher {
             )
             registered = true
             // 进程刚起来时补查一次：冻结期间截的图别漏掉
-            checkLatest(app)
+            scheduleChecks(app)
         } catch (e: Exception) {
             Log.w(TAG, "注册截图监听失败", e)
         }
     }
 
-    /** 查最近一张截图，比上次提醒过的新就发通知。 */
-    fun checkLatest(context: Context) {
-        if (!Prefs.shotWatchEnabled(context)) return
-        if (!Permissions.hasMediaImages(context)) return
-        val shot = latestScreenshot(context) ?: return
+    /**
+     * 相册变化后连查几秒：入库有延迟，查一次容易扑空。
+     * 同一个 token 的后续补查，在已经弹过之后自动作废。
+     */
+    fun scheduleChecks(context: Context) {
+        val app = context.applicationContext
+        settleToken++
+        val token = settleToken
+        for (delay in SETTLE_DELAYS_MS) {
+            mainHandler.postDelayed({
+                if (token != settleToken) return@postDelayed
+                if (checkLatest(app)) settleToken++   // 已提醒，作废剩下的补查
+            }, delay)
+        }
+    }
+
+    /**
+     * 查最近一张截图，比上次提醒过的新就发通知。
+     * @return true 表示这次真的发出了通知
+     */
+    fun checkLatest(context: Context): Boolean {
+        if (!Prefs.shotWatchEnabled(context)) return false
+        if (!Permissions.hasMediaImages(context)) {
+            Log.i(TAG, "没有相册权限，跳过补查")
+            return false
+        }
+        val shot = latestScreenshot(context) ?: run {
+            Log.i(TAG, "最近 $SCAN_DEPTH 张图里没找到截图")
+            return false
+        }
         val now = System.currentTimeMillis()
-        if (!shouldNotify(shot.id, Prefs.lastShotId(context), shot.addedAt, now)) return
-        Prefs.setLastShotId(context, shot.id)
-        notify(context, shot)
+        val lastId = Prefs.lastShotId(context)
+        val lastAt = Prefs.lastShotAt(context)
+        if (!shouldNotify(shot.id, lastId, shot.addedAt, now, lastAt)) {
+            Log.i(TAG, "不提醒：id=${shot.id}(上次 $lastId) 时间=${shot.addedAt}(上次 $lastAt)")
+            return false
+        }
+        // 先发通知，发成功了才记「已提醒」：免得通知被系统拦掉时把这张截图永久吃掉
+        if (!notify(context, shot)) {
+            Log.i(TAG, "通知没发出去（权限/通道被关），下次再试")
+            return false
+        }
+        Prefs.setLastShot(context, shot.id, shot.addedAt)
+        Log.i(TAG, "已提醒：id=${shot.id} ${shot.name}")
+        return true
     }
 
     private data class Shot(
@@ -151,8 +215,13 @@ object ScreenshotWatcher {
     /** 进程启动时先把通道建好（高重要性 + 清掉旧的），不用等第一张截图。 */
     fun prepareChannel(context: Context) = ensureChannel(context.applicationContext)
 
-    private fun notify(context: Context, shot: Shot) {
-        if (!Permissions.hasPostNotifications(context)) return
+    private fun notify(context: Context, shot: Shot): Boolean {
+        if (!Permissions.hasPostNotifications(context)) return false
+        val nm = NotificationManagerCompat.from(context)
+        if (!nm.areNotificationsEnabled()) {
+            Log.i(TAG, "App 的通知被系统关了，这次不发")
+            return false
+        }
         ensureChannel(context)
         val open = PendingIntent.getActivity(
             context,
@@ -177,9 +246,16 @@ object ScreenshotWatcher {
             .addAction(R.drawable.ic_notif_recognize, "识别这张", open)
             .build()
         try {
-            NotificationManagerCompat.from(context).notify(NOTIFY_ID, notification)
+            val prevId = Prefs.lastShotNotifyId(context)
+            val notifyId = nextNotifyId(prevId)
+            // 撤掉上一条：同一时刻只留最新的「识别这张截图？」，编号不同才会重新弹横幅
+            if (prevId >= NOTIFY_ID_BASE) nm.cancel(prevId)
+            nm.notify(notifyId, notification)
+            Prefs.setLastShotNotifyId(context, notifyId)
+            return true
         } catch (e: SecurityException) {
             Log.w(TAG, "没有通知权限，跳过截图提醒", e)
+            return false
         }
     }
 
