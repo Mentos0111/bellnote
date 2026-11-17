@@ -442,10 +442,13 @@ jobs:
           head = (
               "> 这是 **Bellnote %s** 的国内镜像，和 GitHub 上那一份是同一个包（SHA-256 一致）。\n"
               ">\n"
+              "> ⚠️ **手机下载后如果文件名变成 `bellnote-%s.apk.zip`（或提示是压缩包），把最后的 `.zip` 删掉、改成 `.apk`，再点它就能安装。**"
+              "这是 Gitee 把安装包误标成压缩包导致的，文件本身完好。\n"
+              ">\n"
               "> - 安装要求：Android 11 及以上\n"
               "> - SHA-256：`%s`\n"
               "> - GitHub 原版：https://github.com/%s/releases/tag/v%s\n\n---\n\n"
-          ) % (version, sha or "（见附件）", os.environ.get("GITHUB_REPOSITORY", ""), version)
+          ) % (version, version, sha or "（见附件）", os.environ.get("GITHUB_REPOSITORY", ""), version)
           open("gitee-notes.md", "w", encoding="utf-8").write(head + body + "\n")
           print("gitee-notes.md 写好")
           PY
