@@ -414,7 +414,8 @@ jobs:
           git remote add gitee "https://oauth2:${GITEE_TOKEN}@gitee.com/${GITEE_OWNER}/${GITEE_REPO}.git" 2>/dev/null || \
             git remote set-url gitee "https://oauth2:${GITEE_TOKEN}@gitee.com/${GITEE_OWNER}/${GITEE_REPO}.git"
           # 令牌不能落到日志里：git 报错会带远端地址，统一过一遍脱敏
-          { git push gitee "refs/tags/${TAG}:refs/tags/${TAG}" || \
+          # 除了本版 tag，再强制推一个 latest（Gitee 上「永远指向最新版」的发行版挂在这上面）
+          { git push -f gitee "refs/tags/${TAG}:refs/tags/${TAG}" "refs/tags/${TAG}:refs/tags/latest" || \
             echo "::warning::tag 推送失败（多半是 Gitee 上还没有这个 tag，先本地 git push 一次）"; } 2>&1 \
             | sed "s|${GITEE_TOKEN}|***|g"
 
@@ -465,4 +466,16 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/gitee_sync.py 2>&1 | sed "s|${GITEE_TOKEN}|***|g"
+
+      - name: Update the "always latest" link
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+          GITEE_OWNER: ${{ secrets.GITEE_OWNER }}
+          GITEE_REPO: ${{ secrets.GITEE_REPO }}
+          VERSION: ${{ needs.meta.outputs.version }}
+          APK_PATH: dist/bellnote-${{ needs.meta.outputs.version }}.apk
+        run: |
+          set -euo pipefail
+          python3 scripts/gitee_sync.py --latest 2>&1 | sed "s|${GITEE_TOKEN}|***|g"
 

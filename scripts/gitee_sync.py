@@ -94,8 +94,8 @@ def existing_assets(token, owner, repo, release_id):
     return [a.get("name") or a.get("title") for a in (data or [])]
 
 
-def upload(token, owner, repo, release_id, apk_path):
-    name = os.path.basename(apk_path)
+def upload(token, owner, repo, release_id, apk_path, remote_name=None):
+    name = remote_name or os.path.basename(apk_path)
     size = os.path.getsize(apk_path)
     if size > MAX_ASSET_BYTES:
         sys.exit("APK %d 字节，超过 Gitee 单附件 100MB 上限" % size)
@@ -125,16 +125,78 @@ def upload(token, owner, repo, release_id, apk_path):
             name, e.code, e.read().decode("utf-8", "replace")[:600]))
 
 
+LATEST_TAG = "latest"
+LATEST_ASSET = "bellnote-latest.apk"
+
+
+def gitee_latest_url(owner, repo):
+    return "https://gitee.com/%s/%s/releases/download/%s/%s" % (
+        owner, repo, LATEST_TAG, LATEST_ASSET)
+
+
+def sync_latest(token, owner, repo, apk_path, version, target="main"):
+    """维护「永远指向最新版」的固定链接。
+
+    做法：Gitee 上固定一个 tag 叫 latest 的发行版，附件名永远叫 bellnote-latest.apk，
+    每次发版把里面那一份换掉。这样 https://gitee.com/<o>/<r>/releases/download/latest/bellnote-latest.apk
+    这一条链接永远有效，发到群里/二维码里都不用再改。
+    """
+    rel = find_release(token, owner, repo, LATEST_TAG)
+    if rel is None:
+        print("创建 latest 发行版…")
+        rel = call("POST", "/repos/%s/%s/releases" % (owner, repo), token, data={
+            "access_token": token,
+            "tag_name": LATEST_TAG,
+            "name": "Bellnote 最新版",
+            "body": "最新版下载",
+            "target_commitish": target,
+            "prerelease": False,
+        })
+    else:
+        # 旧的附件必须清掉，否则同一个发行版里会堆一堆历史 apk
+        for a in existing_assets(token, owner, repo, rel["id"]):
+            call("DELETE", "/repos/%s/%s/releases/%s/attach_files/%s" % (
+                owner, repo, rel["id"], a["id"]), token,
+                params={"access_token": token})
+            print("删掉旧附件：", a)
+    body = (
+        "> 📌 **这一页永远是最新版**：把这条链接收藏/发出去就不用再换了，"
+        "每次发版这里会自动换成新包。\n>\n"
+        "> 当前版本：**%s**\n>\n"
+        "> - 直链：%s\n"
+        "> - 手机如果下到 `.apk.zip`，把最后的 `.zip` 删掉再点安装（Gitee 把安装包标成了压缩包）\n"
+        "> - 安装要求：Android 11 及以上\n"
+    ) % (version, gitee_latest_url(owner, repo))
+    call("PATCH", "/repos/%s/%s/releases/%s" % (owner, repo, rel["id"]), token, data={
+        "access_token": token,
+        "tag_name": LATEST_TAG,
+        "name": "Bellnote 最新版 %s" % version,
+        "body": body,
+        "prerelease": False,
+    })
+    upload(token, owner, repo, rel["id"], apk_path, remote_name=LATEST_ASSET)
+    print("GITEE_LATEST_URL=%s" % gitee_latest_url(owner, repo))
+    if os.environ.get("GITHUB_STEP_SUMMARY"):
+        with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
+            f.write("### 🔗 永远指向最新版\n\n- %s\n" % gitee_latest_url(owner, repo))
+
+
 def main():
     token = env("GITEE_TOKEN", required=True)
     owner = env("GITEE_OWNER", required=True)
     repo = env("GITEE_REPO", required=True)
-    tag = env("TAG", required=True)
-    version = tag.lstrip("v")
     apk = env("APK_PATH", required=True)
-    target = env("GITEE_BRANCH", "master")
     if not os.path.exists(apk):
         sys.exit("找不到 APK：%s" % apk)
+
+    if "--latest" in sys.argv:
+        version = env("VERSION") or env("TAG", required=True).lstrip("v")
+        sync_latest(token, owner, repo, apk, version)
+        return
+
+    tag = env("TAG", required=True)
+    version = tag.lstrip("v")
+    target = env("GITEE_BRANCH", "master")
 
     body_path = env("BODY_PATH")
     if body_path and os.path.exists(body_path):
