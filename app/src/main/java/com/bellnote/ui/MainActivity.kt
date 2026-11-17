@@ -153,6 +153,8 @@ class MainActivity : AppCompatActivity() {
         }
         maybeAskEngine()
         maybeGuideNotificationBanner()
+        // 每次启动查一次更新；刚更新完那次先弹更新日志。失败静默，不挡启动。
+        UpdateCenter.onAppStart(this)
     }
 
     /**

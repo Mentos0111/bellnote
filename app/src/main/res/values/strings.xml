@@ -137,6 +137,21 @@
     <string name="about_action_repo">在 GitHub 上查看</string>
     <string name="about_privacy">隐私说明：所有待办、账本和截图识别结果都只存在这台手机上。只有你在 App 里主动点「识别」时，图片才会发送到 DeepSeek 用于提取日程；不收集设备信息，也不含任何统计 SDK。</string>
     <string name="about_entry">关于 Bellnote</string>
+
+    <!-- 版本信息（与「输入渠道」「日历与同步」同级的分组） -->
+    <string name="version_group_title">版本信息</string>
+    <string name="version_check_entry">检查更新</string>
+    <string name="version_check_hint">当前版本 %1$s。每次打开 App 会自动查一次；这里可以手动再查。</string>
+    <string name="version_checking">正在检查更新…</string>
+    <string name="version_check_failed">没查到更新信息：可能是网络没通，或服务器暂时没响应。过会儿再试。</string>
+    <string name="version_is_latest">已是最新版（%1$s）</string>
+    <string name="version_new_title">发现新版本</string>
+    <string name="version_new_message">新版本 %1$s（当前 %2$s）\n\n%3$s\n\n点「去下载」会打开浏览器，从国内直链下载安装包。</string>
+    <string name="version_new_no_notes">这一版主要是修问题和优化细节。</string>
+    <string name="version_go_download">去下载</string>
+    <string name="version_later">以后再说</string>
+    <string name="version_updated_title">已更新到 %1$s</string>
+    <string name="version_updated_ok">知道了</string>
     <string name="onboarding_1_title">三种方式，都能记</string>
     <string name="onboarding_1_body">Bellnote 把要说的事写进手机日历，到点提醒。\n截图、说一句话、分享一段文字，怎么顺手怎么来。</string>
     <string name="onboarding_1_way1">一句话</string>

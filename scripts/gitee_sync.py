@@ -94,6 +94,13 @@ def existing_assets(token, owner, repo, release_id):
     return [a.get("name") or a.get("title") for a in (data or [])]
 
 
+def existing_asset_rows(token, owner, repo, release_id):
+    """带 id 的原始列表（删附件要用 id）。"""
+    data = call("GET", "/repos/%s/%s/releases/%s/attach_files" % (owner, repo, release_id),
+                token, params={"access_token": token, "per_page": 100})
+    return list(data or [])
+
+
 def upload(token, owner, repo, release_id, apk_path, remote_name=None):
     name = remote_name or os.path.basename(apk_path)
     size = os.path.getsize(apk_path)
@@ -127,11 +134,59 @@ def upload(token, owner, repo, release_id, apk_path, remote_name=None):
 
 LATEST_TAG = "latest"
 LATEST_ASSET = "bellnote-latest.apk"
+VERSION_JSON_ASSET = "version.json"
 
 
 def gitee_latest_url(owner, repo):
     return "https://gitee.com/%s/%s/releases/download/%s/%s" % (
         owner, repo, LATEST_TAG, LATEST_ASSET)
+
+
+def gitee_version_json_url(owner, repo):
+    return "https://gitee.com/%s/%s/releases/download/%s/%s" % (
+        owner, repo, LATEST_TAG, VERSION_JSON_ASSET)
+
+
+def version_code_of(version):
+    """和发版脚本/Gradle 同一套规则：major*10000 + minor*100 + patch。"""
+    parts = (version.split(".") + ["0", "0"])[:3]
+    try:
+        major, minor, patch = (int(p) for p in parts)
+    except ValueError:
+        return 0
+    return major * 10000 + minor * 100 + patch
+
+
+def changelog_section(version):
+    """从仓库根 CHANGELOG.md 里切出本版小节，压成手机弹窗能看的纯文本。"""
+    path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "CHANGELOG.md")
+    if not os.path.exists(path):
+        return ""
+    text = open(path, encoding="utf-8").read()
+    lines = text.splitlines()
+    head = "## [%s]" % version
+    start = None
+    for i, line in enumerate(lines):
+        if line.startswith(head):
+            start = i + 1
+            break
+    if start is None:
+        return ""
+    out = []
+    for line in lines[start:]:
+        if line.startswith("## ["):
+            break
+        line = line.strip()
+        if not line:
+            continue
+        if line.startswith("#"):
+            continue
+        line = line.replace("**", "").replace("`", "")
+        if line.startswith("- "):
+            line = "· " + line[2:]
+        out.append(line)
+    notes = "\n".join(out)
+    return notes[:800]
 
 
 def sync_latest(token, owner, repo, apk_path, version, target="main"):
@@ -140,6 +195,8 @@ def sync_latest(token, owner, repo, apk_path, version, target="main"):
     做法：Gitee 上固定一个 tag 叫 latest 的发行版，附件名永远叫 bellnote-latest.apk，
     每次发版把里面那一份换掉。这样 https://gitee.com/<o>/<r>/releases/download/latest/bellnote-latest.apk
     这一条链接永远有效，发到群里/二维码里都不用再改。
+
+    同时挂一个 version.json 给 App 的「检查更新」读（地址也固定，客户端不用跟着改）。
     """
     rel = find_release(token, owner, repo, LATEST_TAG)
     if rel is None:
@@ -154,11 +211,11 @@ def sync_latest(token, owner, repo, apk_path, version, target="main"):
         })
     else:
         # 旧的附件必须清掉，否则同一个发行版里会堆一堆历史 apk
-        for a in existing_assets(token, owner, repo, rel["id"]):
+        for a in existing_asset_rows(token, owner, repo, rel["id"]):
             call("DELETE", "/repos/%s/%s/releases/%s/attach_files/%s" % (
                 owner, repo, rel["id"], a["id"]), token,
                 params={"access_token": token})
-            print("删掉旧附件：", a)
+            print("删掉旧附件：", a.get("name"))
     body = (
         "> 📌 **这一页永远是最新版**：把这条链接收藏/发出去就不用再换了，"
         "每次发版这里会自动换成新包。\n>\n"
@@ -175,10 +232,30 @@ def sync_latest(token, owner, repo, apk_path, version, target="main"):
         "prerelease": False,
     })
     upload(token, owner, repo, rel["id"], apk_path, remote_name=LATEST_ASSET)
+
+    # ---- version.json：给 App 的「检查更新」用 ----
+    import datetime
+    import hashlib
+    digest = hashlib.sha256(open(apk_path, "rb").read()).hexdigest()
+    info = {
+        "versionName": version,
+        "versionCode": version_code_of(version),
+        "publishedAt": datetime.date.today().isoformat(),
+        "downloadUrl": gitee_latest_url(owner, repo),
+        "sha256": digest,
+        "notes": changelog_section(version),
+    }
+    json_path = os.path.join(os.path.dirname(os.path.abspath(apk_path)), "version.json")
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(info, f, ensure_ascii=False, indent=2)
+    upload(token, owner, repo, rel["id"], json_path, remote_name=VERSION_JSON_ASSET)
+    print("VERSION_JSON_URL=%s" % gitee_version_json_url(owner, repo))
+    print("版本信息：%s (code %d)" % (version, info["versionCode"]))
     print("GITEE_LATEST_URL=%s" % gitee_latest_url(owner, repo))
     if os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
-            f.write("### 🔗 永远指向最新版\n\n- %s\n" % gitee_latest_url(owner, repo))
+            f.write("### 🔗 永远指向最新版\n\n- %s\n- %s\n" % (
+                gitee_latest_url(owner, repo), gitee_version_json_url(owner, repo)))
 
 
 def main():

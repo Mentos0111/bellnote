@@ -732,4 +732,58 @@ object Prefs {
     fun setLocalModelId(context: Context, id: String) {
         sp(context).edit().putString(KEY_LOCAL_MODEL_ID, id).apply()
     }
+
+    // ---------------- 版本检查 / 更新提示 ----------------
+    // 只存「服务器上最新一版长什么样」和「用户关掉了哪一版的提示」，
+    // 不上报任何设备信息（见 net/UpdateChecker）。
+
+    private const val KEY_UPDATE_LATEST_CODE = "update_latest_code"
+    private const val KEY_UPDATE_LATEST_NAME = "update_latest_name"
+    private const val KEY_UPDATE_LATEST_NOTES = "update_latest_notes"
+    private const val KEY_UPDATE_LATEST_URL = "update_latest_url"
+    private const val KEY_UPDATE_CHECKED_AT = "update_checked_at"
+    private const val KEY_UPDATE_DISMISSED_CODE = "update_dismissed_code"
+    private const val KEY_RUN_VERSION_CODE = "run_version_code"
+
+    /** 上一次检查更新拿到的版本号（0 表示从没查到过）。 */
+    fun updateLatestCode(context: Context): Int =
+        sp(context).getInt(KEY_UPDATE_LATEST_CODE, 0)
+
+    fun updateLatestName(context: Context): String =
+        sp(context).getString(KEY_UPDATE_LATEST_NAME, "").orEmpty()
+
+    fun updateLatestNotes(context: Context): String =
+        sp(context).getString(KEY_UPDATE_LATEST_NOTES, "").orEmpty()
+
+    fun updateLatestUrl(context: Context): String =
+        sp(context).getString(KEY_UPDATE_LATEST_URL, "").orEmpty()
+
+    fun updateCheckedAt(context: Context): Long =
+        sp(context).getLong(KEY_UPDATE_CHECKED_AT, 0L)
+
+    fun setUpdateResult(context: Context, code: Int, name: String, notes: String, url: String) {
+        sp(context).edit()
+            .putInt(KEY_UPDATE_LATEST_CODE, code)
+            .putString(KEY_UPDATE_LATEST_NAME, name)
+            .putString(KEY_UPDATE_LATEST_NOTES, notes)
+            .putString(KEY_UPDATE_LATEST_URL, url)
+            .putLong(KEY_UPDATE_CHECKED_AT, System.currentTimeMillis())
+            .apply()
+    }
+
+    /** 用户在提示框里点了「以后再说」，这一版就不再自动提示。 */
+    fun updateDismissedCode(context: Context): Int =
+        sp(context).getInt(KEY_UPDATE_DISMISSED_CODE, 0)
+
+    fun setUpdateDismissedCode(context: Context, code: Int) {
+        sp(context).edit().putInt(KEY_UPDATE_DISMISSED_CODE, code).apply()
+    }
+
+    /** 上一次运行的是哪个版本号；用来判断「是不是刚更新完」。 */
+    fun runVersionCode(context: Context): Int =
+        sp(context).getInt(KEY_RUN_VERSION_CODE, 0)
+
+    fun setRunVersionCode(context: Context, code: Int) {
+        sp(context).edit().putInt(KEY_RUN_VERSION_CODE, code).apply()
+    }
 }

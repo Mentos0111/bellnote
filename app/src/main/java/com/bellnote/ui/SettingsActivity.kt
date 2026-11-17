@@ -1,4 +1,4 @@
-package com.bellnote.ui
+﻿package com.bellnote.ui
 
 import android.Manifest
 import android.content.Intent
@@ -175,6 +175,14 @@ class SettingsActivity : AppCompatActivity() {
         }
         findViewById<Button>(R.id.btnAbout).setOnClickListener {
             startActivity(Intent(this, AboutActivity::class.java))
+        }
+        // 版本信息：手动检查更新。自动检查在每次冷启动时由 UpdateCenter 做。
+        findViewById<TextView>(R.id.tvVersionHint).text =
+            getString(R.string.version_check_hint, com.bellnote.net.UpdateChecker.currentVersionName(this))
+        findViewById<Button>(R.id.btnCheckUpdate).setOnClickListener {
+            UpdateCenter.manualCheck(this) { message ->
+                if (message.isNotBlank()) toast(message)
+            }
         }
         renderNtfyEntry()
         setupIntervalSpinner()
@@ -454,6 +462,7 @@ class SettingsActivity : AppCompatActivity() {
         bindSection(R.id.headCalendar, R.id.groupCalendar, R.id.arrowCalendar)
         bindSection(R.id.headBackup, R.id.groupBackup, R.id.arrowBackup)
         bindSection(R.id.headAppearance, R.id.groupAppearance, R.id.arrowAppearance)
+        bindSection(R.id.headVersion, R.id.groupVersion, R.id.arrowVersion)
         bindSection(R.id.headDiagnostics, R.id.groupDiagnostics, R.id.arrowDiagnostics)
     }
 
@@ -759,3 +768,4 @@ class SettingsActivity : AppCompatActivity() {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }
+

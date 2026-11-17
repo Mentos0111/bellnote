@@ -167,6 +167,12 @@ android {
         resources.excludes += setOf("META-INF/*.version", "META-INF/DEPENDENCIES")
     }
 
+    // 把仓库根的 CHANGELOG.md 塞进 APK 的 assets：升级后第一次启动要弹「更新日志」，
+    // 离线也得能显示。生成到 build/ 下，不动源码目录。
+    sourceSets.getByName("main").assets.srcDir(
+        layout.buildDirectory.dir("generated/changelogAssets")
+    )
+
     testOptions {
         unitTests.isReturnDefaultValues = false
     }
@@ -189,3 +195,10 @@ dependencies {
     // 原生库只保留 arm64（见上面的 abiFilters），包体 +11MB 左右。
     implementation("com.google.mediapipe:tasks-genai:0.10.24")
 }
+
+// 把 CHANGELOG.md 复制进 assets（见上面 sourceSets 里的 changelogAssets）。
+val copyChangelog by tasks.registering(Copy::class) {
+    from(rootProject.file("CHANGELOG.md"))
+    into(layout.buildDirectory.dir("generated/changelogAssets"))
+}
+tasks.named("preBuild") { dependsOn(copyChangelog) }

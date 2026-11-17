@@ -527,6 +527,56 @@
                 android:text="显示今天进度条" />
         </LinearLayout>
 
+        <!-- ================= 版本信息 ================= -->
+        <LinearLayout
+            android:id="@+id/headVersion"
+            style="@style/SettingsGroupHead">
+
+            <TextView
+                style="@style/SectionLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="0dp"
+                android:layout_weight="1"
+                android:text="@string/version_group_title" />
+
+            <ImageView
+                android:id="@+id/arrowVersion"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="6dp"
+                android:contentDescription="展开或收起"
+                android:src="@drawable/ic_chevron_right"
+                android:tint="?attr/bnTextSecondary" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/groupVersion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/btnCheckUpdate"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="@string/version_check_entry" />
+
+            <TextView
+                android:id="@+id/tvVersionHint"
+                style="@style/HintText"
+                android:layout_marginTop="6dp"
+                android:text="@string/version_check_hint" />
+
+            <Button
+                android:id="@+id/btnAbout"
+                style="@style/BtnTonal"
+                android:layout_marginTop="10dp"
+                android:text="@string/about_entry" />
+        </LinearLayout>
+
         <!-- ================= 诊断与帮助 ================= -->
         <LinearLayout
             android:id="@+id/headDiagnostics"
@@ -651,12 +701,6 @@
                 style="@style/BtnTonal"
                 android:layout_marginTop="10dp"
                 android:text="@string/perm_app_detail" />
-
-            <Button
-                android:id="@+id/btnAbout"
-                style="@style/BtnTonal"
-                android:layout_marginTop="10dp"
-                android:text="@string/about_entry" />
         </LinearLayout>
 
         <Button
