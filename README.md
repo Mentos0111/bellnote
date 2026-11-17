@@ -1,11 +1,12 @@
 # Bellnote
 
-**Turn ntfy notifications into calendar events — automatically, on-device.**
+**Screenshot → calendar todo: one sentence or one image, written into your calendar automatically.**
 
-Bellnote is a tiny Android app (no Google services required) that **pulls messages straight from your
-[ntfy](https://ntfy.sh) topic over HTTP** — no ntfy client app, no notification listener — parses the
-text, and writes it into your system calendar with two reminders. You can also create, edit, and
-delete todos from a local UI, or import them from a screenshot with a vision model.
+Bellnote is a small Android app (works without Google services) that turns a chat screenshot or a typed
+sentence into a real calendar event with reminders. A vision model reads the screenshot, splits the chat
+into every separate task, and lets you review before saving. [ntfy](https://ntfy.sh) is supported as an
+optional input source: if you already push reminders through it, the app polls your topic over HTTP and
+writes those messages into the calendar as well — no ntfy client, no notification access needed.
 
 [中文说明](#中文说明) · [LICENSE: MIT](LICENSE)
 
@@ -15,9 +16,12 @@ delete todos from a local UI, or import them from a screenshot with a vision mod
 
 ## Why
 
-If you already push reminders through ntfy (scripts, cron jobs, another assistant), this app turns
-those pushes into real calendar entries — with alarms, recurrence, and no cloud account. It also
-works on ROMs without Google Play Services (tested on realme UI 6).
+Most todos arrive as a chat message or a screenshot, and retyping them into a calendar is the annoying
+part. This app closes that gap: share or pick a screenshot, check the parsed items, save — the event is
+in your system calendar with alarms and recurrence.
+
+It also works on ROMs without Google Play Services (tested on realme UI 6), keeps everything local by
+default, and needs no account.
 
 ## Features
 
@@ -242,7 +246,7 @@ MIT — see [LICENSE](LICENSE). Third-party components, models and their license
 
 ## 中文说明
 
-**Bellnote** 把 ntfy 推送变成系统日历里的待办，全程在本机完成，不需要 Google 服务。
+**Bellnote** 把一张截图（或一句话）变成系统日历里的待办和提醒：识别在本地或你自己填的云端模型上完成，不需要 Google 服务；ntfy 只是可选的输入源之一。
 
 > 下面按版本从新到旧排列。
 >
