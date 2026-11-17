@@ -365,3 +365,101 @@ jobs:
           print("发布核验通过")
           PY
 
+  # 国内下载渠道：把这一版的 APK 再挂一份到 Gitee 发行版。
+  # 手机在国内直连 GitHub 下载很慢/打不开，Gitee 是国内的同类服务，链接长这样：
+  #   https://gitee.com/<用户名>/<仓库>/releases/download/v3.21.4/bellnote-3.21.4.apk
+  # 没配 GITEE_TOKEN / GITEE_OWNER / GITEE_REPO 三个 Secrets 就自动跳过（不红），
+  # 配歪了也只算「镜像失败」，continue-on-error 保证 GitHub 这边的发布不受影响。
+  gitee-mirror:
+    needs: [meta, publish]
+    if: ${{ needs.meta.outputs.prerelease == 'false' }}
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ref || github.ref }}
+          fetch-depth: 0
+
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: bellnote-apk
+          path: dist
+
+      - name: Skip when Gitee is not configured
+        id: gate
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+          GITEE_OWNER: ${{ secrets.GITEE_OWNER }}
+          GITEE_REPO: ${{ secrets.GITEE_REPO }}
+        run: |
+          if [ -z "${GITEE_TOKEN:-}" ] || [ -z "${GITEE_OWNER:-}" ] || [ -z "${GITEE_REPO:-}" ]; then
+            echo "::notice::没配 Gitee 的 3 个 Secrets，跳过国内镜像"
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push the tag to Gitee
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+          GITEE_OWNER: ${{ secrets.GITEE_OWNER }}
+          GITEE_REPO: ${{ secrets.GITEE_REPO }}
+          TAG: ${{ needs.meta.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git remote add gitee "https://oauth2:${GITEE_TOKEN}@gitee.com/${GITEE_OWNER}/${GITEE_REPO}.git" 2>/dev/null || \
+            git remote set-url gitee "https://oauth2:${GITEE_TOKEN}@gitee.com/${GITEE_OWNER}/${GITEE_REPO}.git"
+          # 令牌不能落到日志里：git 报错会带远端地址，统一过一遍脱敏
+          { git push gitee "refs/tags/${TAG}:refs/tags/${TAG}" || \
+            echo "::warning::tag 推送失败（多半是 Gitee 上还没有这个 tag，先本地 git push 一次）"; } 2>&1 \
+            | sed "s|${GITEE_TOKEN}|***|g"
+
+      - name: Build Gitee release notes
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          VERSION: ${{ needs.meta.outputs.version }}
+        run: |
+          python3 - <<'PY'
+          import os, re, hashlib, glob
+
+          version = os.environ["VERSION"]
+          text = open("CHANGELOG.md", encoding="utf-8").read()
+          m = re.search(r"^## \[" + re.escape(version) + r"\][^\n]*\n(.*?)(?=^## \[|\Z)",
+                        text, re.M | re.S)
+          body = m.group(1).strip() if m else ""
+          sha = ""
+          apks = sorted(glob.glob("dist/bellnote-*.apk"))
+          if apks:
+              h = hashlib.sha256()
+              with open(apks[0], "rb") as f:
+                  for chunk in iter(lambda: f.read(1 << 20), b""):
+                      h.update(chunk)
+              sha = h.hexdigest()
+          head = (
+              "> 这是 **Bellnote %s** 的国内镜像，和 GitHub 上那一份是同一个包（SHA-256 一致）。\n"
+              ">\n"
+              "> - 安装要求：Android 11 及以上\n"
+              "> - SHA-256：`%s`\n"
+              "> - GitHub 原版：https://github.com/%s/releases/tag/v%s\n\n---\n\n"
+          ) % (version, sha or "（见附件）", os.environ.get("GITHUB_REPOSITORY", ""), version)
+          open("gitee-notes.md", "w", encoding="utf-8").write(head + body + "\n")
+          print("gitee-notes.md 写好")
+          PY
+
+      - name: Create release and upload APK
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+          GITEE_OWNER: ${{ secrets.GITEE_OWNER }}
+          GITEE_REPO: ${{ secrets.GITEE_REPO }}
+          TAG: ${{ needs.meta.outputs.tag }}
+          APK_PATH: dist/bellnote-${{ needs.meta.outputs.version }}.apk
+          BODY_PATH: gitee-notes.md
+        run: |
+          set -euo pipefail
+          python3 scripts/gitee_sync.py 2>&1 | sed "s|${GITEE_TOKEN}|***|g"
+
