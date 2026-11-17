@@ -105,9 +105,9 @@ class QuickParseTest {
 
     @Test
     fun `标题不会把时间词带进去`() {
-        val result = parsed("明天下午三点 开家长会")
+        val result = parsed("明天下午三点 开项目会")
         assertNotNull(result)
-        assertEquals("开家长会", result!!.title)
+        assertEquals("开项目会", result!!.title)
     }
 
     @Test

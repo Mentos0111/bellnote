@@ -80,8 +80,8 @@ object VisionExtractor {
 
             示例输出（两件事）：
             [
-              {"title":"化学课：勒夏特列","time":"2026-11-09 14:30","duration":90,"repeat":"none","note":"11-09 14:30-16:00 上课\\n带上次的错题本\\n提前把错题拍照发家长"},
-              {"title":"补物理错题本","time":"2026-11-13 20:00","duration":60,"repeat":"none","note":"周五前完成\\n完成后拍照发家长"}
+              {"title":"化学课：勒夏特列","time":"2026-11-09 14:30","duration":90,"repeat":"none","note":"11-09 14:30-16:00 上课\\n带上次的错题本\\n提前把错题拍照发群里"},
+              {"title":"整理物理错题本","time":"2026-11-13 20:00","duration":60,"repeat":"none","note":"周五前完成\\n完成后拍照发群里"}
             ]
         """.trimIndent()
     }
