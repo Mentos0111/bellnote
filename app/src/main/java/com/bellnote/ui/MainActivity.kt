@@ -624,6 +624,8 @@ class MainActivity : AppCompatActivity() {
         }
         // 相册权限给过了就顺手挂上截图监听（没权限时内部直接返回）
         ScreenshotWatcher.ensureStarted(this)
+        // 进程被冻结时 observer 收不到回调：每次回前台都补查一次（4 小时内、最近 30 张图）
+        ScreenshotWatcher.checkLatest(this)
         // 设置里可能改了「已结束的待办」的样子：数据没变 Diff 不会重绑，这里手动刷一遍
         adapter.refreshStyles()
         if (intent?.getBooleanExtra(EXTRA_FOCUS_QUICK, false) == true) {

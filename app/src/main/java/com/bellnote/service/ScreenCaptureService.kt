@@ -22,6 +22,9 @@ class ScreenCaptureService : AccessibilityService() {
         super.onServiceConnected()
         instance = this
         Log.i(TAG, "截屏服务已连接")
+        // 无障碍服务由系统常驻拉起，比普通页面活得久：截图监听挂在这里，
+        // 进程被冻结/杀掉后系统把它拉回来时，监听和补查也跟着回来。
+        ScreenshotWatcher.ensureStarted(this)
     }
 
     override fun onDestroy() {

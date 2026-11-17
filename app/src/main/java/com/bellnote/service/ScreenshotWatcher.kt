@@ -26,8 +26,11 @@ import com.bellnote.util.ScreenshotRules
  * 截图监听：手机里新出现一张截图时，弹一条「识别这张截图？」的通知，
  * 点一下直接进识别页（带图，自动开始识别）。
  *
- * 注意：进程被系统冻结时收不到回调；App 每次启动会补查最近一张，
- * 所以漏掉的截图在下次打开 App 时仍会提醒（只提醒 15 分钟内的）。
+ * 进程被 realme 冻结/杀掉时收不到回调，所以分三层兜底：
+ * ① 常驻的 [ScreenCaptureService]（无障碍服务）连上时就注册 observer，进程不容易被收走；
+ * ② 每次进程起来（App.onCreate）注册并补查一次；
+ * ③ 回到首页（MainActivity.onResume）再补查一次。
+ * 补查认「4 小时内、最近 30 张图里的截图」，冻结期间或隔着照片拍的截图都不会漏。
  */
 object ScreenshotWatcher {
 
@@ -40,9 +43,26 @@ object ScreenshotWatcher {
     // 单独成组、只让子通知自己弹：否则 App 里有别的通知时，系统会弹「1 条通知」的组摘要，
     // 看不到「识别这张截图？」和按钮（2026-11-17 真机实测）。
     private const val GROUP_SCREENSHOT = "bellnote_screenshot"
-    private const val FRESH_WINDOW_MS = 15 * 60_000L
+    /**
+     * 补查认多新的截图：4 小时。
+     * 原来只认 15 分钟，手机被冻结半天/在别的 App 里截完很久才回首页，就一律不提醒了。
+     */
+    const val FRESH_WINDOW_MS = 4 * 60 * 60_000L
+    /**
+     * 往回翻多少张图找截图：30。
+     * 原来只翻 8 张，中间夹了几张相机/微信图片就把截图挡在窗口外（2026-11-17 真机复现）。
+     */
+    const val SCAN_DEPTH = 30
 
     private var registered = false
+
+    /** 这张截图该不该弹：比上次提醒过的新，而且在新鲜窗口内。纯函数，已单测。 */
+    fun shouldNotify(id: Long, lastShotId: Long, addedAt: Long, now: Long): Boolean {
+        if (id <= lastShotId) return false
+        if (addedAt <= 0L || addedAt > now) return false
+        return now - addedAt <= FRESH_WINDOW_MS
+    }
+
 
     /** 在有相册权限的前提下开始监听；重复调用无副作用。 */
     fun ensureStarted(context: Context) {
@@ -72,9 +92,9 @@ object ScreenshotWatcher {
         if (!Prefs.shotWatchEnabled(context)) return
         if (!Permissions.hasMediaImages(context)) return
         val shot = latestScreenshot(context) ?: return
-        if (shot.id <= Prefs.lastShotId(context)) return
+        val now = System.currentTimeMillis()
+        if (!shouldNotify(shot.id, Prefs.lastShotId(context), shot.addedAt, now)) return
         Prefs.setLastShotId(context, shot.id)
-        if (shot.notifiedAt - shot.addedAt > FRESH_WINDOW_MS) return
         notify(context, shot)
     }
 
@@ -82,7 +102,6 @@ object ScreenshotWatcher {
         val id: Long,
         val uri: Uri,
         val addedAt: Long,
-        val notifiedAt: Long,
         val name: String
     )
 
@@ -107,7 +126,7 @@ object ScreenshotWatcher {
             )?.use { cursor ->
                 var checked = 0
                 var found: Shot? = null
-                while (cursor.moveToNext() && checked < 8 && found == null) {
+                while (cursor.moveToNext() && checked < SCAN_DEPTH && found == null) {
                     checked++
                     val name = cursor.getString(cursor.getColumnIndexOrThrow(nameCol))
                     val path = if (pathCol != null) cursor.getString(cursor.getColumnIndexOrThrow(pathCol)) else null
@@ -118,7 +137,6 @@ object ScreenshotWatcher {
                         id = id,
                         uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id),
                         addedAt = addedAt,
-                        notifiedAt = System.currentTimeMillis(),
                         name = name.orEmpty()
                     )
                 }
