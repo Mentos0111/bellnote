@@ -16,12 +16,48 @@
 .PARAMETER DryRun
   只打印将要做什么，不改文件、不提交、不推送。
 
+.PARAMETER AllowDirty
+  显式放过几个已跟踪的脏路径（逗号分隔，可写文件或目录前缀），默认空 = 一个都不放过。
+  只用于「别的会话正在改、和本次发版无关」的文件；脚本不会替你 stash，也不会提交它们。
+  例：-AllowDirty '任务卡\,docs\'
+  放过的路径会打出来，发版成功后照样再打一次，方便抄进回执。
+
 .EXAMPLE
   .\scripts\release.ps1 -DryRun
 .EXAMPLE
+  .\scripts\release.ps1 -AllowDirty 'AGENTS.md'
+.EXAMPLE
   .\scripts\release.ps1
 #>
-param([switch]$DryRun)
+param([switch]$DryRun, [string]$AllowDirty = '')
+
+# 把 -AllowDirty 的写法统一成「相对仓库根、反斜杠、不带首尾空格」的列表。
+function Split-AllowList([string]$raw) {
+    if (-not $raw) { return @() }
+    $out = @()
+    foreach ($piece in ($raw -split '[,;]')) {
+        $p = $piece.Trim().Trim('"').Trim("'").Replace('/', '\').TrimEnd('\')
+        if ($p) { $out += $p }
+    }
+    return $out
+}
+
+# 挡路文件按「谁的地盘」分组，方便一眼看出该找哪个会话。
+function Get-DirtyGroup([string]$path) {
+    if ($path -like '任务卡\*') { return '任务卡' }
+    if ($path -like '角色\*') { return '角色' }
+    if ($path -like 'app\*' -or $path -like 'scripts\*' -or $path -like '.github\*') { return '业务代码' }
+    return '其它'
+}
+
+# 白名单命中：完全相同，或落在目录前缀下（-AllowDirty 写目录就整目录放过）。
+function Test-Allowed([string]$path, [string[]]$allow) {
+    foreach ($a in $allow) {
+        if ($path -eq $a) { return $true }
+        if ($path -like "$a\*") { return $true }
+    }
+    return $false
+}
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
@@ -61,11 +97,35 @@ try {
         Write-Host "提示：小节日期是 $date，今天是 $today（不拦，确认无误继续）" -ForegroundColor Yellow
     }
 
-    # ---- 3. 工作区必须干净 ----
-    $dirty = git status --porcelain --untracked-files=no
-    if ($dirty) {
-        Write-Host '已跟踪文件有未提交改动，先提交再发版：' -ForegroundColor Yellow
-        $dirty | ForEach-Object { Write-Host "  $_" }
+    # ---- 3. 工作区必须干净（脏就按路径分组列清单，拒绝，不替人 stash）----
+    $allow = Split-AllowList $AllowDirty
+    $dirtyLines = git -c core.quotePath=false status --porcelain --untracked-files=no
+    $dirtyFiles = @()
+    foreach ($line in @($dirtyLines)) {
+        if (-not $line) { continue }
+        $p = $line.Substring(3).Trim()
+        if ($p -match ' -> ') { $p = ($p -split ' -> ')[-1] }
+        $p = $p.Trim('"').Replace('/', '\')
+        $dirtyFiles += $p
+    }
+    $passing = @($dirtyFiles | Where-Object { Test-Allowed $_ $allow })
+    $blocking = @($dirtyFiles | Where-Object { -not (Test-Allowed $_ $allow) })
+    if ($passing.Count -gt 0) {
+        Write-Host '以下脏路径被 -AllowDirty 显式放过（不提交、不动内容，后果自负）：' -ForegroundColor Yellow
+        $passing | ForEach-Object { Write-Host "  [放过] $_" -ForegroundColor Yellow }
+    }
+    if ($blocking.Count -gt 0) {
+        Write-Host '已跟踪文件有未提交改动，发不了版。按地盘分组如下：' -ForegroundColor Yellow
+        foreach ($g in @('任务卡', '角色', '业务代码', '其它')) {
+            $items = @($blocking | Where-Object { (Get-DirtyGroup $_) -eq $g })
+            if ($items.Count -eq 0) { continue }
+            Write-Host "  【$g】$($items.Count) 个" -ForegroundColor Yellow
+            $items | ForEach-Object { Write-Host "    $_" }
+        }
+        Write-Host '处理办法（选一个）：' -ForegroundColor Cyan
+        Write-Host '  1) 自己改的 → 现在 commit 掉；' -ForegroundColor Cyan
+        Write-Host '  2) 别人正在改、与本次发版无关 → 重跑时加 -AllowDirty ''路径1,路径2''（目录写前缀即可）' -ForegroundColor Cyan
+        Write-Host '  3) 不许 git stash / 备份还原绕过检查（那等于把安全带剪了）。' -ForegroundColor Cyan
         throw '工作区不干净'
     }
 
@@ -101,6 +161,9 @@ try {
     Write-Host ''
 
     if ($DryRun) {
+        if ($passing.Count -gt 0) {
+            Write-Host ('DryRun 会放过的脏路径：' + ($passing -join '、')) -ForegroundColor Yellow
+        }
         Write-Host 'DryRun：以上只做检查，未改动任何文件' -ForegroundColor Cyan
         return
     }
@@ -150,6 +213,13 @@ try {
     Write-Host ''
     Write-Host "已推送 $tag。CI 约 3 分钟内出包：" -ForegroundColor Green
     Write-Host "  https://github.com/Mentos0111/bellnote/actions/workflows/release.yml"
+    if ($passing.Count -gt 0) {
+        Write-Host ''
+        Write-Host ('本次发版放过的脏路径（抄进回执留痕）：' + ($passing -join '、')) -ForegroundColor Yellow
+    } else {
+        Write-Host ''
+        Write-Host '本次发版没有放过任何脏路径（工作区本来就是干净的）' -ForegroundColor DarkGray
+    }
 }
 finally {
     Pop-Location
