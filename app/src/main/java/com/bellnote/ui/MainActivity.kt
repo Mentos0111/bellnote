@@ -27,11 +27,13 @@ import com.bellnote.data.HealthCheck
 import com.bellnote.data.Prefs
 import com.bellnote.data.StatusLines
 import com.bellnote.data.TodoItem
+import com.bellnote.data.TodoEvents
 import com.bellnote.data.TodoSpec
 import com.bellnote.data.TodoStore
 import com.bellnote.parser.QuickParse
 import com.bellnote.service.HealthInspector
 import com.bellnote.service.NtfyFetcher
+import com.bellnote.service.NtfyReceiveService
 import com.bellnote.service.ReconcileRunner
 import com.bellnote.service.ScreenshotWatcher
 import com.bellnote.util.DeviceVendor
@@ -609,6 +611,26 @@ class MainActivity : AppCompatActivity() {
         ticker.removeCallbacks(tick)
     }
 
+    /**
+     * 列表跟着数据走：后台服务写完库会发 [TodoEvents]，这里收到就重查一遍。
+     * 只在页面可见时注册，退到后台不占内存、也不白刷。
+     */
+    private val onTodosChanged: (String) -> Unit = {
+        runOnUiThread {
+            if (!isFinishing && !isDestroyed) refresh()
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        TodoEvents.addListener(onTodosChanged)
+    }
+
+    override fun onStop() {
+        TodoEvents.removeListener(onTodosChanged)
+        super.onStop()
+    }
+
     override fun onResume() {
         // 从隐私政策页返回还没同意的话，继续挡着
         com.bellnote.util.PrivacyGate.ensure(this)
@@ -639,19 +661,25 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * 打开 App 是「解锁」最可靠的信号：realme 上闹钟都可能被推迟，
-     * 这里顺手补查一次 ntfy（3 分钟内刚查过就跳过）。
+     * 这里顺手补查一次 ntfy。
+     *
+     * 和「服务在轮询」区分开：
+     * ① 常驻前台服务活着（[NtfyReceiveService.isAlive]）时它每分钟已经查过，这里不再补，
+     *    避免两套节流互相顶掉；
+     * ② 服务没在跑才用 3 分钟节流兜一次；
+     * ③ 写完库由 [TodoEvents] 通知界面刷新，这里不再手动 refresh。
      */
     private fun runCatchUpIfDue() {
         if (!Prefs.ntfyEnabled(this)) return
         if (Prefs.ntfyTopic(this).isBlank()) return
-        if (System.currentTimeMillis() - Prefs.lastCatchUpAt(this) < 3 * 60_000L) return
+        if (NtfyReceiveService.isAlive) return
+        if (System.currentTimeMillis() - Prefs.lastCatchUpAt(this) < CATCH_UP_MIN_GAP_MS) return
         Thread {
             try {
                 NtfyFetcher.catchUp(this)
             } catch (e: Exception) {
                 android.util.Log.w("MainActivity", "补查 ntfy 失败", e)
             }
-            runOnUiThread { refresh() }
         }.start()
     }
 
@@ -879,6 +907,8 @@ class MainActivity : AppCompatActivity() {
         private const val OPEN_START_OFFSET = 0.34f
         /** 和 DrawerLayout 默认遮罩同一个值。 */
         private val SCRIM_FULL = 0x99000000.toInt()
+        /** 打开 App 补查 ntfy 的最小间隔：服务没在跑时才用，别和服务的每分钟轮询互相顶。 */
+        private const val CATCH_UP_MIN_GAP_MS = 3 * 60_000L
     }
 }
 

@@ -7,6 +7,7 @@ import com.bellnote.data.MessageLog
 import com.bellnote.data.Prefs
 import com.bellnote.data.SOURCE_NTFY
 import com.bellnote.data.SpecDiff
+import com.bellnote.data.TodoEvents
 import com.bellnote.data.TodoItem
 import com.bellnote.data.TodoSpec
 import com.bellnote.data.TodoStore
@@ -64,8 +65,17 @@ object TodoIngestor {
             resultOf(outcome),
             detailOf(outcome)
         )
+        // 真的写/改/删了才通知界面：停在首页时列表要自己变，不用等切页面
+        if (shouldRefreshUi(outcome)) TodoEvents.notifyChanged(source)
         return outcome
     }
+
+    /**
+     * 这次处理有没有动到日历数据（新建 / 更新 / 改期 / 删除成功）。
+     * 「没认出时间」「缺权限」这类只丢了消息，不该白刷一遍列表。
+     */
+    fun shouldRefreshUi(outcome: Outcome): Boolean =
+        outcome.wrote > 0 || outcome.updated > 0
 
     private fun handleInternal(
         context: Context,
