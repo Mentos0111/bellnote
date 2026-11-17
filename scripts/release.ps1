@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   一条命令发版：从 CHANGELOG 读版本号 -> 改 build.gradle.kts -> 更新 AGENTS.md 状态快照
   -> 提交 -> 打 tag -> 推送。推送后 GitHub Actions 自动跑单测、构建、正式签名、发 Release。
