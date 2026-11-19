@@ -331,3 +331,6 @@ MIT — see [LICENSE](LICENSE). Third-party components, models and their license
 隐私：不收集任何数据。诊断包（反馈用）不含待办标题、正文与自由文本，也不再收集 logcat，崩溃记录只留异常类名与堆栈帧；API Key 与 ntfy 主题只报「已配置、多少位」；这个包只发给可信的人。联网只有五处：你主动点的云端截图识别、读云端模型列表、发一条 ntfy 测试消息、下载本地模型，以及开启 ntfy 模式后的后台拉取。API Key 以明文存在本机私有目录，云端识别时会作为认证信息发给你自己配置的云服务。系统自动备份与换机迁移已关闭。完整说明见 `app/src/main/java/com/bellnote/util/PrivacyText.kt`。
 
 协议：MIT。第三方组件、模型与字体许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+
+参与贡献：见 [CONTRIBUTING.md](CONTRIBUTING.md)。公开仓库，fork 后提合并请求即可，PR 会自动跑单测；
+`v*` tag 只由维护者打（会触发自动发版）。
