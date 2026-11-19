@@ -1,4 +1,4 @@
-﻿package com.bellnote.parser
+package com.bellnote.parser
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -158,5 +158,26 @@ class QuickParseTest {
     @Test
     fun `跨零点的区间按次日算`() {
         assertEquals(180, parsed("明天22:00到01:00值班")!!.durationMinutes)
+    }
+
+    @Test
+    fun `明晚十点之前交作业 之前不进标题 十点是晚上`() {
+        val result = parsed("明晚十点之前交数学物理方法作业")
+        assertNotNull(result)
+        assertEquals("交数学物理方法作业", result!!.title)
+        assertEquals("2026-11-12T22:00", timeOf("明晚十点之前交数学物理方法作业"))
+    }
+
+    @Test
+    fun `期限词不算标题`() {
+        assertEquals("交作业", parsed("明天十点前交作业")!!.title)
+        assertEquals("交作业", parsed("截止到明天下午三点交作业")!!.title)
+        assertEquals("交作业", parsed("交作业 明晚十点之前")!!.title)
+        assertEquals("去跑步", parsed("十点以后去跑步")!!.title)
+    }
+
+    @Test
+    fun `前台不是期限词`() {
+        assertEquals("去前台开会", parsed("明天十点去前台开会")!!.title)
     }
 }

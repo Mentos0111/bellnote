@@ -23,17 +23,23 @@ object QuickParse {
         val durationMinutes: Int
     )
 
+    /**
+     * 日期词 → 往后几天 + 剪掉之后留下的时段词。
+     * 「明晚」不能整个剪掉：要留一个「晚上」，否则后面的十点会被当成上午十点。
+     */
+    private data class DayWord(val plusDays: Int, val period: String)
+
     private val DAY_WORDS = linkedMapOf(
-        "大后天" to 3,
-        "后天" to 2,
-        "明天" to 1,
-        "明日" to 1,
-        "明早" to 1,
-        "明晚" to 1,
-        "今天" to 0,
-        "今日" to 0,
-        "今晚" to 0,
-        "今早" to 0
+        "大后天" to DayWord(3, ""),
+        "后天" to DayWord(2, ""),
+        "明天" to DayWord(1, ""),
+        "明日" to DayWord(1, ""),
+        "明早" to DayWord(1, "早上"),
+        "明晚" to DayWord(1, "晚上"),
+        "今天" to DayWord(0, ""),
+        "今日" to DayWord(0, ""),
+        "今晚" to DayWord(0, "晚上"),
+        "今早" to DayWord(0, "早上")
     )
 
     private val WEEKDAY = Regex("(这|本|下)?(?:周|星期|礼拜)([一二三四五六日天])")
@@ -47,6 +53,13 @@ object QuickParse {
 
     /** 起止之间只允许出现这些连接符：「九点五十到十一点二十五」「9:50-11:25」。 */
     private val RANGE_SEPARATOR = Regex("^(到|至|~|～|-|—|－|–)$")
+
+    /**
+     * 时间点前后紧贴的期限词：「十点之前交作业」「截止到十点」。
+     * 这些词只是「什么时候」的补充说明，剪掉才对，不然标题会变成「之前交作业」。
+     */
+    private val DEADLINE_BEFORE = Regex("(?:截止|截至|最晚|限)\\s*(?:到|至)?\\s*$")
+    private val DEADLINE_AFTER = Regex("^[\\s，,、]*(?:之前|以前|之内|以内|之后|以后|为止|前|后)")
 
     /** 中文数字（时间用，最大到 59）。 */
     private const val CN_NUMBER_CHARS = "零〇一二两三四五六七八九十"
@@ -120,11 +133,14 @@ object QuickParse {
                 }
             }
             if (date == null) {
-                for ((word, plus) in DAY_WORDS) {
+                for ((word, dayWord) in DAY_WORDS) {
                     if (rest.contains(word)) {
-                        date = nowDate.toLocalDate().plusDays(plus.toLong())
+                        date = nowDate.toLocalDate().plusDays(dayWord.plusDays.toLong())
                         dateExplicit = true
-                        rest = rest.replace(word, " ")
+                        rest = rest.replace(
+                            word,
+                            if (dayWord.period.isEmpty()) " " else " ${dayWord.period} "
+                        )
                         break
                     }
                 }
@@ -170,7 +186,7 @@ object QuickParse {
         }
         val h = startHour
         if (h !in 0..23 || startMinute !in 0..59) return null
-        timeMatch?.let { rest = rest.removeRange(it) }
+        timeMatch?.let { rest = removeTimeWithDeadline(rest, it) }
 
         val baseDate = date ?: nowDate.toLocalDate()
         var start: LocalDateTime
@@ -257,6 +273,15 @@ object QuickParse {
         prefix in setOf("下午", "傍晚", "晚上", "夜里", "晚") -> if (hour in 0..11) hour + 12 else hour
         prefix == "凌晨" -> if (hour == 12) 0 else hour
         else -> hour
+    }
+
+    /** 把时间点连同前后紧贴的期限词一起剪掉：「明晚十点之前交作业」→「交作业」。 */
+    private fun removeTimeWithDeadline(text: String, range: IntRange): String {
+        var from = range.first
+        var to = range.last
+        DEADLINE_BEFORE.find(text.substring(0, from))?.let { from = it.range.first }
+        DEADLINE_AFTER.find(text.substring(to + 1))?.let { to += it.value.length }
+        return text.removeRange(from..to)
     }
 
     private fun cleanTitle(rest: String, raw: String): String? {
