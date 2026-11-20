@@ -402,7 +402,7 @@ jobs:
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Push the tag to Gitee
+      - name: Push main branch and tags to Gitee
         if: steps.gate.outputs.enabled == 'true'
         env:
           GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
@@ -414,9 +414,11 @@ jobs:
           git remote add gitee "https://oauth2:${GITEE_TOKEN}@gitee.com/${GITEE_OWNER}/${GITEE_REPO}.git" 2>/dev/null || \
             git remote set-url gitee "https://oauth2:${GITEE_TOKEN}@gitee.com/${GITEE_OWNER}/${GITEE_REPO}.git"
           # 令牌不能落到日志里：git 报错会带远端地址，统一过一遍脱敏
-          # 除了本版 tag，再强制推一个 latest（Gitee 上「永远指向最新版」的发行版挂在这上面）
-          { git push -f gitee "refs/tags/${TAG}:refs/tags/${TAG}" "refs/tags/${TAG}:refs/tags/latest" || \
-            echo "::warning::tag 推送失败（多半是 Gitee 上还没有这个 tag，先本地 git push 一次）"; } 2>&1 \
+          # 推三样：main 分支（代码页不再停在旧提交）、本版 tag、以及强制指向本版的 latest
+          git fetch --no-tags origin main
+          { git push -f gitee "FETCH_HEAD:refs/heads/main" \
+              "refs/tags/${TAG}:refs/tags/${TAG}" "refs/tags/${TAG}:refs/tags/latest" || \
+            echo "::warning::Gitee 推送失败（检查 Secrets 权限或 Gitee 仓库是否存在）"; } 2>&1 \
             | sed "s|${GITEE_TOKEN}|***|g"
 
       - name: Build Gitee release notes
