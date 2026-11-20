@@ -81,8 +81,14 @@ android {
 
         // 只打 arm64。ML Kit 的 OCR native 库每个架构 7~12MB，四份就是 41MB；
         // 现在市面上的手机基本都 arm64，留一个能省 30MB。
+        // 例外：测试台（tools\testlab.ps1）跑的是电脑上的 x86_64 模拟器，脚本会临时设
+        // BELLNOTE_TEST_ABI=1，这时多带一个 x86_64。不设这个变量时行为与原来完全一致。
         ndk {
-            abiFilters += listOf("arm64-v8a")
+            abiFilters += if (System.getenv("BELLNOTE_TEST_ABI") == "1") {
+                listOf("arm64-v8a", "x86_64")
+            } else {
+                listOf("arm64-v8a")
+            }
         }
 
         // 礼包预置值（普通构建为空，见上方 bellnoteSeed）
