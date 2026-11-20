@@ -106,6 +106,10 @@ class MainActivity : AppCompatActivity() {
         ThemeManager.apply(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        // 光晕必须用代码生成：API 26 解析「主题色渐变」的 XML 会抛 Resources$NotFoundException，
+        // 一开首页就崩（见 brandHaloDrawable 注释）。颜色仍取主题色。
+        findViewById<View>(R.id.brandHalo).background =
+            brandHaloDrawable(StatusColors.attr(this, R.attr.bnPrimary))
         DeviceVendor.log(this)
         maybePlaySplash()
         com.bellnote.util.PrivacyGate.ensure(this)
@@ -808,6 +812,23 @@ class MainActivity : AppCompatActivity() {
 
     private val restorePrimaryGlow = Runnable {
         startBrandPulse(StatusColors.attr(this, R.attr.bnPrimary))
+    }
+
+    /**
+     * 首页品牌光晕：96dp×54dp 的椭圆径向渐变，半径 27dp。
+     *
+     * 以前放在 res/drawable/bg_brand_halo.xml 里（startColor="?attr/bnPrimary"）。Android 8.0/API 26
+     * 解析这种「主题色渐变」有个系统 bug，直接抛 Resources$NotFoundException：
+     * `<gradient> tag requires 'gradientRadius' attribute with radial type`，导致首页一开就崩。
+     * 现在改成代码生成，颜色仍取主题色，形状/半径/透明度与原来完全一致（另见 2026-11-20 测试台）。
+     */
+    private fun brandHaloDrawable(color: Int): android.graphics.drawable.GradientDrawable {
+        val drawable = android.graphics.drawable.GradientDrawable()
+        drawable.shape = android.graphics.drawable.GradientDrawable.OVAL
+        drawable.gradientType = android.graphics.drawable.GradientDrawable.RADIAL_GRADIENT
+        drawable.gradientRadius = 27f * resources.displayMetrics.density
+        drawable.colors = intArrayOf(color, android.graphics.Color.TRANSPARENT)
+        return drawable
     }
 
     /** 只有背景光晕在动：整团椭圆光晕的透明度/横向尺度 + 文字描边光一起呼吸。>_ 保持静止。 */

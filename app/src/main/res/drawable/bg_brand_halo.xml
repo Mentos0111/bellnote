@@ -1,4 +1,7 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 已废弃（2026-11-20）：API 26 解析主题色渐变会抛 Resources$NotFoundException，首页一开就崩。
+     现在由 MainActivity.brandHaloDrawable() 在代码里生成同样的椭圆径向渐变，本文件不再被引用。
+     不要重新拿它当背景，除非确认 minSdk 提到 27。 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval">
     <!-- 横向拉伸后就是一团椭圆光晕（代码里 scaleX），不用矩形背景，避免看出卡片边 -->
