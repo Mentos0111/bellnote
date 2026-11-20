@@ -21,6 +21,7 @@ import json
 import mimetypes
 import os
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -119,17 +120,28 @@ def upload(token, owner, repo, release_id, apk_path, remote_name=None):
     body = b"".join(parts)
     url = "%s/repos/%s/%s/releases/%s/attach_files?access_token=%s" % (
         API, owner, repo, release_id, urllib.parse.quote(token))
-    req = urllib.request.Request(url, data=body, method="POST", headers={
-        "Content-Type": "multipart/form-data; boundary=%s" % boundary,
-        "Content-Length": str(len(body)),
-        "User-Agent": "bellnote-release-bot",
-    })
-    try:
-        with urllib.request.urlopen(req, timeout=300) as r:
-            return json.loads(r.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
-        raise RuntimeError("上传 %s 失败 HTTP %s: %s" % (
-            name, e.code, e.read().decode("utf-8", "replace")[:600]))
+
+    # 从 GitHub 的机器往 Gitee 传 27MB，实测经常在最后几秒「写超时」；
+    # 多试几次、每次多等一会儿，能救回大部分抖动（本机传一般 10 秒内完事）。
+    last_err = None
+    for attempt in range(1, 4):
+        req = urllib.request.Request(url, data=body, method="POST", headers={
+            "Content-Type": "multipart/form-data; boundary=%s" % boundary,
+            "Content-Length": str(len(body)),
+            "User-Agent": "bellnote-release-bot",
+        })
+        try:
+            with urllib.request.urlopen(req, timeout=600) as r:
+                return json.loads(r.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            raise RuntimeError("上传 %s 失败 HTTP %s: %s" % (
+                name, e.code, e.read().decode("utf-8", "replace")[:600]))
+        except Exception as e:  # 超时/连接重置：重试
+            last_err = e
+            print("上传 %s 第 %d 次失败：%s，%d 秒后重试" % (name, attempt, e, 10 * attempt))
+            if attempt < 3:
+                time.sleep(10 * attempt)
+    raise RuntimeError("上传 %s 连续 3 次失败：%s" % (name, last_err))
 
 
 LATEST_TAG = "latest"
