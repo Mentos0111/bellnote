@@ -239,7 +239,7 @@ jobs:
           ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ref || github.ref }}
 
       - name: Download APK artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: bellnote-apk
           path: dist
@@ -383,7 +383,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download APK artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: bellnote-apk
           path: dist
