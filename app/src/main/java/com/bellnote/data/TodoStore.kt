@@ -53,6 +53,7 @@ const val STATUS_DELETED = "deleted"
 const val SOURCE_NTFY = "ntfy"
 const val SOURCE_MANUAL = "manual"
 const val SOURCE_SHOT = "shot"
+const val SOURCE_AI = "ai"
 const val SOURCE_BASELINE = "baseline"
 
 /** 本地账本：ntfy 发过来的清单落在这里，写日历成功与否都记一笔。 */

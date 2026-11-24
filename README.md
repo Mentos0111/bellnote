@@ -39,6 +39,10 @@ default, and needs no account.
 - **Quick capture from other apps**: share an image to Bellnote from WeChat / Photos, long-press the
   launcher icon for shortcuts (screenshot / new todo / all events), or let Bellnote watch for new
   screenshots and offer to turn them into todos with one tap.
+- **AI assist for typed text**: the small **AI** button beside the quick-entry field sends the
+  sentence to your cloud model or on-device model, then opens the edit screen (or a checkable list
+  when it finds several todos). If no model is configured or the request fails, it falls back to the
+  local rule parser instead of losing what you typed.
 - **All events, not just ours**: the 全部日程 page lists everything in the phone’s writable calendars —
   including events created by other apps or by hand — grouped by day. Tap an event to edit, delete, or
   “adopt” it into Bellnote’s ledger so reconcile manages it from then on.
@@ -121,6 +125,7 @@ status text — is ignored instead of being dumped an hour from now. Turn this o
 | `data/Reconciler` | diff engine: local ledger vs calendar → missing / extra / changed (pure function, unit-tested) |
 | `service/ReconcileScheduler` | `AlarmManager` self-rescheduling timer — no WorkManager dependency |
 | `ai/VisionExtractor` | screenshot → JSON via a vision model (optional) |
+| `ai/TextExtractor` | typed sentence → JSON via a cloud model (optional) |
 
 Events are tagged with `ORGANIZER = bellnote@local` and `[bellnote]` in the description, so the app
 can list only its own entries and never touch your other calendars.
@@ -280,6 +285,8 @@ MIT — see [LICENSE](LICENSE). Third-party components, models and their license
 > 2.9 起定位改成「**截图建待办为主**」：首页第一个大按钮就是截图识别，ntfy 只是其中一种输入源。
 
 - **首页以截图为主入口**：大按钮「截图建待办」，下面才是手动添加 / 全部日程 / 对账 / 设置
+- **输入框旁的「AI」**：把这一句交给云端 / 本地模型整理成待办，先给你确认再入日历；
+  没配模型或识别失败会自动退回本地规则，不会白写
 - **其它 App 截图也能快速建待办**：分享图片到 Bellnote、长按桌面图标用快捷方式、
   或者截完图自动弹「识别这张截图？」（需要一次相册读取权限）
 - **全部日程**：列出手机所有可写日历里的事件（别的 App 建的、手建的都算），按天分组；
