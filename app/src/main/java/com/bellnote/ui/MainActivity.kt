@@ -1,7 +1,10 @@
 package com.bellnote.ui
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -9,6 +12,8 @@ import android.view.Gravity
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -19,12 +24,17 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bellnote.App
+import com.bellnote.ai.LocalLlm
+import com.bellnote.ai.TextEnginePlan
+import com.bellnote.ai.TextExtractor
+import com.bellnote.ai.VisionExtractor
 import com.bellnote.util.ThemeManager
 import com.bellnote.R
 import com.bellnote.data.CalendarRepository
 import com.bellnote.data.MANUAL_DEFAULT_DURATION_MINUTES
 import com.bellnote.data.HealthCheck
 import com.bellnote.data.Prefs
+import com.bellnote.data.SOURCE_AI
 import com.bellnote.data.StatusLines
 import com.bellnote.data.TodoItem
 import com.bellnote.data.TodoEvents
@@ -64,6 +74,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var emptyView: TextView
     private lateinit var drawer: DrawerLayout
     private lateinit var etQuick: EditText
+    /** 首页输入框旁边那颗「AI」：把这一句交给云端 / 本地模型，而不是只走本地规则。 */
+    private lateinit var btnQuickAi: TextView
+    private var aiRunning = false
+    private var aiDialog: AlertDialog? = null
+    /** 批量写入前先要日历权限；授权回来后继续写这一批。 */
+    private var pendingAiSpecs: List<TodoSpec>? = null
     private var pendingCameraUri: Uri? = null
     /** 抽屉还在滑回时要执行的动作（见 afterDrawerClosed）。 */
     private var pendingDrawerAction: (() -> Unit)? = null
@@ -73,6 +89,21 @@ class MainActivity : AppCompatActivity() {
     private val requestCalendar = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { refresh() }
+
+    /** AI 多条待办写入前补要日历权限，授权成功后继续写。 */
+    private val requestCalendarForAi = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { granted ->
+        val pending = pendingAiSpecs
+        pendingAiSpecs = null
+        if (pending != null) {
+            if (granted.values.all { it }) {
+                saveAiSpecs(pending)
+            } else {
+                toast("没有日历权限，写不进系统日历")
+            }
+        }
+    }
 
     /** 拍照建待办：系统相机拍完，图存进 App 缓存，直接进识别页。 */
     private val takePicture = registerForActivityResult(
@@ -229,6 +260,8 @@ class MainActivity : AppCompatActivity() {
     /** 首页顶部「一句话记」：敲完回车 / 点「记」→ 本地解析 → 填好编辑页给你确认。 */
     private fun setupQuickAdd() {
         findViewById<View>(R.id.btnQuickGo).setOnClickListener { submitQuick() }
+        btnQuickAi = findViewById(R.id.btnQuickAi)
+        btnQuickAi.setOnClickListener { submitQuickWithAi() }
         etQuick.setOnLongClickListener {
             startVoiceInput()
             true
@@ -271,6 +304,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun submitQuick() {
+        if (aiRunning) return
         val text = etQuick.text.toString().trim()
         if (text.isEmpty()) {
             toast(getString(R.string.quick_empty))
@@ -299,6 +333,284 @@ class MainActivity : AppCompatActivity() {
                     )
                 )
             )
+        }
+    }
+
+    /**
+     * 「AI」按钮：把输入框里的一句话交给云端模型 / 本地模型，而不是只走本地规则。
+     *
+     * 顺序由 [TextEnginePlan] 决定：云端（开着 + 有 Key）→ 本地模型（开着 + 已下载）。
+     * 两边都没准备好就弹设置提示；任意一步失败都退回 [QuickParse]，
+     * 和原来点「记」的体验一致，不会让用户白写一句话。
+     */
+    private fun submitQuickWithAi() {
+        if (aiRunning) return
+        val text = etQuick.text.toString().trim()
+        if (text.isEmpty()) {
+            focusQuick(getString(R.string.quick_empty))
+            return
+        }
+
+        val hasKey = Prefs.apiKey(this).isNotBlank()
+        val llmReady = LocalLlm.isReady(this)
+        val chain = TextEnginePlan.chain(
+            cloudOn = Prefs.cloudModelEnabled(this),
+            hasKey = hasKey,
+            localOn = Prefs.localModelEnabled(this),
+            llmReady = llmReady
+        )
+        if (chain.isEmpty()) {
+            showAiNotReady(hasKey, llmReady)
+            return
+        }
+
+        aiRunning = true
+        btnQuickAi.isEnabled = false
+        btnQuickAi.alpha = 0.5f
+        etQuick.isEnabled = false
+        showAiProgress()
+        val now = System.currentTimeMillis()
+        val online = isOnline()
+
+        Thread {
+            val notes = mutableListOf<String>()
+            var outcome: VisionExtractor.Outcome? = null
+            for (engine in chain) {
+                when (engine) {
+                    TextEnginePlan.Engine.CLOUD -> {
+                        if (!online) {
+                            notes += "当前没有网络"
+                            continue
+                        }
+                        val result = TextExtractor.extract(
+                            apiKey = Prefs.apiKey(this),
+                            model = Prefs.model(this),
+                            text = text,
+                            now = now,
+                            baseUrl = Prefs.cloudBaseUrl(this)
+                        )
+                        if (result.specs.isNotEmpty()) {
+                            outcome = result
+                            break
+                        }
+                        notes += "云端：${result.error ?: "没有结果"}"
+                    }
+
+                    TextEnginePlan.Engine.LLM -> {
+                        val result = LocalLlm.extract(this, text, now)
+                        if (result.specs.isNotEmpty()) {
+                            outcome = result
+                            break
+                        }
+                        notes += "本地模型：${result.error ?: "没有结果"}"
+                    }
+                }
+            }
+
+            val specs = outcome?.specs.orEmpty()
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                aiRunning = false
+                btnQuickAi.isEnabled = true
+                btnQuickAi.alpha = 1f
+                etQuick.isEnabled = true
+                dismissAiProgress()
+                if (specs.isEmpty()) {
+                    fallbackToLocalRule(text, notes)
+                    return@runOnUiThread
+                }
+                if (specs.size == 1) {
+                    etQuick.setText("")
+                    val spec = specs.first()
+                    val hint = if (notes.isEmpty()) "" else "（${notes.first().take(20)}）"
+                    toast("AI 已识别$hint：${spec.title}　${TimeFormat.full(spec.startMillis)}")
+                    startActivity(EditActivity.intentForSpec(this, spec))
+                } else {
+                    confirmAiBatch(specs)
+                }
+            }
+        }.start()
+    }
+
+    /** 两个 AI 入口都没配置好时，说清缺什么，并把「先用本地规则」留成一条退路。 */
+    private fun showAiNotReady(hasKey: Boolean, llmReady: Boolean) {
+        val extra = buildString {
+            if (Prefs.cloudModelEnabled(this@MainActivity) && !hasKey) {
+                append("\n\n云端模型开着，但还没填 API Key。")
+            }
+            if (Prefs.localModelEnabled(this@MainActivity) && !llmReady) {
+                append("\n\n本地模型开着，但模型文件还没下载完。")
+            }
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.quick_ai_not_ready_title)
+            .setMessage(getString(R.string.quick_ai_not_ready_message) + extra)
+            .setPositiveButton(R.string.quick_ai_go_settings) { _, _ ->
+                startActivity(Intent(this, SettingsActivity::class.java))
+            }
+            .setNeutralButton(R.string.quick_ai_use_local) { _, _ -> submitQuick() }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
+    /** AI 请求可能等十几秒，弹一个不可取消的小转圈；页面被回收时在 onDestroy 收掉。 */
+    private fun showAiProgress() {
+        dismissAiProgress()
+        val density = resources.displayMetrics.density
+        val pad = (20 * density).toInt()
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(pad, pad, pad, pad)
+        }
+        row.addView(ProgressBar(this))
+        row.addView(
+            TextView(this).apply {
+                text = getString(R.string.quick_ai_progress)
+                setTextColor(StatusColors.attr(this@MainActivity, R.attr.bnTextPrimary))
+                setPadding(pad, 0, 0, 0)
+            }
+        )
+        aiDialog = AlertDialog.Builder(this)
+            .setView(row)
+            .setCancelable(false)
+            .create()
+        aiDialog?.show()
+    }
+
+    private fun dismissAiProgress() {
+        try {
+            aiDialog?.dismiss()
+        } catch (_: Exception) {
+            // 页面已经销毁时 dialog 可能已经不在窗口上
+        }
+        aiDialog = null
+    }
+
+    /** AI 两级都失败：退回原来的本地规则；再不行就按老办法填好标题和时间。 */
+    private fun fallbackToLocalRule(text: String, notes: List<String>) {
+        val parsed = QuickParse.parse(text, System.currentTimeMillis())
+        etQuick.setText("")
+        val prefix = if (notes.isEmpty()) "AI 没认出" else "AI 没成功"
+        if (parsed != null) {
+            toast("$prefix，已用本地规则填好")
+            startActivity(
+                EditActivity.intentForSpec(
+                    this,
+                    TodoSpec(parsed.title, parsed.startMillis, parsed.durationMinutes)
+                )
+            )
+        } else {
+            toast("$prefix，自己点一下时间")
+            startActivity(
+                EditActivity.intentForSpec(
+                    this,
+                    TodoSpec(
+                        title = text.take(40),
+                        startMillis = alignedNextHour(),
+                        durationMinutes = MANUAL_DEFAULT_DURATION_MINUTES
+                    )
+                )
+            )
+        }
+    }
+
+    /** 多条 AI 结果先核对日历里是否已有，再弹勾选。 */
+    private fun confirmAiBatch(specs: List<TodoSpec>) {
+        Thread {
+            val repo = CalendarRepository(this)
+            val duplicate = BooleanArray(specs.size)
+            for (i in specs.indices) {
+                duplicate[i] = try {
+                    repo.findOwnEvents(specs[i].title, specs[i].startMillis).isNotEmpty()
+                } catch (e: Exception) {
+                    false
+                }
+            }
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                showAiBatchDialog(specs, duplicate)
+            }
+        }.start()
+    }
+
+    private fun showAiBatchDialog(specs: List<TodoSpec>, duplicate: BooleanArray) {
+        if (duplicate.all { it }) {
+            toast("这几条日历里都有了")
+            return
+        }
+        val labels = specs.mapIndexed { index, spec ->
+            val suffix = if (duplicate[index]) "（已在日历里）" else ""
+            "${spec.title}｜${TimeFormat.monthDay(spec.startMillis)} · ${spec.durationMinutes} 分钟$suffix"
+        }.toTypedArray()
+        val checked = BooleanArray(specs.size) { !duplicate[it] }
+        AlertDialog.Builder(this)
+            .setTitle("AI 识别到 ${specs.size} 条待办")
+            .setMultiChoiceItems(labels, checked) { _, which, isChecked -> checked[which] = isChecked }
+            .setPositiveButton("写入选中") { _, _ ->
+                val picked = specs.filterIndexed { index, _ -> checked[index] }
+                if (picked.isEmpty()) {
+                    toast("一条都没选，没有写入")
+                } else {
+                    etQuick.setText("")
+                    saveAiSpecs(picked)
+                }
+            }
+            .setNeutralButton("只看第一条") { _, _ ->
+                etQuick.setText("")
+                startActivity(EditActivity.intentForSpec(this, specs.first()))
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
+    /** 多条 AI 结果直接写日历；先补权限，再写账本，来源记成 ai。 */
+    private fun saveAiSpecs(specs: List<TodoSpec>) {
+        if (specs.isEmpty()) return
+        if (!Permissions.hasCalendar(this)) {
+            pendingAiSpecs = specs
+            requestCalendarForAi.launch(
+                arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR)
+            )
+            return
+        }
+        Thread {
+            val repo = CalendarRepository(this)
+            val store = TodoStore(this)
+            val calendarId = repo.defaultCalendarId()
+            if (calendarId <= 0) {
+                runOnUiThread {
+                    if (!isFinishing && !isDestroyed) {
+                        toast("没有可写入的日历，先去设置里选一个")
+                    }
+                }
+                return@Thread
+            }
+            var done = 0
+            for (spec in specs) {
+                val eventId = repo.insertEvent(spec, calendarId)
+                if (eventId > 0) {
+                    store.record(spec, eventId, SOURCE_AI)
+                    done++
+                }
+            }
+            val saved = done
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                toast("已写入 $saved / ${specs.size} 条")
+                refresh()
+            }
+        }.start()
+    }
+
+    private fun isOnline(): Boolean {
+        return try {
+            val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val net = cm.activeNetwork ?: return false
+            val caps = cm.getNetworkCapabilities(net) ?: return false
+            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        } catch (e: Exception) {
+            true
         }
     }
 
@@ -615,6 +927,11 @@ class MainActivity : AppCompatActivity() {
         // 微光和光标只在页面上跑，切走就停，别在后台烧电
         stopBrandPulse()
         ticker.removeCallbacks(tick)
+    }
+
+    override fun onDestroy() {
+        dismissAiProgress()
+        super.onDestroy()
     }
 
     /**

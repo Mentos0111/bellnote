@@ -89,6 +89,13 @@
     <string name="quick_hint">记一条待办…</string>
     <string name="quick_go">记</string>
     <string name="quick_empty">先写一句要记的事</string>
+    <string name="quick_ai_label">AI</string>
+    <string name="quick_ai_desc">用 AI 识别这句话并填写待办</string>
+    <string name="quick_ai_progress">AI 正在理解这句话…</string>
+    <string name="quick_ai_not_ready_title">AI 识别还没准备好</string>
+    <string name="quick_ai_not_ready_message">要用 AI 识别文字，至少需要一种模型：\n\n· 云端模型：设置 → 输入渠道 →「云端模型」，填 API Key\n· 本地模型：设置 → 输入渠道 →「本地模型」，下载模型文件\n\n也可以先用本地规则记这一条。</string>
+    <string name="quick_ai_go_settings">去设置</string>
+    <string name="quick_ai_use_local">先用本地规则</string>
 
     <!-- 侧边抽屉 -->
     <string name="nav_title">Bellnote</string>
